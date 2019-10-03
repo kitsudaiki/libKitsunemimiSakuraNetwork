@@ -24,7 +24,8 @@ HEADERS += \
     ../include/libKitsuneProjectCommon/network_session/session.h \
     ../include/libKitsuneProjectCommon/network_session/session_handler.h \
     network_session/timer_thread.h \
-    network_session/messages.h
+    network_session/messages.h \
+    network_session/callbacks.h
 
 SOURCES += \
     network_session/timer_thread.cpp \
