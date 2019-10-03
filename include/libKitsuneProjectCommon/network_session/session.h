@@ -10,12 +10,10 @@
 #define SESSION_H
 
 #include <iostream>
+#include <abstract_socket.h>
 
 namespace Kitsune
 {
-namespace Network {
-class AbstractSocket;
-}
 namespace Project
 {
 namespace Common
@@ -25,7 +23,6 @@ struct Session
 {
     uint32_t sessionId = 0;
     Network::AbstractSocket* socket = nullptr;
-
 
     Session() {}
     ~Session() {}

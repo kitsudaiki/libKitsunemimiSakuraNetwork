@@ -21,16 +21,12 @@ INCLUDEPATH += $$PWD \
                $$PWD/../include/libKitsuneProjectCommon
 
 HEADERS += \
-    session_protocol/timer_thread.h \
-    session_protocol/session.h \
-    session_protocol/session_handler.h \
-    session_protocol/session_message_trigger.h \
-    session_protocol/session_connection_trigger.h \
-    session_protocol/messages.h
+    ../include/libKitsuneProjectCommon/network_session/session.h \
+    ../include/libKitsuneProjectCommon/network_session/session_handler.h \
+    network_session/timer_thread.h \
+    network_session/messages.h
 
 SOURCES += \
-    session_protocol/timer_thread.cpp \
-    session_protocol/session_handler.cpp \
-    session_protocol/session_message_trigger.cpp \
-    session_protocol/session_connection_trigger.cpp
+    network_session/timer_thread.cpp \
+    network_session/session_handler.cpp
 

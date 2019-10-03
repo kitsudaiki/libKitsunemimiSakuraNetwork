@@ -6,10 +6,8 @@
  *  @copyright  Apache License Version 2.0
  */
 
-#include "session_handler.h"
-#include <session_protocol/timer_thread.h>
-#include <session_protocol/session_connection_trigger.h>
-#include <session_protocol/session_message_trigger.h>
+#include <network_session/session_handler.h>
+#include <network_session/timer_thread.h>
 
 namespace Kitsune
 {
@@ -19,8 +17,6 @@ namespace Common
 {
 
 Kitsune::Project::Common::TimerThread* SessionHandler::m_timerThread = nullptr;
-Kitsune::Project::Common::SessionConnectionTrigger* SessionHandler::m_connectionTrigger = nullptr;
-Kitsune::Project::Common::SessionMessageTrigger* SessionHandler::m_messageTrigger = nullptr;
 
 /**
  * @brief Session::Session
@@ -31,14 +27,6 @@ SessionHandler::SessionHandler()
     {
         m_timerThread = new TimerThread;
         m_timerThread->start();
-    }
-
-    if(m_connectionTrigger == nullptr) {
-        m_connectionTrigger = new SessionConnectionTrigger(this);
-    }
-
-    if(m_messageTrigger == nullptr) {
-        m_messageTrigger = new SessionMessageTrigger();
     }
 }
 

@@ -6,9 +6,9 @@
  *  @copyright  Apache License Version 2.0
  */
 
-#include <session_protocol/timer_thread.h>
+#include <network_session/timer_thread.h>
 #include <abstract_socket.h>
-#include <session_protocol/session.h>
+#include <network_session/session.h>
 
 namespace Kitsune
 {

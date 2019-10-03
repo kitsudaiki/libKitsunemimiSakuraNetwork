@@ -13,7 +13,7 @@
 #include <vector>
 #include <map>
 
-#include <session_protocol/session.h>
+#include <network_session/session.h>
 
 namespace Kitsune
 {
@@ -25,8 +25,6 @@ namespace Project
 namespace Common
 {
 class TimerThread;
-class SessionMessageTrigger;
-class SessionConnectionTrigger;
 
 class SessionHandler
 {
@@ -35,8 +33,6 @@ public:
     ~SessionHandler();
 
     static Kitsune::Project::Common::TimerThread* m_timerThread;
-    static Kitsune::Project::Common::SessionConnectionTrigger* m_connectionTrigger;
-    static Kitsune::Project::Common::SessionMessageTrigger* m_messageTrigger;
 
     // server
     uint32_t addUnixDomainServer(const std::string socketFile);
