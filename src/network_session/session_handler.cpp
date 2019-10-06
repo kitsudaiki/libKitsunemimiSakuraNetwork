@@ -19,6 +19,8 @@
 
 #include <network_session/callbacks.h>
 
+#include <logger/logger.h>
+
 namespace Kitsune
 {
 namespace Project
@@ -27,16 +29,25 @@ namespace Common
 {
 
 Kitsune::Project::Common::TimerThread* SessionHandler::m_timerThread = nullptr;
+Kitsune::Project::Common::SessionHandler* SessionHandler::m_sessionHandler = nullptr;
 
 /**
  * @brief Session::Session
  */
-SessionHandler::SessionHandler()
+SessionHandler::SessionHandler(void* target,
+                               void (*processSession)(void*, Session))
 {
+    m_target = target;
+    m_processSession = processSession;
+
     if(m_timerThread == nullptr)
     {
         m_timerThread = new TimerThread;
         m_timerThread->start();
+    }
+
+    if(m_sessionHandler == nullptr) {
+        m_sessionHandler = this;
     }
 }
 
@@ -78,7 +89,7 @@ uint32_t
 SessionHandler::addTcpServer(const uint16_t port)
 {
     Network::TcpServer* server = new Network::TcpServer(this,
-                                                        &processConnectionUnixDomain);
+                                                        &processConnectionTcp);
     server->initServer(port);
     server->start();
 
@@ -101,7 +112,7 @@ SessionHandler::addTlsTcpServer(const uint16_t port,
                                 const std::string keyFile)
 {
     Network::TlsTcpServer* server = new Network::TlsTcpServer(this,
-                                                              &processConnectionUnixDomain,
+                                                              &processConnectionTlsTcp,
                                                               certFile,
                                                               keyFile);
     server->initServer(port);
@@ -159,18 +170,20 @@ SessionHandler::getServer(const uint32_t id)
  * @param socketFile
  */
 void
-SessionHandler::addUnixDomainSession(const std::string socketFile)
+SessionHandler::startUnixDomainSession(const std::string socketFile)
 {
     Network::UnixDomainSocket* unixDomainSocket = new Network::UnixDomainSocket(socketFile);
     unixDomainSocket->initClientSide();
+    unixDomainSocket->setMessageCallback(this, &processMessageUnixDomain);
     unixDomainSocket->start();
 
-    m_sessionIdCounter++;
     Session newSession;
     newSession.socket = unixDomainSocket;
-    newSession.sessionId = m_sessionIdCounter;
+    newSession.sessionId = increaseSessionIdCounter();
 
     addPendingSession(m_sessionIdCounter, newSession);
+
+    sendSessionInitStart(newSession.sessionId, newSession.socket);
 }
 
 /**
@@ -179,19 +192,21 @@ SessionHandler::addUnixDomainSession(const std::string socketFile)
  * @param port
  */
 void
-SessionHandler::addTcpSession(const std::string address,
-                              const uint16_t port)
+SessionHandler::startTcpSession(const std::string address,
+                                const uint16_t port)
 {
     Network::TcpSocket* tcpSocket = new Network::TcpSocket(address, port);
     tcpSocket->initClientSide();
+    tcpSocket->setMessageCallback(this, &processMessageTcp);
     tcpSocket->start();
 
-    m_sessionIdCounter++;
     Session newSession;
     newSession.socket = tcpSocket;
-    newSession.sessionId = m_sessionIdCounter;
+    newSession.sessionId = increaseSessionIdCounter();
 
     addPendingSession(m_sessionIdCounter, newSession);
+
+    sendSessionInitStart(newSession.sessionId, newSession.socket);
 }
 
 /**
@@ -202,24 +217,26 @@ SessionHandler::addTcpSession(const std::string address,
  * @param keyFile
  */
 void
-SessionHandler::addTlsTcpSession(const std::string address,
-                                 const uint16_t port,
-                                 const std::string certFile,
-                                 const std::string keyFile)
+SessionHandler::startTlsTcpSession(const std::string address,
+                                   const uint16_t port,
+                                   const std::string certFile,
+                                   const std::string keyFile)
 {
     Network::TlsTcpSocket* tlsTcpSocket = new Network::TlsTcpSocket(address,
                                                                     port,
                                                                     certFile,
                                                                     keyFile);
     tlsTcpSocket->initClientSide();
+    tlsTcpSocket->setMessageCallback(this, &processMessageTlsTcp);
     tlsTcpSocket->start();
 
-    m_sessionIdCounter++;
     Session newSession;
     newSession.socket = tlsTcpSocket;
-    newSession.sessionId = m_sessionIdCounter;
+    newSession.sessionId = increaseSessionIdCounter();
 
     addPendingSession(m_sessionIdCounter, newSession);
+
+    sendSessionInitStart(newSession.sessionId, newSession.socket);
 }
 
 /**
@@ -272,6 +289,7 @@ SessionHandler::getSession(const uint32_t id)
 bool
 SessionHandler::isIdUsed(const uint32_t id)
 {
+    // TODO: avoid race-condition
     std::map<uint32_t, Session>::iterator it;
     it = m_sessions.find(id);
 
@@ -281,6 +299,18 @@ SessionHandler::isIdUsed(const uint32_t id)
     }
 
     return false;
+}
+
+/**
+ * @brief SessionHandler::addSession
+ * @param id
+ * @param session
+ */
+void
+SessionHandler::addSession(const uint32_t id, Session &session)
+{
+    m_sessions.insert(std::pair<uint32_t, Session>(id, session));
+    m_processSession(m_target, session);
 }
 
 /**
@@ -316,23 +346,35 @@ SessionHandler::removePendingSession(const uint32_t id)
 }
 
 /**
- * @brief SessionHandler::finishPendingSession
- * @param pendingId
- * @param newId
+ * @brief SessionHandler::increaseMessageIdCounter
  * @return
  */
-bool
-SessionHandler::finishPendingSession(const uint32_t pendingId,
-                                     const uint32_t newId)
+uint32_t
+SessionHandler::increaseMessageIdCounter()
 {
-    Session session = removePendingSession(pendingId);
-    if(session.sessionId == 0) {
-        return false;
-    }
+    uint32_t tempId = 0;
+    while (m_messageIdCounter_lock.test_and_set(std::memory_order_acquire))  // acquire lock
+                 ; // spin
+    m_messageIdCounter++;
+    tempId = m_messageIdCounter;
+    m_messageIdCounter_lock.clear(std::memory_order_release);
+    return tempId;
+}
 
-    m_sessions.insert(std::pair<uint32_t, Session>(newId, session));
-
-    return true;
+/**
+ * @brief SessionHandler::increaseSessionIdCounter
+ * @return
+ */
+uint32_t
+SessionHandler::increaseSessionIdCounter()
+{
+    uint32_t tempId = 0;
+    while (m_sessionIdCounter_lock.test_and_set(std::memory_order_acquire))  // acquire lock
+                 ; // spin
+    m_sessionIdCounter++;
+    tempId = m_sessionIdCounter;
+    m_sessionIdCounter_lock.clear(std::memory_order_release);
+    return tempId;
 }
 
 } // namespace Common

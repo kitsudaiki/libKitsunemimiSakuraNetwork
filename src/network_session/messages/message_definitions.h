@@ -1,5 +1,5 @@
 /**
- *  @file       messages.h
+ *  @file       message_definitions.h
  *
  *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
@@ -61,7 +61,7 @@ enum data_subTypes
 
 struct CommonMessageHeader
 {
-    uint8_t version = 0;
+    uint8_t version = 0x1;
     uint8_t type = 0;
     uint8_t subType = 0;
     uint8_t flags = 0;   // 0x1 = Reply required

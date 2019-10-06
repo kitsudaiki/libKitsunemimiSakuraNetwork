@@ -5,7 +5,7 @@
 #include <message_ring_buffer.h>
 #include <buffering/data_buffer.h>
 #include <network_session/session_handler.h>
-#include <network_session/message_handler.h>
+#include <network_session/messages/message_processing.h>
 
 using Kitsune::Network::MessageRingBuffer;
 using Kitsune::Network::AbstractSocket;
@@ -25,8 +25,7 @@ uint64_t processMessageTcp(void* target,
                            MessageRingBuffer* recvBuffer,
                            AbstractSocket* socket)
 {
-    SessionHandler* sessionHandler = static_cast<SessionHandler*>(target);
-    return handleMessage(sessionHandler, recvBuffer, socket);
+    return processMessage(target, recvBuffer, socket);
 }
 
 /**
@@ -46,8 +45,7 @@ uint64_t processMessageTlsTcp(void* target,
                               MessageRingBuffer* recvBuffer,
                               AbstractSocket* socket)
 {
-    SessionHandler* sessionHandler = static_cast<SessionHandler*>(target);
-    return handleMessage(sessionHandler, recvBuffer, socket);
+    return processMessage(target, recvBuffer, socket);
 }
 
 /**
@@ -67,8 +65,7 @@ uint64_t processMessageUnixDomain(void* target,
                                   MessageRingBuffer* recvBuffer,
                                   AbstractSocket* socket)
 {
-    SessionHandler* sessionHandler = static_cast<SessionHandler*>(target);
-    return handleMessage(sessionHandler, recvBuffer, socket);
+    return processMessage(target, recvBuffer, socket);
 }
 
 /**

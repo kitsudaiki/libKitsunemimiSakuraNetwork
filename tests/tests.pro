@@ -1,9 +1,9 @@
-QT       -= qt core gui
+include(../defaults.pri)
 
-TARGET = KitsuneProjectCommon
-TEMPLATE = lib
-CONFIG += c++14
-VERSION = 0.1.0
+QT -= qt core gui
+
+CONFIG   -= app_bundle
+CONFIG += c++14 console
 
 LIBS += -L../../libKitsuneCommon/src -lKitsuneCommon
 LIBS += -L../../libKitsuneCommon/src/debug -lKitsuneCommon
@@ -21,22 +21,12 @@ LIBS += -L../../libKitsunePersistence/src/release -lKitsunePersistence
 INCLUDEPATH += ../../libKitsunePersistence/include/libKitsunePersistence
 
 LIBS +=  -lssl -lcrypt
+LIBS +=  -lboost_filesystem -lboost_system -lsqlite3
 
-INCLUDEPATH += $$PWD \
-               $$PWD/../include/libKitsuneProjectCommon
+INCLUDEPATH += $$PWD
 
-HEADERS += \
-    ../include/libKitsuneProjectCommon/network_session/session.h \
-    ../include/libKitsuneProjectCommon/network_session/session_handler.h \
-    network_session/timer_thread.h \
-    network_session/callbacks.h \
-    network_session/messages/message_processing.h \
-    network_session/messages/message_creation.h \
-    network_session/messages/session_init_processing.h \
-    network_session/messages/session_end_processing.h \
-    network_session/messages/message_definitions.h
+LIBS += -L../src -lKitsuneProjectCommon
+
 
 SOURCES += \
-    network_session/timer_thread.cpp \
-    network_session/session_handler.cpp
-
+    main.cpp
