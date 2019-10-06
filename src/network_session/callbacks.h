@@ -4,6 +4,8 @@
 #include <abstract_socket.h>
 #include <message_ring_buffer.h>
 #include <buffering/data_buffer.h>
+#include <network_session/session_handler.h>
+#include <network_session/message_handler.h>
 
 using Kitsune::Network::MessageRingBuffer;
 using Kitsune::Network::AbstractSocket;
@@ -21,17 +23,10 @@ namespace Common
  */
 uint64_t processMessageTcp(void* target,
                            MessageRingBuffer* recvBuffer,
-                           AbstractSocket*)
+                           AbstractSocket* socket)
 {
-    DataBuffer* targetBuffer = static_cast<DataBuffer*>(target);
-    const uint8_t* dataPointer = getDataPointer(*recvBuffer, recvBuffer->readWriteDiff);
-
-    if(dataPointer == nullptr) {
-        return 0;
-    }
-
-    addDataToBuffer(targetBuffer, dataPointer, recvBuffer->readWriteDiff);
-    return recvBuffer->readWriteDiff;
+    SessionHandler* sessionHandler = static_cast<SessionHandler*>(target);
+    return handleMessage(sessionHandler, recvBuffer, socket);
 }
 
 /**
@@ -49,17 +44,10 @@ void processConnectionTcp(void* target,
  */
 uint64_t processMessageTlsTcp(void* target,
                               MessageRingBuffer* recvBuffer,
-                              AbstractSocket*)
+                              AbstractSocket* socket)
 {
-    DataBuffer* targetBuffer = static_cast<DataBuffer*>(target);
-    const uint8_t* dataPointer = getDataPointer(*recvBuffer, recvBuffer->readWriteDiff);
-
-    if(dataPointer == nullptr) {
-        return 0;
-    }
-
-    addDataToBuffer(targetBuffer, dataPointer, recvBuffer->readWriteDiff);
-    return recvBuffer->readWriteDiff;
+    SessionHandler* sessionHandler = static_cast<SessionHandler*>(target);
+    return handleMessage(sessionHandler, recvBuffer, socket);
 }
 
 /**
@@ -77,17 +65,10 @@ void processConnectionTlsTcp(void* target,
  */
 uint64_t processMessageUnixDomain(void* target,
                                   MessageRingBuffer* recvBuffer,
-                                  AbstractSocket*)
+                                  AbstractSocket* socket)
 {
-    DataBuffer* targetBuffer = static_cast<DataBuffer*>(target);
-    const uint8_t* dataPointer = getDataPointer(*recvBuffer, recvBuffer->readWriteDiff);
-
-    if(dataPointer == nullptr) {
-        return 0;
-    }
-
-    addDataToBuffer(targetBuffer, dataPointer, recvBuffer->readWriteDiff);
-    return recvBuffer->readWriteDiff;
+    SessionHandler* sessionHandler = static_cast<SessionHandler*>(target);
+    return handleMessage(sessionHandler, recvBuffer, socket);
 }
 
 /**

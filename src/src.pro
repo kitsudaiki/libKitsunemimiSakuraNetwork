@@ -25,9 +25,11 @@ HEADERS += \
     ../include/libKitsuneProjectCommon/network_session/session_handler.h \
     network_session/timer_thread.h \
     network_session/messages.h \
-    network_session/callbacks.h
+    network_session/callbacks.h \
+    network_session/message_handler.h
 
 SOURCES += \
     network_session/timer_thread.cpp \
-    network_session/session_handler.cpp
+    network_session/session_handler.cpp \
+    network_session/message_handler.cpp
 

@@ -63,9 +63,10 @@ public:
 private:
     std::map<uint32_t, Session> m_pendingSessions;
     std::map<uint32_t, Session> m_sessions;
-    std::map<uint32_t, Network::AbstractServer*> m_server;
+    std::map<uint32_t, Network::AbstractServer*> m_servers;
 
     uint32_t m_sessionIdCounter = 0;
+    uint32_t m_serverIdCounter = 0;
 };
 
 } // namespace Common

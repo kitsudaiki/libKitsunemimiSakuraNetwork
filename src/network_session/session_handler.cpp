@@ -9,6 +9,16 @@
 #include <network_session/session_handler.h>
 #include <network_session/timer_thread.h>
 
+#include <tcp/tcp_server.h>
+#include <tcp/tcp_socket.h>
+#include <unix/unix_domain_server.h>
+#include <unix/unix_domain_socket.h>
+#include <tls_tcp/tls_tcp_server.h>
+#include <tls_tcp/tls_tcp_socket.h>
+#include <abstract_server.h>
+
+#include <network_session/callbacks.h>
+
 namespace Kitsune
 {
 namespace Project
@@ -48,7 +58,15 @@ SessionHandler::~SessionHandler()
 uint32_t
 SessionHandler::addUnixDomainServer(const std::string socketFile)
 {
+    Network::UnixDomainServer* server = new Network::UnixDomainServer(this,
+                                                                      &processConnectionUnixDomain);
+    server->initServer(socketFile);
+    server->start();
 
+    m_serverIdCounter++;
+    m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(m_serverIdCounter, server));
+
+    return m_serverIdCounter;
 }
 
 /**
@@ -59,7 +77,15 @@ SessionHandler::addUnixDomainServer(const std::string socketFile)
 uint32_t
 SessionHandler::addTcpServer(const uint16_t port)
 {
+    Network::TcpServer* server = new Network::TcpServer(this,
+                                                        &processConnectionUnixDomain);
+    server->initServer(port);
+    server->start();
 
+    m_serverIdCounter++;
+    m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(m_serverIdCounter, server));
+
+    return m_serverIdCounter;
 }
 
 /**
@@ -74,7 +100,17 @@ SessionHandler::addTlsTcpServer(const uint16_t port,
                                 const std::string certFile,
                                 const std::string keyFile)
 {
+    Network::TlsTcpServer* server = new Network::TlsTcpServer(this,
+                                                              &processConnectionUnixDomain,
+                                                              certFile,
+                                                              keyFile);
+    server->initServer(port);
+    server->start();
 
+    m_serverIdCounter++;
+    m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(m_serverIdCounter, server));
+
+    return m_serverIdCounter;
 }
 
 /**
@@ -85,7 +121,17 @@ SessionHandler::addTlsTcpServer(const uint16_t port,
 bool
 SessionHandler::closeServer(const uint32_t id)
 {
+    std::map<uint32_t, Network::AbstractServer*>::iterator it;
+    it = m_servers.find(id);
 
+    if(it != m_servers.end())
+    {
+        Network::AbstractServer* server = it->second;
+        server->closeServer();
+        delete server;
+    }
+
+    return false;
 }
 
 /**
@@ -96,7 +142,14 @@ SessionHandler::closeServer(const uint32_t id)
 Network::AbstractServer*
 SessionHandler::getServer(const uint32_t id)
 {
+    std::map<uint32_t, Network::AbstractServer*>::iterator it;
+    it = m_servers.find(id);
 
+    if(it != m_servers.end()) {
+        return it->second;
+    }
+
+    return nullptr;
 }
 
 /**

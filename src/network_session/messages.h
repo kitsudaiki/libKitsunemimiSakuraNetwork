@@ -61,9 +61,9 @@ enum data_subTypes
 
 struct CommonMessageHeader
 {
+    uint8_t version = 0;
     uint8_t type = 0;
     uint8_t subType = 0;
-    uint8_t version = 0;
     uint8_t flags = 0;   // 0x1 = Reply required
     uint32_t messageId = 0;
     uint32_t sessionId = 0;
