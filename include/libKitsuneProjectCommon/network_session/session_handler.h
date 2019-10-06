@@ -44,19 +44,19 @@ public:
     Network::AbstractServer* getServer(const uint32_t id);
 
     // session
-    uint32_t addUnixDomainSession(const std::string socketFile);
-    uint32_t addTcpSession(const std::string address,
-                           const uint16_t port);
-    uint32_t addTlsTcpSession(const std::string address,
-                              const uint16_t port,
-                              const std::string certFile,
-                              const std::string keyFile);
+    void addUnixDomainSession(const std::string socketFile);
+    void addTcpSession(const std::string address,
+                       const uint16_t port);
+    void addTlsTcpSession(const std::string address,
+                          const uint16_t port,
+                          const std::string certFile,
+                          const std::string keyFile);
     bool closeSession(const uint32_t id);
     Session getSession(const uint32_t id);
     bool isIdUsed(const uint32_t id);
 
-    void addPendingSession(Session &session);
-    bool removePendingSession(const uint32_t id);
+    void addPendingSession(const uint32_t id, Session &session);
+    Session removePendingSession(const uint32_t id);
     bool finishPendingSession(const uint32_t pendingId,
                               const uint32_t newId);
 

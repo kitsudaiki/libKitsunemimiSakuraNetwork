@@ -129,6 +129,8 @@ SessionHandler::closeServer(const uint32_t id)
         Network::AbstractServer* server = it->second;
         server->closeServer();
         delete server;
+        m_servers.erase(it);
+        return true;
     }
 
     return false;
@@ -155,25 +157,41 @@ SessionHandler::getServer(const uint32_t id)
 /**
  * @brief SessionHandler::addUnixDomainSocket
  * @param socketFile
- * @return
  */
-uint32_t
+void
 SessionHandler::addUnixDomainSession(const std::string socketFile)
 {
+    Network::UnixDomainSocket* unixDomainSocket = new Network::UnixDomainSocket(socketFile);
+    unixDomainSocket->initClientSide();
+    unixDomainSocket->start();
 
+    m_sessionIdCounter++;
+    Session newSession;
+    newSession.socket = unixDomainSocket;
+    newSession.sessionId = m_sessionIdCounter;
+
+    addPendingSession(m_sessionIdCounter, newSession);
 }
 
 /**
  * @brief SessionHandler::addTcpClient
  * @param address
  * @param port
- * @return
  */
-uint32_t
+void
 SessionHandler::addTcpSession(const std::string address,
                               const uint16_t port)
 {
+    Network::TcpSocket* tcpSocket = new Network::TcpSocket(address, port);
+    tcpSocket->initClientSide();
+    tcpSocket->start();
 
+    m_sessionIdCounter++;
+    Session newSession;
+    newSession.socket = tcpSocket;
+    newSession.sessionId = m_sessionIdCounter;
+
+    addPendingSession(m_sessionIdCounter, newSession);
 }
 
 /**
@@ -182,15 +200,26 @@ SessionHandler::addTcpSession(const std::string address,
  * @param port
  * @param certFile
  * @param keyFile
- * @return
  */
-uint32_t
+void
 SessionHandler::addTlsTcpSession(const std::string address,
                                  const uint16_t port,
                                  const std::string certFile,
                                  const std::string keyFile)
 {
+    Network::TlsTcpSocket* tlsTcpSocket = new Network::TlsTcpSocket(address,
+                                                                    port,
+                                                                    certFile,
+                                                                    keyFile);
+    tlsTcpSocket->initClientSide();
+    tlsTcpSocket->start();
 
+    m_sessionIdCounter++;
+    Session newSession;
+    newSession.socket = tlsTcpSocket;
+    newSession.sessionId = m_sessionIdCounter;
+
+    addPendingSession(m_sessionIdCounter, newSession);
 }
 
 /**
@@ -201,7 +230,20 @@ SessionHandler::addTlsTcpSession(const std::string address,
 bool
 SessionHandler::closeSession(const uint32_t id)
 {
+    std::map<uint32_t, Session>::iterator it;
+    it = m_sessions.find(id);
 
+    if(it != m_sessions.end())
+    {
+        AbstractSocket* socket = it->second.socket;
+        socket->stop();
+        socket->closeSocket();
+        delete socket;
+        m_sessions.erase(it);
+        return true;
+    }
+
+    return false;
 }
 
 /**
@@ -209,9 +251,17 @@ SessionHandler::closeSession(const uint32_t id)
  * @param id
  * @return
  */
-Session SessionHandler::getSession(const uint32_t id)
+Session
+SessionHandler::getSession(const uint32_t id)
 {
+    std::map<uint32_t, Session>::iterator it;
+    it = m_sessions.find(id);
 
+    if(it != m_sessions.end()) {
+        return it->second;
+    }
+
+    return Session();
 }
 
 /**
@@ -222,16 +272,26 @@ Session SessionHandler::getSession(const uint32_t id)
 bool
 SessionHandler::isIdUsed(const uint32_t id)
 {
+    std::map<uint32_t, Session>::iterator it;
+    it = m_sessions.find(id);
 
+    if(it != m_sessions.end())
+    {
+        return true;
+    }
+
+    return false;
 }
 
 /**
  * @brief SessionHandler::addPendingSession
+ * @param id
  * @param session
  */
-void SessionHandler::addPendingSession(Session &session)
+void
+SessionHandler::addPendingSession(const uint32_t id, Session &session)
 {
-
+    m_pendingSessions.insert(std::pair<uint32_t, Session>(id, session));
 }
 
 /**
@@ -239,10 +299,20 @@ void SessionHandler::addPendingSession(Session &session)
  * @param id
  * @return
  */
-bool
+Session
 SessionHandler::removePendingSession(const uint32_t id)
 {
+    std::map<uint32_t, Session>::iterator it;
+    it = m_pendingSessions.find(id);
 
+    if(it != m_pendingSessions.end())
+    {
+        Session tempSession = it->second;
+        m_pendingSessions.erase(it);
+        return tempSession;
+    }
+
+    return Session();
 }
 
 /**
@@ -255,7 +325,14 @@ bool
 SessionHandler::finishPendingSession(const uint32_t pendingId,
                                      const uint32_t newId)
 {
+    Session session = removePendingSession(pendingId);
+    if(session.sessionId == 0) {
+        return false;
+    }
 
+    m_sessions.insert(std::pair<uint32_t, Session>(newId, session));
+
+    return true;
 }
 
 } // namespace Common
