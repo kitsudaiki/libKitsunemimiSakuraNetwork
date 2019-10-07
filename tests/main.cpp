@@ -27,9 +27,9 @@
 
 using Kitsune::Persistence::initLogger;
 
-void callback(void* target, Kitsune::Project::Common::Session session) {
+void callback(void* target, Kitsune::Project::Common::Session* session) {
     Kitsune::Persistence::LOG_debug("callback session with id: "
-                                    + std::to_string(session.sessionId));
+                                    + std::to_string(session->sessionId));
 }
 
 int main()

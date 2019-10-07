@@ -38,5 +38,6 @@ HEADERS += \
 
 SOURCES += \
     network_session/timer_thread.cpp \
-    network_session/session_handler.cpp
+    network_session/session_handler.cpp \
+    network_session/session.cpp
 

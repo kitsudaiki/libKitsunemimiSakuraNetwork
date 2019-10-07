@@ -53,18 +53,18 @@ processSessionInitStart(const Session_InitStart_Message* message,
     {
         const uint32_t newSessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
 
-        Session newSession;
-        newSession.socket = socket;
-        newSession.sessionId = newSessionId;
+        Session* newSession = new Session();
+        newSession->socket = socket;
+        newSession->sessionId = newSessionId;
 
         sendSessionIdChange(sessionId, newSessionId, socket);
         SessionHandler::m_sessionHandler->addPendingSession(newSessionId, newSession);
     }
     else
     {
-        Session newSession;
-        newSession.socket = socket;
-        newSession.sessionId = sessionId;
+        Session* newSession = new Session();
+        newSession->socket = socket;
+        newSession->sessionId = sessionId;
 
         sendSessionInitReply(sessionId, socket);
 
@@ -90,12 +90,12 @@ processSessionIdChange(const Session_IdChange_Message* message,
 
         sendSessionIdChange(sessionId, newSessionId, socket);
 
-        Session session = SessionHandler::m_sessionHandler->removePendingSession(oldSessionId);
+        Session* session = SessionHandler::m_sessionHandler->removePendingSession(oldSessionId);
         SessionHandler::m_sessionHandler->addPendingSession(newSessionId, session);
     }
     else
     {
-        Session session = SessionHandler::m_sessionHandler->removePendingSession(oldSessionId);
+        Session* session = SessionHandler::m_sessionHandler->removePendingSession(oldSessionId);
         SessionHandler::m_sessionHandler->addSession(sessionId, session);
     }
 }
@@ -123,7 +123,7 @@ processSessionInitReply(const Session_InitReply_Message* message,
 
     const uint32_t sessionId = message->sessionId;
 
-    Session session = SessionHandler::m_sessionHandler->removePendingSession(sessionId);
+    Session* session = SessionHandler::m_sessionHandler->removePendingSession(sessionId);
     SessionHandler::m_sessionHandler->addSession(sessionId, session);
 }
 

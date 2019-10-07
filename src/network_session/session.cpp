@@ -20,11 +20,7 @@
  *      limitations under the License.
  */
 
-#ifndef SESSION_H
-#define SESSION_H
-
-#include <iostream>
-#include <abstract_socket.h>
+#include <network_session/session.h>
 
 namespace Kitsune
 {
@@ -33,19 +29,16 @@ namespace Project
 namespace Common
 {
 
-class Session
+Session::Session()
 {
-public:
-    Session();
-    ~Session();
 
-    uint32_t sessionId = 0;
-    Network::AbstractSocket* socket = nullptr;
+}
 
-};
+Session::~Session()
+{
+
+}
 
 } // namespace Common
 } // namespace Project
 } // namespace Kitsune
-
-#endif // SESSION_H
