@@ -21,8 +21,8 @@
  */
 
 #include <network_session/timer_thread.h>
-#include <abstract_socket.h>
-#include <network_session/session.h>
+#include <libKitsuneNetwork/abstract_socket.h>
+#include <libKitsuneProjectCommon/network_session/session.h>
 
 namespace Kitsune
 {

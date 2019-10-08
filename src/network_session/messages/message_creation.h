@@ -24,8 +24,8 @@
 #define MESSAGE_CREATION_H
 
 #include <network_session/messages/message_definitions.h>
-#include <network_session/session_handler.h>
-#include <abstract_socket.h>
+#include <libKitsuneProjectCommon/network_session/session_handler.h>
+#include <libKitsuneNetwork/abstract_socket.h>
 
 using Kitsune::Network::AbstractSocket;
 

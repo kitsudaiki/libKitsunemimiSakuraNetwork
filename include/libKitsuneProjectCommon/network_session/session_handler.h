@@ -28,7 +28,7 @@
 #include <map>
 #include <atomic>
 
-#include <network_session/session.h>
+#include <libKitsuneProjectCommon/network_session/session.h>
 
 namespace Kitsune
 {

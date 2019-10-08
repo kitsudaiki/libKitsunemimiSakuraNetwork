@@ -23,14 +23,15 @@
 #ifndef MESSAGE_PROCESSING_H
 #define MESSAGE_PROCESSING_H
 
-#include <message_ring_buffer.h>
-#include <network_session/session_handler.h>
+#include <libKitsuneNetwork/message_ring_buffer.h>
+#include <libKitsuneProjectCommon/network_session/session_handler.h>
 #include <network_session/messages/message_definitions.h>
-#include <abstract_socket.h>
+#include <libKitsuneNetwork/abstract_socket.h>
 
 #include <network_session/messages/session_init_processing.h>
 #include <network_session/messages/session_end_processing.h>
-#include <logger/logger.h>
+
+#include <libKitsunePersistence/logger/logger.h>
 
 using Kitsune::Network::MessageRingBuffer;
 using Kitsune::Network::AbstractSocket;
@@ -66,7 +67,7 @@ processSessionInit(const CommonMessageHeader* header,
                    MessageRingBuffer *recvBuffer,
                    AbstractSocket* socket)
 {
-    Persistence::LOG_debug("process session-init");
+    LOG_DEBUG("process session-init");
     switch(header->subType)
     {
         case SESSION_INIT_START_SUBTYPE:
@@ -128,15 +129,15 @@ processMessage(void*,
                MessageRingBuffer* recvBuffer,
                AbstractSocket* socket)
 {
-    Persistence::LOG_debug("process message");
+    LOG_DEBUG("process message");
 
-     const CommonMessageHeader* header = getMessageFromBuffer<CommonMessageHeader>(recvBuffer);
+    const CommonMessageHeader* header = getMessageFromBuffer<CommonMessageHeader>(recvBuffer);
 
     if(header == nullptr
             || header->version != 0x1)
     {
         // TODO: error if false version
-        Persistence::LOG_debug("message-buffer not bug enough");
+        //LOG_DEBUG("message-buffer not bug enough");
         return 0;
     }
 

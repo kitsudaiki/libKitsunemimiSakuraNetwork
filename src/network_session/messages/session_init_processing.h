@@ -23,12 +23,12 @@
 #ifndef SESSION_INIT_PROCESSING_H
 #define SESSION_INIT_PROCESSING_H
 
-#include <network_session/session_handler.h>
+#include <libKitsuneProjectCommon/network_session/session_handler.h>
 #include <network_session/messages/message_definitions.h>
 #include <network_session/messages/message_creation.h>
-#include <abstract_socket.h>
+#include <libKitsuneNetwork/abstract_socket.h>
 
-#include <logger/logger.h>
+#include <libKitsunePersistence/logger/logger.h>
 
 using Kitsune::Network::AbstractSocket;
 
@@ -46,7 +46,7 @@ inline void
 processSessionInitStart(const Session_InitStart_Message* message,
                         AbstractSocket* socket)
 {
-    Persistence::LOG_debug("processSessionInitStart");
+    LOG_DEBUG("process session init start");
 
     const uint32_t sessionId = message->offeredSessionId;
     if(SessionHandler::m_sessionHandler->isIdUsed(sessionId))
@@ -54,19 +54,25 @@ processSessionInitStart(const Session_InitStart_Message* message,
         const uint32_t newSessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
 
         Session* newSession = new Session();
-        newSession->socket = socket;
+        newSession->m_socket = socket;
         newSession->sessionId = newSessionId;
+        newSession->connect();
 
+        LOG_DEBUG("send session id change");
         sendSessionIdChange(sessionId, newSessionId, socket);
         SessionHandler::m_sessionHandler->addPendingSession(newSessionId, newSession);
     }
     else
     {
         Session* newSession = new Session();
-        newSession->socket = socket;
+        newSession->m_socket = socket;
         newSession->sessionId = sessionId;
+        newSession->connect();
 
+        LOG_DEBUG("send session init reply");
         sendSessionInitReply(sessionId, socket);
+
+        newSession->confirmSession();
 
         SessionHandler::m_sessionHandler->addSession(sessionId, newSession);
     }
@@ -79,7 +85,7 @@ inline void
 processSessionIdChange(const Session_IdChange_Message* message,
                        AbstractSocket* socket)
 {
-    Persistence::LOG_debug("processSessionIdChange");
+    LOG_DEBUG("process session id change");
 
     const uint32_t sessionId = message->newOfferedSessionId;
     const uint32_t oldSessionId = message->oldOfferedSessionId;
@@ -88,6 +94,7 @@ processSessionIdChange(const Session_IdChange_Message* message,
     {
         const uint32_t newSessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
 
+        LOG_DEBUG("send session id change");
         sendSessionIdChange(sessionId, newSessionId, socket);
 
         Session* session = SessionHandler::m_sessionHandler->removePendingSession(oldSessionId);
@@ -107,7 +114,7 @@ inline void
 processSessionIdConfirm(const Session_IdConfirm_Message* message,
                         AbstractSocket* socket)
 {
-    Persistence::LOG_debug("processSessionIdConfirm");
+    LOG_DEBUG("process session id confirm");
 
     // TODO
 }
@@ -119,12 +126,16 @@ inline void
 processSessionInitReply(const Session_InitReply_Message* message,
                         AbstractSocket* socket)
 {
-    Persistence::LOG_debug("processSessionInitReply");
+    LOG_DEBUG("process session init reply");
 
     const uint32_t sessionId = message->sessionId;
 
     Session* session = SessionHandler::m_sessionHandler->removePendingSession(sessionId);
-    SessionHandler::m_sessionHandler->addSession(sessionId, session);
+    bool ret = session->confirmSession();
+
+    if(ret) {
+        SessionHandler::m_sessionHandler->addSession(sessionId, session);
+    }
 }
 
 } // namespace Common
