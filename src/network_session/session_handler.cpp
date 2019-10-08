@@ -187,17 +187,17 @@ void
 SessionHandler::startUnixDomainSession(const std::string socketFile)
 {
     Network::UnixDomainSocket* unixDomainSocket = new Network::UnixDomainSocket(socketFile);
-    unixDomainSocket->initClientSide();
     unixDomainSocket->setMessageCallback(this, &processMessageUnixDomain);
-    unixDomainSocket->start();
 
     Session* newSession = new Session();
-    newSession->socket = unixDomainSocket;
+    newSession->m_socket = unixDomainSocket;
     newSession->sessionId = increaseSessionIdCounter();
 
     addPendingSession(m_sessionIdCounter, newSession);
+    newSession->connect();
 
-    sendSessionInitStart(newSession->sessionId, newSession->socket);
+    LOG_DEBUG("send session init start");
+    sendSessionInitStart(newSession->sessionId, newSession->m_socket);
 }
 
 /**
@@ -210,17 +210,17 @@ SessionHandler::startTcpSession(const std::string address,
                                 const uint16_t port)
 {
     Network::TcpSocket* tcpSocket = new Network::TcpSocket(address, port);
-    tcpSocket->initClientSide();
     tcpSocket->setMessageCallback(this, &processMessageTcp);
-    tcpSocket->start();
 
     Session* newSession = new Session();
-    newSession->socket = tcpSocket;
+    newSession->m_socket = tcpSocket;
     newSession->sessionId = increaseSessionIdCounter();
 
     addPendingSession(m_sessionIdCounter, newSession);
+    newSession->connect();
 
-    sendSessionInitStart(newSession->sessionId, newSession->socket);
+    LOG_DEBUG("send session init start");
+    sendSessionInitStart(newSession->sessionId, newSession->m_socket);
 }
 
 /**
@@ -240,17 +240,17 @@ SessionHandler::startTlsTcpSession(const std::string address,
                                                                     port,
                                                                     certFile,
                                                                     keyFile);
-    tlsTcpSocket->initClientSide();
     tlsTcpSocket->setMessageCallback(this, &processMessageTlsTcp);
-    tlsTcpSocket->start();
 
     Session* newSession = new Session();
-    newSession->socket = tlsTcpSocket;
+    newSession->m_socket = tlsTcpSocket;
     newSession->sessionId = increaseSessionIdCounter();
 
     addPendingSession(m_sessionIdCounter, newSession);
+    newSession->connect();
 
-    sendSessionInitStart(newSession->sessionId, newSession->socket);
+    LOG_DEBUG("send session init start");
+    sendSessionInitStart(newSession->sessionId, newSession->m_socket);
 }
 
 /**
@@ -266,7 +266,7 @@ SessionHandler::closeSession(const uint32_t id)
 
     if(it != m_sessions.end())
     {
-        AbstractSocket* socket = it->second->socket;
+        AbstractSocket* socket = it->second->m_socket;
         socket->stop();
         socket->closeSocket();
         delete socket;

@@ -67,7 +67,7 @@ processSessionInit(const CommonMessageHeader* header,
                    MessageRingBuffer *recvBuffer,
                    AbstractSocket* socket)
 {
-    //LOG_DEBUG("process session-init");
+    LOG_DEBUG("process session-init");
     switch(header->subType)
     {
         case SESSION_INIT_START_SUBTYPE:
@@ -129,9 +129,9 @@ processMessage(void*,
                MessageRingBuffer* recvBuffer,
                AbstractSocket* socket)
 {
-    //LOG_DEBUG("process message");
+    LOG_DEBUG("process message");
 
-     const CommonMessageHeader* header = getMessageFromBuffer<CommonMessageHeader>(recvBuffer);
+    const CommonMessageHeader* header = getMessageFromBuffer<CommonMessageHeader>(recvBuffer);
 
     if(header == nullptr
             || header->version != 0x1)

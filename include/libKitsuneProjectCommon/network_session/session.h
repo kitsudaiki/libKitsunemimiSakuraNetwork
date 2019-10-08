@@ -46,8 +46,11 @@ public:
     Session();
     ~Session();
 
+    bool connect();
+    bool confirmSession();
+
     uint32_t sessionId = 0;
-    Network::AbstractSocket* socket = nullptr;
+    Network::AbstractSocket* m_socket = nullptr;
 
 private:
     Kitsune::Common::Statemachine m_statemachine;

@@ -41,8 +41,5 @@ int main()
 
     m_handler->startTcpSession("127.0.0.1", 1234);
 
-    m_handler->startTcpSession("127.0.0.1", 1234);
-
-
     sleep(2);
 }

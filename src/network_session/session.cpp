@@ -22,6 +22,7 @@
 
 #include <libKitsuneProjectCommon/network_session/session.h>
 #include <libKitsuneNetwork/abstract_socket.h>
+#include <libKitsunePersistence/logger/logger.h>
 
 namespace Kitsune
 {
@@ -37,10 +38,57 @@ Session::Session()
 
 Session::~Session()
 {
-
+    // TODO
 }
 
-void Session::initStatemachine()
+/**
+ * @brief Session::connect
+ * @return
+ */
+bool
+Session::connect()
+{
+    LOG_DEBUG("state of state machine: " + m_statemachine.getCurrentState());
+    if(m_statemachine.isInState("not connected") == false) {
+        return true;
+    }
+
+    bool connected = m_socket->initClientSide();
+    if(connected == false) {
+        return false;
+    }
+
+    m_statemachine.goToNextState("connect");
+    LOG_DEBUG("state of state machine: " + m_statemachine.getCurrentState());
+
+    m_socket->start();
+
+    return true;
+}
+
+/**
+ * @brief Session::confirmSession
+ *
+ * @return
+ */
+bool
+Session::confirmSession()
+{
+    bool ret = m_statemachine.goToNextState("start session");
+    if(ret == false) {
+        return false;
+    }
+
+    LOG_DEBUG("state of state machine: " + m_statemachine.getCurrentState());
+
+    return ret;
+}
+
+/**
+ * @brief Session::initStatemachine
+ */
+void
+Session::initStatemachine()
 {
     // init states
     assert(m_statemachine.createNewState("not connected"));
