@@ -23,12 +23,12 @@
 #ifndef SESSION_INIT_PROCESSING_H
 #define SESSION_INIT_PROCESSING_H
 
-#include <network_session/session_handler.h>
+#include <libKitsuneProjectCommon/network_session/session_handler.h>
 #include <network_session/messages/message_definitions.h>
 #include <network_session/messages/message_creation.h>
-#include <abstract_socket.h>
+#include <libKitsuneNetwork/abstract_socket.h>
 
-#include <logger/logger.h>
+#include <libKitsunePersistence/logger/logger.h>
 
 using Kitsune::Network::AbstractSocket;
 
@@ -46,8 +46,6 @@ inline void
 processSessionInitStart(const Session_InitStart_Message* message,
                         AbstractSocket* socket)
 {
-    Persistence::LOG_debug("processSessionInitStart");
-
     const uint32_t sessionId = message->offeredSessionId;
     if(SessionHandler::m_sessionHandler->isIdUsed(sessionId))
     {
@@ -79,8 +77,6 @@ inline void
 processSessionIdChange(const Session_IdChange_Message* message,
                        AbstractSocket* socket)
 {
-    Persistence::LOG_debug("processSessionIdChange");
-
     const uint32_t sessionId = message->newOfferedSessionId;
     const uint32_t oldSessionId = message->oldOfferedSessionId;
 
@@ -107,8 +103,6 @@ inline void
 processSessionIdConfirm(const Session_IdConfirm_Message* message,
                         AbstractSocket* socket)
 {
-    Persistence::LOG_debug("processSessionIdConfirm");
-
     // TODO
 }
 
@@ -119,8 +113,6 @@ inline void
 processSessionInitReply(const Session_InitReply_Message* message,
                         AbstractSocket* socket)
 {
-    Persistence::LOG_debug("processSessionInitReply");
-
     const uint32_t sessionId = message->sessionId;
 
     Session* session = SessionHandler::m_sessionHandler->removePendingSession(sessionId);

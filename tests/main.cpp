@@ -21,15 +21,14 @@
  */
 
 #include <iostream>
-#include <logger/logger.h>
-#include <network_session/session_handler.h>
-#include <network_session/session.h>
+#include <libKitsunePersistence/logger/logger.h>
+#include <libKitsuneProjectCommon/network_session/session_handler.h>
+#include <libKitsuneProjectCommon/network_session/session.h>
 
 using Kitsune::Persistence::initLogger;
 
 void callback(void* target, Kitsune::Project::Common::Session* session) {
-    Kitsune::Persistence::LOG_debug("callback session with id: "
-                                    + std::to_string(session->sessionId));
+    LOG_DEBUG("callback session with id: " + std::to_string(session->sessionId));
 }
 
 int main()

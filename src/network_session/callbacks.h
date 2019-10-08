@@ -23,10 +23,10 @@
 #ifndef CALLBACKS_H
 #define CALLBACKS_H
 
-#include <abstract_socket.h>
-#include <message_ring_buffer.h>
-#include <buffering/data_buffer.h>
-#include <network_session/session_handler.h>
+#include <libKitsuneNetwork/abstract_socket.h>
+#include <libKitsuneNetwork/message_ring_buffer.h>
+#include <libKitsuneCommon/data_buffer.h>
+#include <libKitsuneProjectCommon/network_session/session_handler.h>
 #include <network_session/messages/message_processing.h>
 
 using Kitsune::Network::MessageRingBuffer;

@@ -20,20 +20,20 @@
  *      limitations under the License.
  */
 
-#include <network_session/session_handler.h>
+#include <libKitsuneProjectCommon/network_session/session_handler.h>
 #include <network_session/timer_thread.h>
 
-#include <tcp/tcp_server.h>
-#include <tcp/tcp_socket.h>
-#include <unix/unix_domain_server.h>
-#include <unix/unix_domain_socket.h>
-#include <tls_tcp/tls_tcp_server.h>
-#include <tls_tcp/tls_tcp_socket.h>
-#include <abstract_server.h>
+#include <libKitsuneNetwork/tcp/tcp_server.h>
+#include <libKitsuneNetwork/tcp/tcp_socket.h>
+#include <libKitsuneNetwork/unix/unix_domain_server.h>
+#include <libKitsuneNetwork/unix/unix_domain_socket.h>
+#include <libKitsuneNetwork/tls_tcp/tls_tcp_server.h>
+#include <libKitsuneNetwork/tls_tcp/tls_tcp_socket.h>
+#include <libKitsuneNetwork/abstract_server.h>
 
 #include <network_session/callbacks.h>
 
-#include <logger/logger.h>
+#include <libKitsunePersistence/logger/logger.h>
 
 namespace Kitsune
 {

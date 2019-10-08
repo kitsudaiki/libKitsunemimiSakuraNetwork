@@ -24,10 +24,17 @@
 #define SESSION_H
 
 #include <iostream>
-#include <abstract_socket.h>
+#include <assert.h>
+#include <libKitsuneCommon/statemachine.h>
 
 namespace Kitsune
 {
+namespace Common {
+class Statemachine;
+}
+namespace Network {
+class AbstractSocket;
+}
 namespace Project
 {
 namespace Common
@@ -41,6 +48,11 @@ public:
 
     uint32_t sessionId = 0;
     Network::AbstractSocket* socket = nullptr;
+
+private:
+    Kitsune::Common::Statemachine m_statemachine;
+
+    void initStatemachine();
 
 };
 

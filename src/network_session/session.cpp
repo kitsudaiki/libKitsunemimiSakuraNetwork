@@ -20,7 +20,8 @@
  *      limitations under the License.
  */
 
-#include <network_session/session.h>
+#include <libKitsuneProjectCommon/network_session/session.h>
+#include <libKitsuneNetwork/abstract_socket.h>
 
 namespace Kitsune
 {
@@ -31,11 +32,59 @@ namespace Common
 
 Session::Session()
 {
-
+    initStatemachine();
 }
 
 Session::~Session()
 {
+
+}
+
+void Session::initStatemachine()
+{
+    // init states
+    assert(m_statemachine.createNewState("not connected"));
+    assert(m_statemachine.createNewState("connected"));
+    assert(m_statemachine.createNewState("session not init"));
+    assert(m_statemachine.createNewState("session init"));
+    assert(m_statemachine.createNewState("normal"));
+    assert(m_statemachine.createNewState("in datatransfer"));
+
+    // set child state
+    assert(m_statemachine.addChildState("connected", "session not init"));
+    assert(m_statemachine.addChildState("connected", "session init"));
+    assert(m_statemachine.addChildState("session init", "normal"));
+    assert(m_statemachine.addChildState("session init", "in datatransfer"));
+
+    // set initial states
+    assert(m_statemachine.setInitialChildState("connected", "session not init"));
+    assert(m_statemachine.setInitialChildState("session init", "normal"));
+
+    // init transitions
+    assert(m_statemachine.addTransition("not connected",
+                                        "connect",
+                                        "connected"));
+
+    assert(m_statemachine.addTransition("connected",
+                                        "disconnect",
+                                        "not connected"));
+
+    assert(m_statemachine.addTransition("session not init",
+                                        "start session",
+                                        "session init"));
+
+    assert(m_statemachine.addTransition("session init",
+                                        "stop session",
+                                        "session not init"));
+
+    assert(m_statemachine.addTransition("normal",
+                                        "start datatransfer",
+                                        "in datatransfer"));
+
+    assert(m_statemachine.addTransition("in datatransfer",
+                                        "stop datatransfer",
+                                        "normal"));
+
 
 }
 
