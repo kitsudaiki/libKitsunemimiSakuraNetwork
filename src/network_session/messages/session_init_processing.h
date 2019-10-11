@@ -51,30 +51,37 @@ processSessionInitStart(const Session_InitStart_Message* message,
     const uint32_t sessionId = message->offeredSessionId;
     if(SessionHandler::m_sessionHandler->isIdUsed(sessionId))
     {
+        // get new sesstion id
         const uint32_t newSessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
 
+        // create new session
         Session* newSession = new Session();
         newSession->m_socket = socket;
         newSession->sessionId = newSessionId;
         newSession->connect();
 
-        LOG_DEBUG("send session id change");
+        // send id-change-request
         sendSessionIdChange(sessionId, newSessionId, socket);
         SessionHandler::m_sessionHandler->addPendingSession(newSessionId, newSession);
     }
     else
     {
+        // create new session
         Session* newSession = new Session();
         newSession->m_socket = socket;
         newSession->sessionId = sessionId;
         newSession->connect();
 
-        LOG_DEBUG("send session init reply");
+        // confirm id
         sendSessionInitReply(sessionId, socket);
 
-        newSession->confirmSession();
-
-        SessionHandler::m_sessionHandler->addSession(sessionId, newSession);
+        // try to finish session
+        const bool ret = newSession->confirmSession();
+        if(ret) {
+            SessionHandler::m_sessionHandler->addSession(sessionId, newSession);
+        } else {
+            // TODO: error message
+        }
     }
 }
 
@@ -92,31 +99,20 @@ processSessionIdChange(const Session_IdChange_Message* message,
 
     if(SessionHandler::m_sessionHandler->isIdUsed(sessionId))
     {
+        // get new session-id and send it to the other side to get reply
         const uint32_t newSessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
-
-        LOG_DEBUG("send session id change");
         sendSessionIdChange(sessionId, newSessionId, socket);
 
+        // move session from the pending list to the final list
         Session* session = SessionHandler::m_sessionHandler->removePendingSession(oldSessionId);
         SessionHandler::m_sessionHandler->addPendingSession(newSessionId, session);
     }
     else
     {
+        // move session from the pending list to the final list
         Session* session = SessionHandler::m_sessionHandler->removePendingSession(oldSessionId);
         SessionHandler::m_sessionHandler->addSession(sessionId, session);
     }
-}
-
-/**
- * @brief processSessionIdConfirm
- */
-inline void
-processSessionIdConfirm(const Session_IdConfirm_Message* message,
-                        AbstractSocket* socket)
-{
-    LOG_DEBUG("process session id confirm");
-
-    // TODO
 }
 
 /**
@@ -128,13 +124,16 @@ processSessionInitReply(const Session_InitReply_Message* message,
 {
     LOG_DEBUG("process session init reply");
 
+    // get session
     const uint32_t sessionId = message->sessionId;
-
     Session* session = SessionHandler::m_sessionHandler->removePendingSession(sessionId);
-    bool ret = session->confirmSession();
 
+    // try to finish session
+    const bool ret = session->confirmSession();
     if(ret) {
         SessionHandler::m_sessionHandler->addSession(sessionId, session);
+    } else {
+        // TODO: error message
     }
 }
 

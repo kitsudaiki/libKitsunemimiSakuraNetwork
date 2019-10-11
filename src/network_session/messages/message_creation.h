@@ -26,6 +26,7 @@
 #include <network_session/messages/message_definitions.h>
 #include <libKitsuneProjectCommon/network_session/session_handler.h>
 #include <libKitsuneNetwork/abstract_socket.h>
+#include <libKitsunePersistence/logger/logger.h>
 
 using Kitsune::Network::AbstractSocket;
 
@@ -45,6 +46,8 @@ inline void
 sendSessionInitStart(const uint32_t initialId,
                      Network::AbstractSocket* socket)
 {
+    LOG_DEBUG("SEND session init start");
+
     // create message
     Session_InitStart_Message message;
     message.offeredSessionId = initialId;
@@ -68,6 +71,8 @@ sendSessionIdChange(const uint32_t oldId,
                     const uint32_t newId,
                     Network::AbstractSocket* socket)
 {
+    LOG_DEBUG("SEND session id change");
+
     // create message
     Session_IdChange_Message message;
     message.oldOfferedSessionId = oldId;
@@ -75,26 +80,6 @@ sendSessionIdChange(const uint32_t oldId,
 
     // update common-header
     message.commonHeader.sessionId = newId;
-    message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
-
-    // send
-    socket->sendMessage(&message, sizeof(Session_InitStart_Message));
-}
-
-/**
- * @brief sendSessionIdConfirm
- * @param id
- * @param socket
- */
-inline void
-sendSessionIdConfirm(const uint32_t id,
-                     Network::AbstractSocket* socket)
-{
-    Session_IdConfirm_Message message;
-    message.confirmedSessionId = id;
-
-    // update common-header
-    message.commonHeader.sessionId = id;
     message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
 
     // send
@@ -110,6 +95,8 @@ inline void
 sendSessionInitReply(const uint32_t id,
                     Network::AbstractSocket* socket)
 {
+    LOG_DEBUG("SEND session init reply");
+
     Session_InitReply_Message message;
     message.sessionId = id;
 

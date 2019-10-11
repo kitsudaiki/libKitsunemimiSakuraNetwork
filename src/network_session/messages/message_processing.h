@@ -90,16 +90,6 @@ processSessionInit(const CommonMessageHeader* header,
                 processSessionIdChange(message, socket);
                 return sizeof(Session_IdChange_Message);
             }
-        case SESSION_ID_CONFIRM_SUBTYPE:
-            {
-                const Session_IdConfirm_Message* message =
-                        getMessageFromBuffer<Session_IdConfirm_Message>(recvBuffer);
-                if(message == nullptr) {
-                    break;
-                }
-                processSessionIdConfirm(message, socket);
-                return sizeof(Session_IdConfirm_Message);
-            }
         case SESSION_INIT_REPLY_SUBTYPE:
             {
                 const Session_InitReply_Message*  message =

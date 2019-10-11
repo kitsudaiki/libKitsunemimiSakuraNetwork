@@ -45,11 +45,10 @@ enum session_subTypes
 {
     SESSION_INIT_START_SUBTYPE = 1,
     SESSION_ID_CHANGE_SUBTYPE = 2,
-    SESSION_ID_CONFIRM_SUBTYPE = 3,
-    SESSION_INIT_REPLY_SUBTYPE = 4,
+    SESSION_INIT_REPLY_SUBTYPE = 3,
 
-    SESSION_END_START_SUBTYPE = 5,
-    SESSION_END_REPLY_SUBTYPE = 6,
+    SESSION_END_START_SUBTYPE = 4,
+    SESSION_END_REPLY_SUBTYPE = 5,
 };
 
 enum heartbeat_subTypes
@@ -114,19 +113,6 @@ struct Session_IdChange_Message
     Session_IdChange_Message() {
         commonHeader.type = SESSION_TYPE;
         commonHeader.subType = SESSION_ID_CHANGE_SUBTYPE;
-        commonHeader.flags = 0x1;
-    }
-} __attribute__((packed));
-
-struct Session_IdConfirm_Message
-{
-    CommonMessageHeader commonHeader;
-    uint32_t confirmedSessionId = 0;
-    CommonMessageEnd commonEnd;
-
-    Session_IdConfirm_Message() {
-        commonHeader.type = SESSION_TYPE;
-        commonHeader.subType = SESSION_ID_CONFIRM_SUBTYPE;
         commonHeader.flags = 0x1;
     }
 } __attribute__((packed));
