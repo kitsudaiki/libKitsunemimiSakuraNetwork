@@ -40,11 +40,11 @@ namespace Common
 {
 
 /**
- * @brief processSessionInitStart
+ * @brief process_SessionInit_Start
  */
 inline void
-processSessionInitStart(const Session_InitStart_Message* message,
-                        AbstractSocket* socket)
+process_SessionInit_Start(const SessionInit_Start_Message* message,
+                          AbstractSocket* socket)
 {
     LOG_DEBUG("process session init start");
 
@@ -86,11 +86,11 @@ processSessionInitStart(const Session_InitStart_Message* message,
 }
 
 /**
- * @brief processSessionIdChange
+ * @brief process_SessionInit_IdChange
  */
 inline void
-processSessionIdChange(const Session_IdChange_Message* message,
-                       AbstractSocket* socket)
+process_SessionInit_IdChange(const SessionInit_IdChange_Message* message,
+                             AbstractSocket* socket)
 {
     LOG_DEBUG("process session id change");
 
@@ -116,11 +116,11 @@ processSessionIdChange(const Session_IdChange_Message* message,
 }
 
 /**
- * @brief processSessionInitReply
+ * @brief process_SessionInit_Reply
  */
 inline void
-processSessionInitReply(const Session_InitReply_Message* message,
-                        AbstractSocket* socket)
+process_SessionInit_Reply(const SessionInit_Reply_Message* message,
+                          AbstractSocket* socket)
 {
     LOG_DEBUG("process session init reply");
 

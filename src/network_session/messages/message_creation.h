@@ -49,7 +49,7 @@ sendSessionInitStart(const uint32_t initialId,
     LOG_DEBUG("SEND session init start");
 
     // create message
-    Session_InitStart_Message message;
+    SessionInit_Start_Message message;
     message.offeredSessionId = initialId;
 
     // update common-header
@@ -57,7 +57,7 @@ sendSessionInitStart(const uint32_t initialId,
     message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
 
     // send
-    socket->sendMessage(&message, sizeof(Session_InitStart_Message));
+    socket->sendMessage(&message, sizeof(SessionInit_Start_Message));
 }
 
 /**
@@ -74,7 +74,7 @@ sendSessionIdChange(const uint32_t oldId,
     LOG_DEBUG("SEND session id change");
 
     // create message
-    Session_IdChange_Message message;
+    SessionInit_IdChange_Message message;
     message.oldOfferedSessionId = oldId;
     message.newOfferedSessionId = newId;
 
@@ -83,7 +83,7 @@ sendSessionIdChange(const uint32_t oldId,
     message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
 
     // send
-    socket->sendMessage(&message, sizeof(Session_InitStart_Message));
+    socket->sendMessage(&message, sizeof(SessionInit_Start_Message));
 }
 
 /**
@@ -97,7 +97,7 @@ sendSessionInitReply(const uint32_t id,
 {
     LOG_DEBUG("SEND session init reply");
 
-    Session_InitReply_Message message;
+    SessionInit_Reply_Message message;
     message.sessionId = id;
 
     // update common-header
@@ -105,7 +105,7 @@ sendSessionInitReply(const uint32_t id,
     message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
 
     // send
-    socket->sendMessage(&message, sizeof(Session_InitStart_Message));
+    socket->sendMessage(&message, sizeof(SessionInit_Start_Message));
 }
 
 } // namespace Common
