@@ -39,7 +39,13 @@ int main()
             new Kitsune::Project::Common::SessionHandler(nullptr, &callback);
     m_handler->addTcpServer(1234);
 
+    std::cout<<"######################################"<<std::endl;
     m_handler->startTcpSession("127.0.0.1", 1234);
-
     sleep(2);
+    std::cout<<"######################################"<<std::endl;
+    m_handler->closeSession(1);
+    sleep(2);
+    std::cout<<"######################################"<<std::endl;
+    sleep(2);
+
 }

@@ -28,8 +28,7 @@
 #include <network_session/messages/message_definitions.h>
 #include <libKitsuneNetwork/abstract_socket.h>
 
-#include <network_session/messages/session_init_processing.h>
-#include <network_session/messages/session_close_processing.h>
+#include <network_session/messages/session_processing.h>
 
 #include <libKitsunePersistence/logger/logger.h>
 
@@ -68,16 +67,16 @@ getMessageFromBuffer(MessageRingBuffer* recvBuffer)
  * @return
  */
 inline uint64_t
-process_Session_Init(const CommonMessageHeader* header,
-                   MessageRingBuffer *recvBuffer,
-                   AbstractSocket* socket)
+process_Session_Type(const CommonMessageHeader* header,
+                     MessageRingBuffer *recvBuffer,
+                     AbstractSocket* socket)
 {
-    LOG_DEBUG("process session-init");
+    LOG_DEBUG("process session-type");
     switch(header->subType)
     {
         case SESSION_INIT_START_SUBTYPE:
             {
-                const Session_Init_Start_Message*  message =
+                const Session_Init_Start_Message* message =
                         getMessageFromBuffer<Session_Init_Start_Message>(recvBuffer);
                 if(message == nullptr) {
                     break;
@@ -97,7 +96,7 @@ process_Session_Init(const CommonMessageHeader* header,
             }
         case SESSION_INIT_REPLY_SUBTYPE:
             {
-                const Session_Init_Reply_Message*  message =
+                const Session_Init_Reply_Message* message =
                         getMessageFromBuffer<Session_Init_Reply_Message>(recvBuffer);
                 if(message == nullptr) {
                     break;
@@ -105,31 +104,9 @@ process_Session_Init(const CommonMessageHeader* header,
                 process_Session_Init_Reply(message, socket);
                 return sizeof(Session_Init_Reply_Message);
             }
-        default:
-            break;
-    }
-
-    return 0;
-}
-
-/**
- * @brief process_SessionEnd
- * @param header
- * @param recvBuffer
- * @param socket
- * @return
- */
-inline uint64_t
-process_SessionEnd(const CommonMessageHeader* header,
-                   MessageRingBuffer *recvBuffer,
-                   AbstractSocket* socket)
-{
-    LOG_DEBUG("process session-end");
-    switch(header->subType)
-    {
         case SESSION_CLOSE_START_SUBTYPE:
             {
-                const Session_Close_Start_Message*  message =
+                const Session_Close_Start_Message* message =
                         getMessageFromBuffer<Session_Close_Start_Message>(recvBuffer);
                 if(message == nullptr) {
                     break;
@@ -139,7 +116,7 @@ process_SessionEnd(const CommonMessageHeader* header,
             }
         case SESSION_CLOSE_REPLY_SUBTYPE:
             {
-                const Session_Close_Reply_Message*  message =
+                const Session_Close_Reply_Message* message =
                         getMessageFromBuffer<Session_Close_Reply_Message>(recvBuffer);
                 if(message == nullptr) {
                     break;
@@ -181,7 +158,7 @@ processMessage(void*,
     switch(header->type)
     {
         case SESSION_TYPE:
-            return process_Session_Init(header, recvBuffer, socket);
+            return process_Session_Type(header, recvBuffer, socket);
         default:
             break;
     }

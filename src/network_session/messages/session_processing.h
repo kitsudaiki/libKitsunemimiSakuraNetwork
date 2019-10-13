@@ -135,6 +135,47 @@ process_Session_Init_Reply(const Session_Init_Reply_Message* message,
     }
 }
 
+/**
+ * @brief process_Session_Close_Start
+ */
+inline void
+process_Session_Close_Start(const Session_Close_Start_Message* message,
+                            AbstractSocket* socket)
+{
+    LOG_DEBUG("process session close start");
+
+    const uint32_t sessionId = message->sessionId;
+    Session* session = SessionHandler::m_sessionHandler->removeSession(sessionId);
+
+    const bool ret = session->closeSession();
+    if(ret) {
+        sendSession_Close_Reply(sessionId, socket);
+    } else {
+        // TODO: error message
+    }
+
+    session->disconnect();
+    delete session;
+}
+
+/**
+ * @brief process_Session_Close_Reply
+ */
+inline void
+process_Session_Close_Reply(const Session_Close_Reply_Message* message,
+                            AbstractSocket* socket)
+{
+    LOG_DEBUG("process session close reply");
+
+    const uint32_t sessionId = message->sessionId;
+    Session* session = SessionHandler::m_sessionHandler->removeSession(sessionId);
+
+    sendSession_Close_Reply(sessionId, socket);
+
+    session->disconnect();
+    delete session;
+}
+
 } // namespace Common
 } // namespace Project
 } // namespace Kitsune

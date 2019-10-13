@@ -46,10 +46,12 @@ public:
     Session(Network::AbstractSocket* socket);
     ~Session();
 
-    bool connect(const bool initSession = false);
+    bool connect(const bool init = false);
     bool startSession();
 
-    bool closeSession();
+    bool disconnect();
+    bool closeSession(const bool init = false,
+                      const bool replyExpected = false);
 
     uint32_t sessionId = 0;
 

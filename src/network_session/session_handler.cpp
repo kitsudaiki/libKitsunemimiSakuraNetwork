@@ -253,7 +253,7 @@ SessionHandler::closeSession(const uint32_t id)
     it = m_sessions.find(id);
 
     if(it != m_sessions.end()) {
-        return it->second->closeSession();
+        return it->second->closeSession(true);
     }
 
     return false;
@@ -307,6 +307,26 @@ SessionHandler::addSession(const uint32_t id, Session* session)
 {
     m_sessions.insert(std::pair<uint32_t, Session*>(id, session));
     m_processSession(m_target, session);
+}
+
+/**
+ * @brief SessionHandler::removeSession
+ * @param id
+ */
+Session*
+SessionHandler::removeSession(const uint32_t id)
+{
+    std::map<uint32_t, Session*>::iterator it;
+    it = m_sessions.find(id);
+
+    if(it != m_sessions.end())
+    {
+        Session* tempSession = it->second;
+        m_sessions.erase(it);
+        return tempSession;
+    }
+
+    return nullptr;
 }
 
 /**

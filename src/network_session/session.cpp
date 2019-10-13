@@ -62,9 +62,9 @@ Session::~Session()
  * @return
  */
 bool
-Session::connect(const bool initSession)
+Session::connect(const bool init)
 {
-    LOG_DEBUG("state of state machine: " + m_statemachine.getCurrentState());
+    LOG_DEBUG("session connect: " + std::to_string(sessionId));
 
     // check if already connected
     if(m_statemachine.isInState(CONNECTED)) {
@@ -78,14 +78,18 @@ Session::connect(const bool initSession)
     }
 
     // git into connected state
-    m_statemachine.goToNextState(CONNECT);
+    const bool ret = m_statemachine.goToNextState(CONNECT);
     LOG_DEBUG("state of state machine: " + m_statemachine.getCurrentState());
+
+    if(ret == false) {
+        return false;
+    }
 
     // start socket-thread to listen for incoming messages
     m_socket->start();
 
     // init session
-    if(initSession)
+    if(init)
     {
         LOG_DEBUG("SEND session init start");
         sendSession_Init_Start(sessionId, m_socket);
@@ -102,32 +106,67 @@ Session::connect(const bool initSession)
 bool
 Session::startSession()
 {
-    bool ret = m_statemachine.goToNextState(START_SESSION);
-    if(ret == false) {
-        return false;
-    }
+    LOG_DEBUG("session start: " + std::to_string(sessionId));
 
+    const bool ret = m_statemachine.goToNextState(START_SESSION);
     LOG_DEBUG("state of state machine: " + m_statemachine.getCurrentState());
-
     return ret;
+}
+
+/**
+ * @brief Session::disconnect
+ * @return
+ */
+bool
+Session::disconnect()
+{
+    LOG_DEBUG("session disconnect: " + std::to_string(sessionId));
+
+    if(m_statemachine.isInState(CONNECTED))
+    {
+        const bool ret = m_statemachine.goToNextState(DISCONNECT);
+        LOG_DEBUG("state of state machine: " + m_statemachine.getCurrentState());
+        if(ret == false) {
+            return false;
+        }
+
+        m_socket->closeSocket();
+        return true;
+    }
+    return false;
 }
 
 /**
  * @brief Session::closeSession
  *
+ * @param init
+ * @param replyExpected
+ *
  * @return
  */
 bool
-Session::closeSession()
+Session::closeSession(const bool init,
+                      const bool replyExpected)
 {
+    LOG_DEBUG("session close: " + std::to_string(sessionId));
+
     if(m_statemachine.isInState(SESSION_READY))
     {
-    }
-    else if(m_statemachine.isInState(CONNECTED))
-    {
-        m_socket->closeSocket();
+        const bool ret = m_statemachine.goToNextState(STOP_SESSION);
+        LOG_DEBUG("state of state machine: " + m_statemachine.getCurrentState());
+        if(ret == false) {
+            return false;
+        }
+
+        if(init)
+        {
+            LOG_DEBUG("SEND session close start");
+            sendSession_Close_Start(sessionId, replyExpected, m_socket);
+        }
+
         return true;
     }
+
     return false;
 }
 
