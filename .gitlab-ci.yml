@@ -1,0 +1,16 @@
+image: registry.gitlab.com/kitsune_other/kitsune_docker_unittest:0.1.2
+
+build:
+  script:
+    - echo Working on branch $CI_COMMIT_REF_NAME
+
+    - apt-get install -y libboost-filesystem-dev libsqlite3-dev libboost-program-options-dev
+
+    - cd /builds/tobiasanker/libKitsuneProjectCommon
+    - ./build.sh
+
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:'/builds/tobiasanker/result'
+    - /builds/tobiasanker/build/libKitsuneProjectCommon/tests/tests
+
+  tags:
+    - docker
