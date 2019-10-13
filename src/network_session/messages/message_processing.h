@@ -28,8 +28,7 @@
 #include <network_session/messages/message_definitions.h>
 #include <libKitsuneNetwork/abstract_socket.h>
 
-#include <network_session/messages/session_init_processing.h>
-#include <network_session/messages/session_end_processing.h>
+#include <network_session/messages/session_processing.h>
 
 #include <libKitsunePersistence/logger/logger.h>
 
@@ -43,6 +42,11 @@ namespace Project
 namespace Common
 {
 
+/**
+ * @brief getMessageFromBuffer
+ * @param recvBuffer
+ * @return
+ */
 template <typename T>
 const T*
 getMessageFromBuffer(MessageRingBuffer* recvBuffer)
@@ -57,48 +61,68 @@ getMessageFromBuffer(MessageRingBuffer* recvBuffer)
 }
 
 /**
- * @brief processSessionInit
+ * @brief process_Session_Init
  * @param recvBuffer
  * @param socket
  * @return
  */
 inline uint64_t
-processSessionInit(const CommonMessageHeader* header,
-                   MessageRingBuffer *recvBuffer,
-                   AbstractSocket* socket)
+process_Session_Type(const CommonMessageHeader* header,
+                     MessageRingBuffer *recvBuffer,
+                     AbstractSocket* socket)
 {
-    LOG_DEBUG("process session-init");
+    LOG_DEBUG("process session-type");
     switch(header->subType)
     {
         case SESSION_INIT_START_SUBTYPE:
             {
-                const Session_InitStart_Message*  message =
-                        getMessageFromBuffer<Session_InitStart_Message>(recvBuffer);
+                const Session_Init_Start_Message* message =
+                        getMessageFromBuffer<Session_Init_Start_Message>(recvBuffer);
                 if(message == nullptr) {
                     break;
                 }
-                processSessionInitStart(message, socket);
-                return sizeof(Session_InitStart_Message);
+                process_Session_Init_Start(message, socket);
+                return sizeof(Session_Init_Start_Message);
             }
-        case SESSION_ID_CHANGE_SUBTYPE:
+        case SESSION_INIT_ID_CHANGE_SUBTYPE:
             {
-                const Session_IdChange_Message* message =
-                        getMessageFromBuffer<Session_IdChange_Message>(recvBuffer);
+                const Session_Init_IdChange_Message* message =
+                        getMessageFromBuffer<Session_Init_IdChange_Message>(recvBuffer);
                 if(message == nullptr) {
                     break;
                 }
-                processSessionIdChange(message, socket);
-                return sizeof(Session_IdChange_Message);
+                process_Session_Init_IdChange(message, socket);
+                return sizeof(Session_Init_IdChange_Message);
             }
         case SESSION_INIT_REPLY_SUBTYPE:
             {
-                const Session_InitReply_Message*  message =
-                        getMessageFromBuffer<Session_InitReply_Message>(recvBuffer);
+                const Session_Init_Reply_Message* message =
+                        getMessageFromBuffer<Session_Init_Reply_Message>(recvBuffer);
                 if(message == nullptr) {
                     break;
                 }
-                processSessionInitReply(message, socket);
-                return sizeof(Session_InitReply_Message);
+                process_Session_Init_Reply(message, socket);
+                return sizeof(Session_Init_Reply_Message);
+            }
+        case SESSION_CLOSE_START_SUBTYPE:
+            {
+                const Session_Close_Start_Message* message =
+                        getMessageFromBuffer<Session_Close_Start_Message>(recvBuffer);
+                if(message == nullptr) {
+                    break;
+                }
+                process_Session_Close_Start(message, socket);
+                return sizeof(Session_Close_Start_Message);
+            }
+        case SESSION_CLOSE_REPLY_SUBTYPE:
+            {
+                const Session_Close_Reply_Message* message =
+                        getMessageFromBuffer<Session_Close_Reply_Message>(recvBuffer);
+                if(message == nullptr) {
+                    break;
+                }
+                process_Session_Close_Reply(message, socket);
+                return sizeof(Session_Close_Reply_Message);
             }
         default:
             break;
@@ -134,7 +158,7 @@ processMessage(void*,
     switch(header->type)
     {
         case SESSION_TYPE:
-            return processSessionInit(header, recvBuffer, socket);
+            return process_Session_Type(header, recvBuffer, socket);
         default:
             break;
     }

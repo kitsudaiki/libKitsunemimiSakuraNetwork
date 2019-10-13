@@ -73,6 +73,8 @@ public:
     bool isIdUsed(const uint32_t id);
 
     void addSession(const uint32_t id, Session* session);
+    Session* removeSession(const uint32_t id);
+
     void addPendingSession(const uint32_t id, Session* session);
     Session* removePendingSession(const uint32_t id);
 

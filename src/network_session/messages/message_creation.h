@@ -38,18 +38,18 @@ namespace Common
 {
 
 /**
- * @brief sendSessionInitStart
+ * @brief sendSession_InitStart
  * @param initialId
  * @param socket
  */
 inline void
-sendSessionInitStart(const uint32_t initialId,
-                     Network::AbstractSocket* socket)
+sendSession_Init_Start(const uint32_t initialId,
+                       Network::AbstractSocket* socket)
 {
     LOG_DEBUG("SEND session init start");
 
     // create message
-    Session_InitStart_Message message;
+    Session_Init_Start_Message message;
     message.offeredSessionId = initialId;
 
     // update common-header
@@ -57,7 +57,7 @@ sendSessionInitStart(const uint32_t initialId,
     message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
 
     // send
-    socket->sendMessage(&message, sizeof(Session_InitStart_Message));
+    socket->sendMessage(&message, sizeof(message));
 }
 
 /**
@@ -67,14 +67,14 @@ sendSessionInitStart(const uint32_t initialId,
  * @param socket
  */
 inline void
-sendSessionIdChange(const uint32_t oldId,
-                    const uint32_t newId,
-                    Network::AbstractSocket* socket)
+sendSession_Init_IdChange(const uint32_t oldId,
+                          const uint32_t newId,
+                          Network::AbstractSocket* socket)
 {
     LOG_DEBUG("SEND session id change");
 
     // create message
-    Session_IdChange_Message message;
+    Session_Init_IdChange_Message message;
     message.oldOfferedSessionId = oldId;
     message.newOfferedSessionId = newId;
 
@@ -83,7 +83,7 @@ sendSessionIdChange(const uint32_t oldId,
     message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
 
     // send
-    socket->sendMessage(&message, sizeof(Session_InitStart_Message));
+    socket->sendMessage(&message, sizeof(message));
 }
 
 /**
@@ -92,12 +92,12 @@ sendSessionIdChange(const uint32_t oldId,
  * @param socket
  */
 inline void
-sendSessionInitReply(const uint32_t id,
-                    Network::AbstractSocket* socket)
+sendSession_Init_Reply(const uint32_t id,
+                       Network::AbstractSocket* socket)
 {
     LOG_DEBUG("SEND session init reply");
 
-    Session_InitReply_Message message;
+    Session_Init_Reply_Message message;
     message.sessionId = id;
 
     // update common-header
@@ -105,7 +105,53 @@ sendSessionInitReply(const uint32_t id,
     message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
 
     // send
-    socket->sendMessage(&message, sizeof(Session_InitStart_Message));
+    socket->sendMessage(&message, sizeof(message));
+}
+
+/**
+ * @brief sendSession_Close_Start
+ * @param id
+ * @param replyRequired
+ * @param socket
+ */
+inline void
+sendSession_Close_Start(const uint32_t id,
+                        bool replyExpected,
+                        Network::AbstractSocket* socket)
+{
+    LOG_DEBUG("SEND session close start");
+
+    Session_Close_Start_Message message(replyExpected);
+    message.sessionId = id;
+
+    // update common-header
+    message.commonHeader.sessionId = id;
+    message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
+
+    // send
+    socket->sendMessage(&message, sizeof(message));
+}
+
+/**
+ * @brief sendSession_Close_Reply
+ * @param id
+ * @param socket
+ */
+inline void
+sendSession_Close_Reply(const uint32_t id,
+                        Network::AbstractSocket* socket)
+{
+    LOG_DEBUG("SEND session close reply");
+
+    Session_Close_Reply_Message message;
+    message.sessionId = id;
+
+    // update common-header
+    message.commonHeader.sessionId = id;
+    message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
+
+    // send
+    socket->sendMessage(&message, sizeof(message));
 }
 
 } // namespace Common

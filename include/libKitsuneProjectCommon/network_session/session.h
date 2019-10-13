@@ -43,17 +43,21 @@ namespace Common
 class Session
 {
 public:
-    Session();
+    Session(Network::AbstractSocket* socket);
     ~Session();
 
-    bool connect();
-    bool confirmSession();
+    bool connect(const bool init = false);
+    bool startSession();
+
+    bool disconnect();
+    bool closeSession(const bool init = false,
+                      const bool replyExpected = false);
 
     uint32_t sessionId = 0;
-    Network::AbstractSocket* m_socket = nullptr;
 
 private:
     Kitsune::Common::Statemachine m_statemachine;
+    Network::AbstractSocket* m_socket = nullptr;
 
     void initStatemachine();
 

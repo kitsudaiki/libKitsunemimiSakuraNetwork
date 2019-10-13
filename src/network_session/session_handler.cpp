@@ -189,15 +189,11 @@ SessionHandler::startUnixDomainSession(const std::string socketFile)
     Network::UnixDomainSocket* unixDomainSocket = new Network::UnixDomainSocket(socketFile);
     unixDomainSocket->setMessageCallback(this, &processMessageUnixDomain);
 
-    Session* newSession = new Session();
-    newSession->m_socket = unixDomainSocket;
+    Session* newSession = new Session(unixDomainSocket);
     newSession->sessionId = increaseSessionIdCounter();
 
     addPendingSession(m_sessionIdCounter, newSession);
-    newSession->connect();
-
-    LOG_DEBUG("send session init start");
-    sendSessionInitStart(newSession->sessionId, newSession->m_socket);
+    newSession->connect(true);
 }
 
 /**
@@ -212,15 +208,11 @@ SessionHandler::startTcpSession(const std::string address,
     Network::TcpSocket* tcpSocket = new Network::TcpSocket(address, port);
     tcpSocket->setMessageCallback(this, &processMessageTcp);
 
-    Session* newSession = new Session();
-    newSession->m_socket = tcpSocket;
+    Session* newSession = new Session(tcpSocket);
     newSession->sessionId = increaseSessionIdCounter();
 
     addPendingSession(m_sessionIdCounter, newSession);
-    newSession->connect();
-
-    LOG_DEBUG("send session init start");
-    sendSessionInitStart(newSession->sessionId, newSession->m_socket);
+    newSession->connect(true);
 }
 
 /**
@@ -242,15 +234,11 @@ SessionHandler::startTlsTcpSession(const std::string address,
                                                                     keyFile);
     tlsTcpSocket->setMessageCallback(this, &processMessageTlsTcp);
 
-    Session* newSession = new Session();
-    newSession->m_socket = tlsTcpSocket;
+    Session* newSession = new Session(tlsTcpSocket);
     newSession->sessionId = increaseSessionIdCounter();
 
     addPendingSession(m_sessionIdCounter, newSession);
-    newSession->connect();
-
-    LOG_DEBUG("send session init start");
-    sendSessionInitStart(newSession->sessionId, newSession->m_socket);
+    newSession->connect(true);
 }
 
 /**
@@ -264,14 +252,8 @@ SessionHandler::closeSession(const uint32_t id)
     std::map<uint32_t, Session*>::iterator it;
     it = m_sessions.find(id);
 
-    if(it != m_sessions.end())
-    {
-        AbstractSocket* socket = it->second->m_socket;
-        socket->stop();
-        socket->closeSocket();
-        delete socket;
-        m_sessions.erase(it);
-        return true;
+    if(it != m_sessions.end()) {
+        return it->second->closeSession(true);
     }
 
     return false;
@@ -325,6 +307,26 @@ SessionHandler::addSession(const uint32_t id, Session* session)
 {
     m_sessions.insert(std::pair<uint32_t, Session*>(id, session));
     m_processSession(m_target, session);
+}
+
+/**
+ * @brief SessionHandler::removeSession
+ * @param id
+ */
+Session*
+SessionHandler::removeSession(const uint32_t id)
+{
+    std::map<uint32_t, Session*>::iterator it;
+    it = m_sessions.find(id);
+
+    if(it != m_sessions.end())
+    {
+        Session* tempSession = it->second;
+        m_sessions.erase(it);
+        return tempSession;
+    }
+
+    return nullptr;
 }
 
 /**
