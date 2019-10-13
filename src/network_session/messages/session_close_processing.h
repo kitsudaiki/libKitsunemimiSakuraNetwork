@@ -1,5 +1,5 @@
 /**
- *  @file       session_end_processing.h
+ *  @file       session_close_processing.h
  *
  *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
@@ -20,8 +20,17 @@
  *      limitations under the License.
  */
 
-#ifndef SESSION_END_PROCESSING_H
-#define SESSION_END_PROCESSING_H
+#ifndef SESSION_CLOSE_PROCESSING_H
+#define SESSION_CLOSE_PROCESSING_H
+
+#include <libKitsuneProjectCommon/network_session/session_handler.h>
+#include <network_session/messages/message_definitions.h>
+#include <network_session/messages/message_creation.h>
+#include <libKitsuneNetwork/abstract_socket.h>
+
+#include <libKitsunePersistence/logger/logger.h>
+
+using Kitsune::Network::AbstractSocket;
 
 
 namespace Kitsune
@@ -31,8 +40,22 @@ namespace Project
 namespace Common
 {
 
+inline void
+process_Session_Close_Start(const Session_Close_Start_Message* message,
+                            AbstractSocket* socket)
+{
+
+}
+
+inline void
+process_Session_Close_Reply(const Session_Close_Reply_Message* message,
+                            AbstractSocket* socket)
+{
+
+}
+
 } // namespace Common
 } // namespace Project
 } // namespace Kitsune
 
-#endif // SESSION_END_PROCESSING_H
+#endif // SESSION_CLOSE_PROCESSING_H

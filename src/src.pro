@@ -33,8 +33,8 @@ HEADERS += \
     network_session/messages/message_processing.h \
     network_session/messages/message_creation.h \
     network_session/messages/session_init_processing.h \
-    network_session/messages/session_end_processing.h \
-    network_session/messages/message_definitions.h
+    network_session/messages/message_definitions.h \
+    network_session/messages/session_close_processing.h
 
 SOURCES += \
     network_session/timer_thread.cpp \

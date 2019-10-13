@@ -22,7 +22,22 @@
 
 #include <libKitsuneProjectCommon/network_session/session.h>
 #include <libKitsuneNetwork/abstract_socket.h>
+#include <network_session/messages/message_creation.h>
 #include <libKitsunePersistence/logger/logger.h>
+
+#define NOT_CONNECTED "not connected"
+#define CONNECTED "connected"
+#define SESSION_NOT_READY "session not ready"
+#define SESSION_READY "session init"
+#define NORMAL "normal"
+#define IN_DATATRANSFER "in datatransfer"
+
+#define CONNECT "connect"
+#define DISCONNECT "disconnect"
+#define START_SESSION "start session"
+#define STOP_SESSION "stop session"
+#define START_DATATRANSFER "start datatransfer"
+#define STOP_DATATRANSFER "stop datatransfer"
 
 namespace Kitsune
 {
@@ -31,8 +46,9 @@ namespace Project
 namespace Common
 {
 
-Session::Session()
+Session::Session(Network::AbstractSocket* socket)
 {
+    m_socket = socket;
     initStatemachine();
 }
 
@@ -46,35 +62,47 @@ Session::~Session()
  * @return
  */
 bool
-Session::connect()
+Session::connect(const bool initSession)
 {
     LOG_DEBUG("state of state machine: " + m_statemachine.getCurrentState());
-    if(m_statemachine.isInState("not connected") == false) {
+
+    // check if already connected
+    if(m_statemachine.isInState(CONNECTED)) {
         return true;
     }
 
-    bool connected = m_socket->initClientSide();
+    // connect socket
+    const bool connected = m_socket->initClientSide();
     if(connected == false) {
         return false;
     }
 
-    m_statemachine.goToNextState("connect");
+    // git into connected state
+    m_statemachine.goToNextState(CONNECT);
     LOG_DEBUG("state of state machine: " + m_statemachine.getCurrentState());
 
+    // start socket-thread to listen for incoming messages
     m_socket->start();
+
+    // init session
+    if(initSession)
+    {
+        LOG_DEBUG("SEND session init start");
+        sendSession_Init_Start(sessionId, m_socket);
+    }
 
     return true;
 }
 
 /**
- * @brief Session::confirmSession
+ * @brief Session::startSession
  *
  * @return
  */
 bool
-Session::confirmSession()
+Session::startSession()
 {
-    bool ret = m_statemachine.goToNextState("start session");
+    bool ret = m_statemachine.goToNextState(START_SESSION);
     if(ret == false) {
         return false;
     }
@@ -85,55 +113,55 @@ Session::confirmSession()
 }
 
 /**
+ * @brief Session::closeSession
+ *
+ * @return
+ */
+bool
+Session::closeSession()
+{
+    if(m_statemachine.isInState(SESSION_READY))
+    {
+    }
+    else if(m_statemachine.isInState(CONNECTED))
+    {
+        m_socket->closeSocket();
+        return true;
+    }
+    return false;
+}
+
+/**
  * @brief Session::initStatemachine
  */
 void
 Session::initStatemachine()
 {
     // init states
-    assert(m_statemachine.createNewState("not connected"));
-    assert(m_statemachine.createNewState("connected"));
-    assert(m_statemachine.createNewState("session not init"));
-    assert(m_statemachine.createNewState("session init"));
-    assert(m_statemachine.createNewState("normal"));
-    assert(m_statemachine.createNewState("in datatransfer"));
+    assert(m_statemachine.createNewState(NOT_CONNECTED));
+    assert(m_statemachine.createNewState(CONNECTED));
+    assert(m_statemachine.createNewState(SESSION_NOT_READY));
+    assert(m_statemachine.createNewState(SESSION_READY));
+    assert(m_statemachine.createNewState(NORMAL));
+    assert(m_statemachine.createNewState(IN_DATATRANSFER));
 
     // set child state
-    assert(m_statemachine.addChildState("connected", "session not init"));
-    assert(m_statemachine.addChildState("connected", "session init"));
-    assert(m_statemachine.addChildState("session init", "normal"));
-    assert(m_statemachine.addChildState("session init", "in datatransfer"));
+    assert(m_statemachine.addChildState(CONNECTED,     SESSION_NOT_READY));
+    assert(m_statemachine.addChildState(CONNECTED,     SESSION_READY));
+    assert(m_statemachine.addChildState(SESSION_READY, NORMAL));
+    assert(m_statemachine.addChildState(SESSION_READY, IN_DATATRANSFER));
 
     // set initial states
-    assert(m_statemachine.setInitialChildState("connected", "session not init"));
-    assert(m_statemachine.setInitialChildState("session init", "normal"));
+    assert(m_statemachine.setInitialChildState(CONNECTED,     SESSION_NOT_READY));
+    assert(m_statemachine.setInitialChildState(SESSION_READY, NORMAL));
 
     // init transitions
-    assert(m_statemachine.addTransition("not connected",
-                                        "connect",
-                                        "connected"));
-
-    assert(m_statemachine.addTransition("connected",
-                                        "disconnect",
-                                        "not connected"));
-
-    assert(m_statemachine.addTransition("session not init",
-                                        "start session",
-                                        "session init"));
-
-    assert(m_statemachine.addTransition("session init",
-                                        "stop session",
-                                        "session not init"));
-
-    assert(m_statemachine.addTransition("normal",
-                                        "start datatransfer",
-                                        "in datatransfer"));
-
-    assert(m_statemachine.addTransition("in datatransfer",
-                                        "stop datatransfer",
-                                        "normal"));
-
-
+    assert(m_statemachine.addTransition(NOT_CONNECTED,     CONNECT,            CONNECTED));
+    assert(m_statemachine.addTransition(CONNECTED,         DISCONNECT,         NOT_CONNECTED));
+    assert(m_statemachine.addTransition(SESSION_NOT_READY, START_SESSION,      SESSION_READY));
+    assert(m_statemachine.addTransition(SESSION_READY,     STOP_SESSION,       SESSION_NOT_READY));
+    assert(m_statemachine.addTransition(NORMAL,            START_DATATRANSFER, IN_DATATRANSFER));
+    assert(m_statemachine.addTransition(IN_DATATRANSFER,   STOP_DATATRANSFER,  NORMAL));
 }
 
 } // namespace Common
