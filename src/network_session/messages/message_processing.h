@@ -84,16 +84,6 @@ process_Session_Type(const CommonMessageHeader* header,
                 process_Session_Init_Start(message, socket);
                 return sizeof(Session_Init_Start_Message);
             }
-        case SESSION_INIT_ID_CHANGE_SUBTYPE:
-            {
-                const Session_Init_IdChange_Message* message =
-                        getMessageFromBuffer<Session_Init_IdChange_Message>(recvBuffer);
-                if(message == nullptr) {
-                    break;
-                }
-                process_Session_Init_IdChange(message, socket);
-                return sizeof(Session_Init_IdChange_Message);
-            }
         case SESSION_INIT_REPLY_SUBTYPE:
             {
                 const Session_Init_Reply_Message* message =

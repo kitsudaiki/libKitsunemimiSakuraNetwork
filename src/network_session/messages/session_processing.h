@@ -62,32 +62,6 @@ send_Session_Init_Start(const uint32_t initialId,
 }
 
 /**
- * @brief sendSessionIdChange
- * @param oldId
- * @param newId
- * @param socket
- */
-inline void
-send_Session_Init_IdChange(const uint32_t oldId,
-                           const uint32_t newId,
-                           Network::AbstractSocket* socket)
-{
-    LOG_DEBUG("SEND session id change");
-
-    // create message
-    Session_Init_IdChange_Message message;
-    message.oldOfferedSessionId = oldId;
-    message.newOfferedSessionId = newId;
-
-    // update common-header
-    message.commonHeader.sessionId = newId;
-    message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
-
-    // send
-    socket->sendMessage(&message, sizeof(message));
-}
-
-/**
  * @brief sendSessionIniReply
  * @param id
  * @param socket
@@ -165,67 +139,21 @@ process_Session_Init_Start(const Session_Init_Start_Message* message,
     LOG_DEBUG("process session init start");
 
     const uint32_t sessionId = message->offeredSessionId;
-    if(SessionHandler::m_sessionHandler->isIdUsed(sessionId))
-    {
-        // get new sesstion id
-        const uint32_t newSessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
 
-        // create new session
-        Session* newSession = new Session(socket);
-        newSession->sessionId = newSessionId;
-        newSession->connect();
+    // create new session
+    Session* newSession = new Session(socket);
+    newSession->sessionId = sessionId;
+    newSession->connect();
 
-        // send id-change-request
-        send_Session_Init_IdChange(sessionId, newSessionId, socket);
-        SessionHandler::m_sessionHandler->addPendingSession(newSessionId, newSession);
-    }
-    else
-    {
-        // create new session
-        Session* newSession = new Session(socket);
-        newSession->sessionId = sessionId;
-        newSession->connect();
+    // confirm id
+    send_Session_Init_Reply(sessionId, socket);
 
-        // confirm id
-        send_Session_Init_Reply(sessionId, socket);
-
-        // try to finish session
-        const bool ret = newSession->startSession();
-        if(ret) {
-            SessionHandler::m_sessionHandler->addSession(sessionId, newSession);
-        } else {
-            // TODO: error message
-        }
-    }
-}
-
-/**
- * @brief process_Session_Init_IdChange
- */
-inline void
-process_Session_Init_IdChange(const Session_Init_IdChange_Message* message,
-                             AbstractSocket* socket)
-{
-    LOG_DEBUG("process session id change");
-
-    const uint32_t sessionId = message->newOfferedSessionId;
-    const uint32_t oldSessionId = message->oldOfferedSessionId;
-
-    if(SessionHandler::m_sessionHandler->isIdUsed(sessionId))
-    {
-        // get new session-id and send it to the other side to get reply
-        const uint32_t newSessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
-        send_Session_Init_IdChange(sessionId, newSessionId, socket);
-
-        // move session from the pending list to the final list
-        Session* session = SessionHandler::m_sessionHandler->removePendingSession(oldSessionId);
-        SessionHandler::m_sessionHandler->addPendingSession(newSessionId, session);
-    }
-    else
-    {
-        // move session from the pending list to the final list
-        Session* session = SessionHandler::m_sessionHandler->removePendingSession(oldSessionId);
-        SessionHandler::m_sessionHandler->addSession(sessionId, session);
+    // try to finish session
+    const bool ret = newSession->startSession();
+    if(ret) {
+        SessionHandler::m_sessionHandler->addSession(sessionId, newSession);
+    } else {
+        // TODO: error message
     }
 }
 
@@ -240,7 +168,7 @@ process_Session_Init_Reply(const Session_Init_Reply_Message* message,
 
     // get session
     const uint32_t sessionId = message->sessionId;
-    Session* session = SessionHandler::m_sessionHandler->removePendingSession(sessionId);
+    Session* session = SessionHandler::m_sessionHandler->removeSession(sessionId);
 
     // try to finish session
     const bool ret = session->startSession();

@@ -192,7 +192,7 @@ SessionHandler::startUnixDomainSession(const std::string socketFile)
     Session* newSession = new Session(unixDomainSocket);
     newSession->sessionId = increaseSessionIdCounter();
 
-    addPendingSession(m_sessionIdCounter, newSession);
+    addSession(m_sessionIdCounter, newSession);
     newSession->connect(true);
 }
 
@@ -211,7 +211,7 @@ SessionHandler::startTcpSession(const std::string address,
     Session* newSession = new Session(tcpSocket);
     newSession->sessionId = increaseSessionIdCounter();
 
-    addPendingSession(m_sessionIdCounter, newSession);
+    addSession(m_sessionIdCounter, newSession);
     newSession->connect(true);
 }
 
@@ -237,7 +237,7 @@ SessionHandler::startTlsTcpSession(const std::string address,
     Session* newSession = new Session(tlsTcpSocket);
     newSession->sessionId = increaseSessionIdCounter();
 
-    addPendingSession(m_sessionIdCounter, newSession);
+    addSession(m_sessionIdCounter, newSession);
     newSession->connect(true);
 }
 
@@ -323,38 +323,6 @@ SessionHandler::removeSession(const uint32_t id)
     {
         Session* tempSession = it->second;
         m_sessions.erase(it);
-        return tempSession;
-    }
-
-    return nullptr;
-}
-
-/**
- * @brief SessionHandler::addPendingSession
- * @param id
- * @param session
- */
-void
-SessionHandler::addPendingSession(const uint32_t id, Session* session)
-{
-    m_pendingSessions.insert(std::pair<uint32_t, Session*>(id, session));
-}
-
-/**
- * @brief SessionHandler::removePendingSession
- * @param id
- * @return
- */
-Session*
-SessionHandler::removePendingSession(const uint32_t id)
-{
-    std::map<uint32_t, Session*>::iterator it;
-    it = m_pendingSessions.find(id);
-
-    if(it != m_pendingSessions.end())
-    {
-        Session* tempSession = it->second;
-        m_pendingSessions.erase(it);
         return tempSession;
     }
 

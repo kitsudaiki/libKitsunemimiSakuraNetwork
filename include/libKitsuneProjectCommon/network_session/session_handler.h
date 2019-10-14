@@ -75,14 +75,10 @@ public:
     void addSession(const uint32_t id, Session* session);
     Session* removeSession(const uint32_t id);
 
-    void addPendingSession(const uint32_t id, Session* session);
-    Session* removePendingSession(const uint32_t id);
-
     uint32_t increaseMessageIdCounter();
     uint32_t increaseSessionIdCounter();
 
 private:
-    std::map<uint32_t, Session*> m_pendingSessions;
     std::map<uint32_t, Session*> m_sessions;
     std::map<uint32_t, Network::AbstractServer*> m_servers;
 
