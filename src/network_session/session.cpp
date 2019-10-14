@@ -22,7 +22,7 @@
 
 #include <libKitsuneProjectCommon/network_session/session.h>
 #include <libKitsuneNetwork/abstract_socket.h>
-#include <network_session/messages/message_creation.h>
+#include <network_session/messages/session_processing.h>
 #include <libKitsunePersistence/logger/logger.h>
 
 #define NOT_CONNECTED "not connected"
@@ -92,7 +92,7 @@ Session::connect(const bool init)
     if(init)
     {
         LOG_DEBUG("SEND session init start");
-        sendSession_Init_Start(sessionId, m_socket);
+        send_Session_Init_Start(sessionId, m_socket);
     }
 
     return true;
@@ -161,7 +161,7 @@ Session::closeSession(const bool init,
         if(init)
         {
             LOG_DEBUG("SEND session close start");
-            sendSession_Close_Start(sessionId, replyExpected, m_socket);
+            send_Session_Close_Start(sessionId, replyExpected, m_socket);
         }
 
         return true;
