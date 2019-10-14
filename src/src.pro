@@ -31,7 +31,6 @@ HEADERS += \
     network_session/timer_thread.h \
     network_session/callbacks.h \
     network_session/messages/message_processing.h \
-    network_session/messages/message_creation.h \
     network_session/messages/message_definitions.h \
     network_session/messages/session_processing.h
 

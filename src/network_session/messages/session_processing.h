@@ -25,7 +25,6 @@
 
 #include <libKitsuneProjectCommon/network_session/session_handler.h>
 #include <network_session/messages/message_definitions.h>
-#include <network_session/messages/message_creation.h>
 #include <libKitsuneNetwork/abstract_socket.h>
 
 #include <libKitsunePersistence/logger/logger.h>
@@ -38,6 +37,123 @@ namespace Project
 {
 namespace Common
 {
+
+/**
+ * @brief sendSession_InitStart
+ * @param initialId
+ * @param socket
+ */
+inline void
+send_Session_Init_Start(const uint32_t initialId,
+                        Network::AbstractSocket* socket)
+{
+    LOG_DEBUG("SEND session init start");
+
+    // create message
+    Session_Init_Start_Message message;
+    message.offeredSessionId = initialId;
+
+    // update common-header
+    message.commonHeader.sessionId = initialId;
+    message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
+
+    // send
+    socket->sendMessage(&message, sizeof(message));
+}
+
+/**
+ * @brief sendSessionIdChange
+ * @param oldId
+ * @param newId
+ * @param socket
+ */
+inline void
+send_Session_Init_IdChange(const uint32_t oldId,
+                           const uint32_t newId,
+                           Network::AbstractSocket* socket)
+{
+    LOG_DEBUG("SEND session id change");
+
+    // create message
+    Session_Init_IdChange_Message message;
+    message.oldOfferedSessionId = oldId;
+    message.newOfferedSessionId = newId;
+
+    // update common-header
+    message.commonHeader.sessionId = newId;
+    message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
+
+    // send
+    socket->sendMessage(&message, sizeof(message));
+}
+
+/**
+ * @brief sendSessionIniReply
+ * @param id
+ * @param socket
+ */
+inline void
+send_Session_Init_Reply(const uint32_t id,
+                        Network::AbstractSocket* socket)
+{
+    LOG_DEBUG("SEND session init reply");
+
+    Session_Init_Reply_Message message;
+    message.sessionId = id;
+
+    // update common-header
+    message.commonHeader.sessionId = id;
+    message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
+
+    // send
+    socket->sendMessage(&message, sizeof(message));
+}
+
+/**
+ * @brief sendSession_Close_Start
+ * @param id
+ * @param replyRequired
+ * @param socket
+ */
+inline void
+send_Session_Close_Start(const uint32_t id,
+                         bool replyExpected,
+                         Network::AbstractSocket* socket)
+{
+    LOG_DEBUG("SEND session close start");
+
+    Session_Close_Start_Message message(replyExpected);
+    message.sessionId = id;
+
+    // update common-header
+    message.commonHeader.sessionId = id;
+    message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
+
+    // send
+    socket->sendMessage(&message, sizeof(message));
+}
+
+/**
+ * @brief sendSession_Close_Reply
+ * @param id
+ * @param socket
+ */
+inline void
+send_Session_Close_Reply(const uint32_t id,
+                         Network::AbstractSocket* socket)
+{
+    LOG_DEBUG("SEND session close reply");
+
+    Session_Close_Reply_Message message;
+    message.sessionId = id;
+
+    // update common-header
+    message.commonHeader.sessionId = id;
+    message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
+
+    // send
+    socket->sendMessage(&message, sizeof(message));
+}
 
 /**
  * @brief process_Session_Init_Start
@@ -60,7 +176,7 @@ process_Session_Init_Start(const Session_Init_Start_Message* message,
         newSession->connect();
 
         // send id-change-request
-        sendSession_Init_IdChange(sessionId, newSessionId, socket);
+        send_Session_Init_IdChange(sessionId, newSessionId, socket);
         SessionHandler::m_sessionHandler->addPendingSession(newSessionId, newSession);
     }
     else
@@ -71,7 +187,7 @@ process_Session_Init_Start(const Session_Init_Start_Message* message,
         newSession->connect();
 
         // confirm id
-        sendSession_Init_Reply(sessionId, socket);
+        send_Session_Init_Reply(sessionId, socket);
 
         // try to finish session
         const bool ret = newSession->startSession();
@@ -99,7 +215,7 @@ process_Session_Init_IdChange(const Session_Init_IdChange_Message* message,
     {
         // get new session-id and send it to the other side to get reply
         const uint32_t newSessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
-        sendSession_Init_IdChange(sessionId, newSessionId, socket);
+        send_Session_Init_IdChange(sessionId, newSessionId, socket);
 
         // move session from the pending list to the final list
         Session* session = SessionHandler::m_sessionHandler->removePendingSession(oldSessionId);
@@ -149,7 +265,7 @@ process_Session_Close_Start(const Session_Close_Start_Message* message,
 
     const bool ret = session->closeSession();
     if(ret) {
-        sendSession_Close_Reply(sessionId, socket);
+        send_Session_Close_Reply(sessionId, socket);
     } else {
         // TODO: error message
     }
@@ -170,7 +286,7 @@ process_Session_Close_Reply(const Session_Close_Reply_Message* message,
     const uint32_t sessionId = message->sessionId;
     Session* session = SessionHandler::m_sessionHandler->removeSession(sessionId);
 
-    sendSession_Close_Reply(sessionId, socket);
+    send_Session_Close_Reply(sessionId, socket);
 
     session->disconnect();
     delete session;
