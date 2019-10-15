@@ -22,7 +22,10 @@
 
 #include <libKitsuneProjectCommon/network_session/session.h>
 #include <libKitsuneNetwork/abstract_socket.h>
+
 #include <network_session/messages/session_processing.h>
+#include <network_session/messages/heartbeat_processing.h>
+
 #include <libKitsunePersistence/logger/logger.h>
 
 #define NOT_CONNECTED "not connected"
@@ -89,9 +92,7 @@ Session::connect(const bool init)
     m_socket->start();
 
     // init session
-    if(init)
-    {
-        LOG_DEBUG("SEND session init start");
+    if(init) {
         send_Session_Init_Start(sessionId, m_socket);
     }
 
@@ -158,12 +159,28 @@ Session::closeSession(const bool init,
             return false;
         }
 
-        if(init)
-        {
-            LOG_DEBUG("SEND session close start");
+        if(init) {
             send_Session_Close_Start(sessionId, replyExpected, m_socket);
         }
 
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @brief Session::sendHeartbeat
+ * @return
+ */
+bool
+Session::sendHeartbeat()
+{
+    LOG_DEBUG("CALL send hearbeat: " + std::to_string(sessionId));
+
+    if(m_statemachine.isInState(SESSION_READY))
+    {
+        send_Heartbeat_Start(sessionId, m_socket);
         return true;
     }
 

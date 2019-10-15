@@ -32,7 +32,8 @@ HEADERS += \
     network_session/callbacks.h \
     network_session/messages/message_processing.h \
     network_session/messages/message_definitions.h \
-    network_session/messages/session_processing.h
+    network_session/messages/session_processing.h \
+    network_session/messages/heartbeat_processing.h
 
 SOURCES += \
     network_session/timer_thread.cpp \
