@@ -1,5 +1,5 @@
 /**
- *  @file       session_init_processing.h
+ *  @file       session_processing.h
  *
  *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
@@ -173,15 +173,20 @@ process_Session_Init_Reply(const Session_Init_Reply_Message* message,
     // get session
     const uint32_t completeSessionId = message->completeSessionId;
     const uint32_t initialId = message->clientSessionId;
-    Session* session = SessionHandler::m_sessionHandler->removeSession(initialId);
-    session->sessionId = completeSessionId;
 
-    // try to finish session
-    const bool ret = session->startSession();
-    if(ret) {
-        SessionHandler::m_sessionHandler->addSession(completeSessionId, session);
-    } else {
-        // TODO: error message
+    Session* session = SessionHandler::m_sessionHandler->removeSession(initialId);
+
+    if(session != nullptr)
+    {
+        session->sessionId = completeSessionId;
+
+        // try to finish session
+        const bool ret = session->startSession();
+        if(ret) {
+            SessionHandler::m_sessionHandler->addSession(completeSessionId, session);
+        } else {
+            // TODO: error message
+        }
     }
 }
 
@@ -195,17 +200,22 @@ process_Session_Close_Start(const Session_Close_Start_Message* message,
     LOG_DEBUG("process session close start");
 
     const uint32_t sessionId = message->sessionId;
+
     Session* session = SessionHandler::m_sessionHandler->removeSession(sessionId);
 
-    const bool ret = session->closeSession();
-    if(ret) {
-        send_Session_Close_Reply(sessionId, socket);
-    } else {
-        // TODO: error message
-    }
+    if(session != nullptr)
+    {
+        const bool ret = session->closeSession();
+        if(ret) {
+            send_Session_Close_Reply(sessionId, socket);
+        } else {
+            // TODO: error message
+        }
 
-    session->disconnect();
-    delete session;
+        // TODO: better delete
+        session->disconnect();
+        delete session;
+    }
 }
 
 /**
@@ -220,10 +230,12 @@ process_Session_Close_Reply(const Session_Close_Reply_Message* message,
     const uint32_t sessionId = message->sessionId;
     Session* session = SessionHandler::m_sessionHandler->removeSession(sessionId);
 
-    send_Session_Close_Reply(sessionId, socket);
-
-    session->disconnect();
-    delete session;
+    if(session != nullptr)
+    {
+        // TODO: better delete
+        session->disconnect();
+        delete session;
+    }
 }
 
 } // namespace Common
