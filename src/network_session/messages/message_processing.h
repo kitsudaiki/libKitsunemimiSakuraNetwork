@@ -29,6 +29,7 @@
 #include <libKitsuneNetwork/abstract_socket.h>
 
 #include <network_session/messages/session_processing.h>
+#include <network_session/messages/heartbeat_processing.h>
 
 #include <libKitsunePersistence/logger/logger.h>
 
@@ -122,6 +123,48 @@ process_Session_Type(const CommonMessageHeader* header,
 }
 
 /**
+ * @brief process_Heartbeat_Type
+ * @param header
+ * @param recvBuffer
+ * @param socket
+ * @return
+ */
+inline uint64_t
+process_Heartbeat_Type(const CommonMessageHeader* header,
+                       MessageRingBuffer *recvBuffer,
+                       AbstractSocket* socket)
+{
+    LOG_DEBUG("process heartbeat-type");
+    switch(header->subType)
+    {
+        case HEARTBEAT_START_SUBTYPE:
+            {
+                const Heartbeat_Start_Message* message =
+                        getMessageFromBuffer<Heartbeat_Start_Message>(recvBuffer);
+                if(message == nullptr) {
+                    break;
+                }
+                process_Heartbeat_Start(message, socket);
+                return sizeof(Heartbeat_Start_Message);
+            }
+        case HEARTBEAT_REPLY_SUBTYPE:
+            {
+                const Heartbeat_Reply_Message* message =
+                        getMessageFromBuffer<Heartbeat_Reply_Message>(recvBuffer);
+                if(message == nullptr) {
+                    break;
+                }
+                process_Heartbeat_Reply(message, socket);
+                return sizeof(Heartbeat_Reply_Message);
+            }
+        default:
+            break;
+    }
+
+    return 0;
+}
+
+/**
  * @brief handleMessage
  * @param target
  * @param recvBuffer
@@ -149,6 +192,8 @@ processMessage(void*,
     {
         case SESSION_TYPE:
             return process_Session_Type(header, recvBuffer, socket);
+        case HEARTBEAT_TYPE:
+            return process_Heartbeat_Type(header, recvBuffer, socket);
         default:
             break;
     }

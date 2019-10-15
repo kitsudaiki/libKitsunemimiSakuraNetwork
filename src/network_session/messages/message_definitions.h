@@ -146,6 +146,30 @@ struct Session_Close_Reply_Message
 
 //==================================================================================================
 
+struct Heartbeat_Start_Message
+{
+    CommonMessageHeader commonHeader;
+    CommonMessageEnd commonEnd;
+
+    Heartbeat_Start_Message() {
+        commonHeader.type = HEARTBEAT_TYPE;
+        commonHeader.subType = HEARTBEAT_START_SUBTYPE;
+    }
+} __attribute__((packed));
+
+struct Heartbeat_Reply_Message
+{
+    CommonMessageHeader commonHeader;
+    CommonMessageEnd commonEnd;
+
+    Heartbeat_Reply_Message() {
+        commonHeader.type = HEARTBEAT_TYPE;
+        commonHeader.subType = HEARTBEAT_REPLY_SUBTYPE;
+    }
+} __attribute__((packed));
+
+//==================================================================================================
+
 } // namespace Common
 } // namespace Project
 } // namespace Kitsune

@@ -53,6 +53,8 @@ public:
     bool closeSession(const bool init = false,
                       const bool replyExpected = false);
 
+    bool sendHeartbeat();
+
     uint32_t sessionId = 0;
 
 private:
