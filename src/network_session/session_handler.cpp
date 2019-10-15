@@ -305,6 +305,7 @@ SessionHandler::isIdUsed(const uint32_t id)
 void
 SessionHandler::addSession(const uint32_t id, Session* session)
 {
+    LOG_DEBUG("add session with id: " + std::to_string(id));
     m_sessions.insert(std::pair<uint32_t, Session*>(id, session));
     m_processSession(m_target, session);
 }
@@ -316,6 +317,7 @@ SessionHandler::addSession(const uint32_t id, Session* session)
 Session*
 SessionHandler::removeSession(const uint32_t id)
 {
+    LOG_DEBUG("remove session with id: " + std::to_string(id));
     std::map<uint32_t, Session*>::iterator it;
     it = m_sessions.find(id);
 
@@ -349,10 +351,9 @@ SessionHandler::increaseMessageIdCounter()
  * @brief SessionHandler::increaseSessionIdCounter
  * @return
  */
-uint32_t
-SessionHandler::increaseSessionIdCounter()
+uint16_t SessionHandler::increaseSessionIdCounter()
 {
-    uint32_t tempId = 0;
+    uint16_t tempId = 0;
     while (m_sessionIdCounter_lock.test_and_set(std::memory_order_acquire))  // acquire lock
                  ; // spin
     m_sessionIdCounter++;

@@ -92,7 +92,7 @@ struct CommonMessageEnd
 struct Session_Init_Start_Message
 {
     CommonMessageHeader commonHeader;
-    uint32_t offeredSessionId = 0;
+    uint32_t clientSessionId = 0;
     CommonMessageEnd commonEnd;
 
     Session_Init_Start_Message() {
@@ -105,7 +105,8 @@ struct Session_Init_Start_Message
 struct Session_Init_Reply_Message
 {
     CommonMessageHeader commonHeader;
-    uint32_t sessionId = 0;
+    uint32_t clientSessionId = 0;
+    uint32_t completeSessionId = 0;
     CommonMessageEnd commonEnd;
 
     Session_Init_Reply_Message() {

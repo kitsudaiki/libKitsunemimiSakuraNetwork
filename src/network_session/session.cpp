@@ -64,7 +64,7 @@ Session::~Session()
 bool
 Session::connect(const bool init)
 {
-    LOG_DEBUG("session connect: " + std::to_string(sessionId));
+    LOG_DEBUG("CALL session connect: " + std::to_string(sessionId));
 
     // check if already connected
     if(m_statemachine.isInState(CONNECTED)) {
@@ -106,7 +106,7 @@ Session::connect(const bool init)
 bool
 Session::startSession()
 {
-    LOG_DEBUG("session start: " + std::to_string(sessionId));
+    LOG_DEBUG("CALL session start: " + std::to_string(sessionId));
 
     const bool ret = m_statemachine.goToNextState(START_SESSION);
     LOG_DEBUG("state of state machine: " + m_statemachine.getCurrentState());
@@ -120,7 +120,7 @@ Session::startSession()
 bool
 Session::disconnect()
 {
-    LOG_DEBUG("session disconnect: " + std::to_string(sessionId));
+    LOG_DEBUG("CALL session disconnect: " + std::to_string(sessionId));
 
     if(m_statemachine.isInState(CONNECTED))
     {
@@ -148,7 +148,7 @@ bool
 Session::closeSession(const bool init,
                       const bool replyExpected)
 {
-    LOG_DEBUG("session close: " + std::to_string(sessionId));
+    LOG_DEBUG("CALL session close: " + std::to_string(sessionId));
 
     if(m_statemachine.isInState(SESSION_READY))
     {

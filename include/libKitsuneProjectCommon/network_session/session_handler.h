@@ -76,7 +76,7 @@ public:
     Session* removeSession(const uint32_t id);
 
     uint32_t increaseMessageIdCounter();
-    uint32_t increaseSessionIdCounter();
+    uint16_t increaseSessionIdCounter();
 
 private:
     std::map<uint32_t, Session*> m_sessions;
@@ -90,7 +90,7 @@ private:
     uint32_t m_messageIdCounter = 0;
 
     std::atomic_flag m_sessionIdCounter_lock = ATOMIC_FLAG_INIT;
-    uint32_t m_sessionIdCounter = 0;
+    uint16_t m_sessionIdCounter = 0;
 
     uint32_t m_serverIdCounter = 0;
 };

@@ -51,7 +51,7 @@ send_Session_Init_Start(const uint32_t initialId,
 
     // create message
     Session_Init_Start_Message message;
-    message.offeredSessionId = initialId;
+    message.clientSessionId = initialId;
 
     // update common-header
     message.commonHeader.sessionId = initialId;
@@ -68,12 +68,14 @@ send_Session_Init_Start(const uint32_t initialId,
  */
 inline void
 send_Session_Init_Reply(const uint32_t id,
+                        const uint32_t clientSessionId,
                         Network::AbstractSocket* socket)
 {
     LOG_DEBUG("SEND session init reply");
 
     Session_Init_Reply_Message message;
-    message.sessionId = id;
+    message.completeSessionId = id;
+    message.clientSessionId = clientSessionId;
 
     // update common-header
     message.commonHeader.sessionId = id;
@@ -138,20 +140,22 @@ process_Session_Init_Start(const Session_Init_Start_Message* message,
 {
     LOG_DEBUG("process session init start");
 
-    const uint32_t sessionId = message->offeredSessionId;
+    const uint32_t clientSessionId = message->clientSessionId;
+    const uint16_t serverSessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
+    const uint32_t completeSessionId = clientSessionId + (serverSessionId * 0x10000);
 
     // create new session
     Session* newSession = new Session(socket);
-    newSession->sessionId = sessionId;
+    newSession->sessionId = completeSessionId;
     newSession->connect();
 
     // confirm id
-    send_Session_Init_Reply(sessionId, socket);
+    send_Session_Init_Reply(completeSessionId, clientSessionId, socket);
 
     // try to finish session
     const bool ret = newSession->startSession();
     if(ret) {
-        SessionHandler::m_sessionHandler->addSession(sessionId, newSession);
+        SessionHandler::m_sessionHandler->addSession(completeSessionId, newSession);
     } else {
         // TODO: error message
     }
@@ -167,13 +171,15 @@ process_Session_Init_Reply(const Session_Init_Reply_Message* message,
     LOG_DEBUG("process session init reply");
 
     // get session
-    const uint32_t sessionId = message->sessionId;
-    Session* session = SessionHandler::m_sessionHandler->removeSession(sessionId);
+    const uint32_t completeSessionId = message->completeSessionId;
+    const uint32_t initialId = message->clientSessionId;
+    Session* session = SessionHandler::m_sessionHandler->removeSession(initialId);
+    session->sessionId = completeSessionId;
 
     // try to finish session
     const bool ret = session->startSession();
     if(ret) {
-        SessionHandler::m_sessionHandler->addSession(sessionId, session);
+        SessionHandler::m_sessionHandler->addSession(completeSessionId, session);
     } else {
         // TODO: error message
     }

@@ -43,7 +43,7 @@ int main()
     m_handler->startTcpSession("127.0.0.1", 1234);
     sleep(2);
     std::cout<<"######################################"<<std::endl;
-    m_handler->closeSession(1);
+    m_handler->closeSession(131073);
     sleep(2);
     std::cout<<"######################################"<<std::endl;
     sleep(2);
