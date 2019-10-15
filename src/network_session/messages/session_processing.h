@@ -51,36 +51,10 @@ send_Session_Init_Start(const uint32_t initialId,
 
     // create message
     Session_Init_Start_Message message;
-    message.offeredSessionId = initialId;
+    message.clientSessionId = initialId;
 
     // update common-header
     message.commonHeader.sessionId = initialId;
-    message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
-
-    // send
-    socket->sendMessage(&message, sizeof(message));
-}
-
-/**
- * @brief sendSessionIdChange
- * @param oldId
- * @param newId
- * @param socket
- */
-inline void
-send_Session_Init_IdChange(const uint32_t oldId,
-                           const uint32_t newId,
-                           Network::AbstractSocket* socket)
-{
-    LOG_DEBUG("SEND session id change");
-
-    // create message
-    Session_Init_IdChange_Message message;
-    message.oldOfferedSessionId = oldId;
-    message.newOfferedSessionId = newId;
-
-    // update common-header
-    message.commonHeader.sessionId = newId;
     message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
 
     // send
@@ -94,12 +68,14 @@ send_Session_Init_IdChange(const uint32_t oldId,
  */
 inline void
 send_Session_Init_Reply(const uint32_t id,
+                        const uint32_t clientSessionId,
                         Network::AbstractSocket* socket)
 {
     LOG_DEBUG("SEND session init reply");
 
     Session_Init_Reply_Message message;
-    message.sessionId = id;
+    message.completeSessionId = id;
+    message.clientSessionId = clientSessionId;
 
     // update common-header
     message.commonHeader.sessionId = id;
@@ -164,68 +140,24 @@ process_Session_Init_Start(const Session_Init_Start_Message* message,
 {
     LOG_DEBUG("process session init start");
 
-    const uint32_t sessionId = message->offeredSessionId;
-    if(SessionHandler::m_sessionHandler->isIdUsed(sessionId))
-    {
-        // get new sesstion id
-        const uint32_t newSessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
+    const uint32_t clientSessionId = message->clientSessionId;
+    const uint16_t serverSessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
+    const uint32_t completeSessionId = clientSessionId + (serverSessionId * 0x10000);
 
-        // create new session
-        Session* newSession = new Session(socket);
-        newSession->sessionId = newSessionId;
-        newSession->connect();
+    // create new session
+    Session* newSession = new Session(socket);
+    newSession->sessionId = completeSessionId;
+    newSession->connect();
 
-        // send id-change-request
-        send_Session_Init_IdChange(sessionId, newSessionId, socket);
-        SessionHandler::m_sessionHandler->addPendingSession(newSessionId, newSession);
-    }
-    else
-    {
-        // create new session
-        Session* newSession = new Session(socket);
-        newSession->sessionId = sessionId;
-        newSession->connect();
+    // confirm id
+    send_Session_Init_Reply(completeSessionId, clientSessionId, socket);
 
-        // confirm id
-        send_Session_Init_Reply(sessionId, socket);
-
-        // try to finish session
-        const bool ret = newSession->startSession();
-        if(ret) {
-            SessionHandler::m_sessionHandler->addSession(sessionId, newSession);
-        } else {
-            // TODO: error message
-        }
-    }
-}
-
-/**
- * @brief process_Session_Init_IdChange
- */
-inline void
-process_Session_Init_IdChange(const Session_Init_IdChange_Message* message,
-                             AbstractSocket* socket)
-{
-    LOG_DEBUG("process session id change");
-
-    const uint32_t sessionId = message->newOfferedSessionId;
-    const uint32_t oldSessionId = message->oldOfferedSessionId;
-
-    if(SessionHandler::m_sessionHandler->isIdUsed(sessionId))
-    {
-        // get new session-id and send it to the other side to get reply
-        const uint32_t newSessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
-        send_Session_Init_IdChange(sessionId, newSessionId, socket);
-
-        // move session from the pending list to the final list
-        Session* session = SessionHandler::m_sessionHandler->removePendingSession(oldSessionId);
-        SessionHandler::m_sessionHandler->addPendingSession(newSessionId, session);
-    }
-    else
-    {
-        // move session from the pending list to the final list
-        Session* session = SessionHandler::m_sessionHandler->removePendingSession(oldSessionId);
-        SessionHandler::m_sessionHandler->addSession(sessionId, session);
+    // try to finish session
+    const bool ret = newSession->startSession();
+    if(ret) {
+        SessionHandler::m_sessionHandler->addSession(completeSessionId, newSession);
+    } else {
+        // TODO: error message
     }
 }
 
@@ -239,13 +171,15 @@ process_Session_Init_Reply(const Session_Init_Reply_Message* message,
     LOG_DEBUG("process session init reply");
 
     // get session
-    const uint32_t sessionId = message->sessionId;
-    Session* session = SessionHandler::m_sessionHandler->removePendingSession(sessionId);
+    const uint32_t completeSessionId = message->completeSessionId;
+    const uint32_t initialId = message->clientSessionId;
+    Session* session = SessionHandler::m_sessionHandler->removeSession(initialId);
+    session->sessionId = completeSessionId;
 
     // try to finish session
     const bool ret = session->startSession();
     if(ret) {
-        SessionHandler::m_sessionHandler->addSession(sessionId, session);
+        SessionHandler::m_sessionHandler->addSession(completeSessionId, session);
     } else {
         // TODO: error message
     }

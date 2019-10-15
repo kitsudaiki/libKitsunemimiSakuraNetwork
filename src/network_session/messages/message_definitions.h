@@ -44,11 +44,10 @@ enum types
 enum session_subTypes
 {
     SESSION_INIT_START_SUBTYPE = 1,
-    SESSION_INIT_ID_CHANGE_SUBTYPE = 2,
-    SESSION_INIT_REPLY_SUBTYPE = 3,
+    SESSION_INIT_REPLY_SUBTYPE = 2,
 
-    SESSION_CLOSE_START_SUBTYPE = 4,
-    SESSION_CLOSE_REPLY_SUBTYPE = 5,
+    SESSION_CLOSE_START_SUBTYPE = 3,
+    SESSION_CLOSE_REPLY_SUBTYPE = 4,
 };
 
 enum heartbeat_subTypes
@@ -93,7 +92,7 @@ struct CommonMessageEnd
 struct Session_Init_Start_Message
 {
     CommonMessageHeader commonHeader;
-    uint32_t offeredSessionId = 0;
+    uint32_t clientSessionId = 0;
     CommonMessageEnd commonEnd;
 
     Session_Init_Start_Message() {
@@ -103,24 +102,11 @@ struct Session_Init_Start_Message
     }
 } __attribute__((packed));
 
-struct Session_Init_IdChange_Message
-{
-    CommonMessageHeader commonHeader;
-    uint32_t oldOfferedSessionId = 0;
-    uint32_t newOfferedSessionId = 0;
-    CommonMessageEnd commonEnd;
-
-    Session_Init_IdChange_Message() {
-        commonHeader.type = SESSION_TYPE;
-        commonHeader.subType = SESSION_INIT_ID_CHANGE_SUBTYPE;
-        commonHeader.flags = 0x1;
-    }
-} __attribute__((packed));
-
 struct Session_Init_Reply_Message
 {
     CommonMessageHeader commonHeader;
-    uint32_t sessionId = 0;
+    uint32_t clientSessionId = 0;
+    uint32_t completeSessionId = 0;
     CommonMessageEnd commonEnd;
 
     Session_Init_Reply_Message() {
