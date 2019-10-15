@@ -44,18 +44,13 @@ namespace Common
  * @param socket
  */
 inline void
-send_Heartbeat_Start(const uint32_t id,
+send_Heartbeat_Start(const uint32_t sessionId,
                     Network::AbstractSocket* socket)
 {
     LOG_DEBUG("SEND heartbeat start");
 
-    Heartbeat_Start_Message message;
-
-    // update common-header
-    message.commonHeader.sessionId = id;
-    message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
-
-    // send
+    Heartbeat_Start_Message message(sessionId,
+                                    SessionHandler::m_sessionHandler->increaseMessageIdCounter());
     socket->sendMessage(&message, sizeof(message));
 }
 
@@ -65,18 +60,13 @@ send_Heartbeat_Start(const uint32_t id,
  * @param socket
  */
 inline void
-send_Heartbeat_Reply(const uint32_t id,
+send_Heartbeat_Reply(const uint32_t sessionId,
+                     const uint32_t messageId,
                      Network::AbstractSocket* socket)
 {
     LOG_DEBUG("SEND heartbeat reply");
 
-    Heartbeat_Reply_Message message;
-
-    // update common-header
-    message.commonHeader.sessionId = id;
-    message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
-
-    // send
+    Heartbeat_Reply_Message message(sessionId, messageId);
     socket->sendMessage(&message, sizeof(message));
 }
 
@@ -89,8 +79,9 @@ process_Heartbeat_Start(const Heartbeat_Start_Message* message,
 {
     LOG_DEBUG("process heartbeat start");
 
-    const uint32_t sessionId = message->commonHeader.sessionId;
-    send_Heartbeat_Reply(sessionId, socket);
+    send_Heartbeat_Reply(message->commonHeader.sessionId,
+                         message->commonHeader.messageId,
+                         socket);
 }
 
 /**
@@ -98,9 +89,12 @@ process_Heartbeat_Start(const Heartbeat_Start_Message* message,
  */
 inline void
 process_Heartbeat_Reply(const Heartbeat_Reply_Message* message,
-                        AbstractSocket* socket)
+                        AbstractSocket*)
 {
     LOG_DEBUG("process heartbeat reply");
+
+    SessionHandler::m_timerThread->removeMessage(message->commonHeader.sessionId,
+                                                 message->commonHeader.messageId);
 }
 
 } // namespace Common

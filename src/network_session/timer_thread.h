@@ -41,9 +41,16 @@ class TimerThread : public Kitsune::Common::Thread
 public:
     TimerThread();
 
-    void addMessage(const uint64_t messageId,
-                    Session* session);
+    void addMessage(const uint8_t messageType,
+                    const uint32_t sessionId,
+                    const uint64_t messageId);
+    void addMessage(const uint8_t messageType,
+                    const uint64_t messageId);
+
+    bool removeMessage(const uint32_t sessionId,
+                       const uint64_t messageId);
     bool removeMessage(const uint64_t messageId);
+
     void removeAllOfSession(const uint32_t sessionId);
 
 protected:
@@ -54,10 +61,10 @@ private:
     {
         uint64_t messageId = 0;
         float timer = 0;
-        Session* session = nullptr;
+        uint8_t messageType = 0;
     };
 
-    float m_timeoutValue = 0.0f;
+    float m_timeoutValue = 2.0f;
     std::vector<MessageTime> m_messageList;
 
     bool removeMessageFromList(const uint64_t messageId);

@@ -25,6 +25,9 @@
 
 #include <stdint.h>
 
+#include <libKitsuneProjectCommon/network_session/session_handler.h>
+#include <network_session/timer_thread.h>
+
 namespace Kitsune
 {
 namespace Project
@@ -95,10 +98,17 @@ struct Session_Init_Start_Message
     uint32_t clientSessionId = 0;
     CommonMessageEnd commonEnd;
 
-    Session_Init_Start_Message() {
+    Session_Init_Start_Message(const uint32_t sessionId,
+                               const uint32_t messageId)
+    {
         commonHeader.type = SESSION_TYPE;
         commonHeader.subType = SESSION_INIT_START_SUBTYPE;
+        commonHeader.sessionId = sessionId;
+        commonHeader.messageId = messageId;
         commonHeader.flags = 0x1;
+        SessionHandler::m_timerThread->addMessage(commonHeader.type,
+                                                  commonHeader.sessionId,
+                                                  commonHeader.messageId);
     }
 } __attribute__((packed));
 
@@ -109,9 +119,13 @@ struct Session_Init_Reply_Message
     uint32_t completeSessionId = 0;
     CommonMessageEnd commonEnd;
 
-    Session_Init_Reply_Message() {
+    Session_Init_Reply_Message(const uint32_t sessionId,
+                               const uint32_t messageId)
+    {
         commonHeader.type = SESSION_TYPE;
         commonHeader.subType = SESSION_INIT_REPLY_SUBTYPE;
+        commonHeader.sessionId = sessionId;
+        commonHeader.messageId = messageId;
     }
 } __attribute__((packed));
 
@@ -123,11 +137,20 @@ struct Session_Close_Start_Message
     uint32_t sessionId = 0;
     CommonMessageEnd commonEnd;
 
-    Session_Close_Start_Message(bool replyExpected = false) {
+    Session_Close_Start_Message(const uint32_t sessionId,
+                                const uint32_t messageId,
+                                const bool replyExpected = false)
+    {
         commonHeader.type = SESSION_TYPE;
         commonHeader.subType = SESSION_CLOSE_START_SUBTYPE;
+        commonHeader.sessionId = sessionId;
+        commonHeader.messageId = messageId;
+
         if(replyExpected) {
             commonHeader.flags = 0x1;
+            SessionHandler::m_timerThread->addMessage(commonHeader.type,
+                                                      commonHeader.sessionId,
+                                                      commonHeader.messageId);
         }
     }
 } __attribute__((packed));
@@ -138,9 +161,13 @@ struct Session_Close_Reply_Message
     uint32_t sessionId = 0;
     CommonMessageEnd commonEnd;
 
-    Session_Close_Reply_Message() {
+    Session_Close_Reply_Message(const uint32_t sessionId,
+                                const uint32_t messageId)
+    {
         commonHeader.type = SESSION_TYPE;
         commonHeader.subType = SESSION_CLOSE_REPLY_SUBTYPE;
+        commonHeader.sessionId = sessionId;
+        commonHeader.messageId = messageId;
     }
 } __attribute__((packed));
 
@@ -151,9 +178,17 @@ struct Heartbeat_Start_Message
     CommonMessageHeader commonHeader;
     CommonMessageEnd commonEnd;
 
-    Heartbeat_Start_Message() {
+    Heartbeat_Start_Message(const uint32_t sessionId,
+                            const uint32_t messageId)
+    {
         commonHeader.type = HEARTBEAT_TYPE;
         commonHeader.subType = HEARTBEAT_START_SUBTYPE;
+        commonHeader.sessionId = sessionId;
+        commonHeader.messageId = messageId;
+        commonHeader.flags = 0x1;
+        SessionHandler::m_timerThread->addMessage(commonHeader.type,
+                                                  commonHeader.sessionId,
+                                                  commonHeader.messageId);
     }
 } __attribute__((packed));
 
@@ -162,9 +197,13 @@ struct Heartbeat_Reply_Message
     CommonMessageHeader commonHeader;
     CommonMessageEnd commonEnd;
 
-    Heartbeat_Reply_Message() {
+    Heartbeat_Reply_Message(const uint32_t sessionId,
+                            const uint32_t messageId)
+    {
         commonHeader.type = HEARTBEAT_TYPE;
         commonHeader.subType = HEARTBEAT_REPLY_SUBTYPE;
+        commonHeader.sessionId = sessionId;
+        commonHeader.messageId = messageId;
     }
 } __attribute__((packed));
 

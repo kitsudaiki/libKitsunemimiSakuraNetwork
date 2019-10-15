@@ -50,12 +50,9 @@ send_Session_Init_Start(const uint32_t initialId,
     LOG_DEBUG("SEND session init start");
 
     // create message
-    Session_Init_Start_Message message;
+    Session_Init_Start_Message message(initialId,
+                                       SessionHandler::m_sessionHandler->increaseMessageIdCounter());
     message.clientSessionId = initialId;
-
-    // update common-header
-    message.commonHeader.sessionId = initialId;
-    message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
 
     // send
     socket->sendMessage(&message, sizeof(message));
@@ -67,19 +64,16 @@ send_Session_Init_Start(const uint32_t initialId,
  * @param socket
  */
 inline void
-send_Session_Init_Reply(const uint32_t id,
+send_Session_Init_Reply(const uint32_t sessionId,
+                        const uint32_t messageId,
                         const uint32_t clientSessionId,
                         Network::AbstractSocket* socket)
 {
     LOG_DEBUG("SEND session init reply");
 
-    Session_Init_Reply_Message message;
-    message.completeSessionId = id;
+    Session_Init_Reply_Message message(sessionId, messageId);
+    message.completeSessionId = sessionId;
     message.clientSessionId = clientSessionId;
-
-    // update common-header
-    message.commonHeader.sessionId = id;
-    message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
 
     // send
     socket->sendMessage(&message, sizeof(message));
@@ -98,7 +92,9 @@ send_Session_Close_Start(const uint32_t id,
 {
     LOG_DEBUG("SEND session close start");
 
-    Session_Close_Start_Message message(replyExpected);
+    Session_Close_Start_Message message(id,
+                                        SessionHandler::m_sessionHandler->increaseMessageIdCounter(),
+                                        replyExpected);
     message.sessionId = id;
 
     // update common-header
@@ -115,17 +111,14 @@ send_Session_Close_Start(const uint32_t id,
  * @param socket
  */
 inline void
-send_Session_Close_Reply(const uint32_t id,
+send_Session_Close_Reply(const uint32_t sessionId,
+                         const uint32_t messageId,
                          Network::AbstractSocket* socket)
 {
     LOG_DEBUG("SEND session close reply");
 
-    Session_Close_Reply_Message message;
-    message.sessionId = id;
-
-    // update common-header
-    message.commonHeader.sessionId = id;
-    message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
+    Session_Close_Reply_Message message(sessionId, messageId);
+    message.sessionId = sessionId;
 
     // send
     socket->sendMessage(&message, sizeof(message));
@@ -150,7 +143,10 @@ process_Session_Init_Start(const Session_Init_Start_Message* message,
     newSession->connect();
 
     // confirm id
-    send_Session_Init_Reply(completeSessionId, clientSessionId, socket);
+    send_Session_Init_Reply(completeSessionId,
+                            message->commonHeader.messageId,
+                            clientSessionId,
+                            socket);
 
     // try to finish session
     const bool ret = newSession->startSession();
@@ -178,6 +174,9 @@ process_Session_Init_Reply(const Session_Init_Reply_Message* message,
 
     if(session != nullptr)
     {
+        SessionHandler::m_timerThread->removeMessage(initialId,
+                                                     message->commonHeader.messageId);
+
         session->sessionId = completeSessionId;
 
         // try to finish session
@@ -206,9 +205,13 @@ process_Session_Close_Start(const Session_Close_Start_Message* message,
     if(session != nullptr)
     {
         const bool ret = session->closeSession();
-        if(ret) {
-            send_Session_Close_Reply(sessionId, socket);
-        } else {
+        if(ret)
+        {
+            send_Session_Close_Reply(sessionId,
+                                     message->commonHeader.messageId,
+                                     socket);
+        }
+        else {
             // TODO: error message
         }
 
@@ -232,6 +235,9 @@ process_Session_Close_Reply(const Session_Close_Reply_Message* message,
 
     if(session != nullptr)
     {
+        SessionHandler::m_timerThread->removeMessage(message->commonHeader.sessionId,
+                                                     message->commonHeader.messageId);
+
         // TODO: better delete
         session->disconnect();
         delete session;
