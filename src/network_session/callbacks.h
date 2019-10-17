@@ -27,7 +27,10 @@
 #include <libKitsuneNetwork/message_ring_buffer.h>
 #include <libKitsuneCommon/data_buffer.h>
 #include <libKitsuneProjectCommon/network_session/session_handler.h>
-#include <network_session/messages/message_processing.h>
+
+#include <network_session/messages/session_processing.h>
+#include <network_session/messages/heartbeat_processing.h>
+
 
 using Kitsune::Network::MessageRingBuffer;
 using Kitsune::Network::AbstractSocket;
@@ -39,6 +42,43 @@ namespace Project
 {
 namespace Common
 {
+
+/**
+ * @brief handleMessage
+ * @param target
+ * @param recvBuffer
+ * @param socket
+ * @return
+ */
+uint64_t
+processMessage(void*,
+               MessageRingBuffer* recvBuffer,
+               AbstractSocket* socket)
+{
+    LOG_DEBUG("process message");
+
+    const CommonMessageHeader* header = getObjectFromBuffer<CommonMessageHeader>(recvBuffer);
+
+    if(header == nullptr
+            || header->version != 0x1)
+    {
+        // TODO: error if false version
+        //LOG_DEBUG("message-buffer not bug enough");
+        return 0;
+    }
+
+    switch(header->type)
+    {
+        case SESSION_TYPE:
+            return process_Session_Type(header, recvBuffer, socket);
+        case HEARTBEAT_TYPE:
+            return process_Heartbeat_Type(header, recvBuffer, socket);
+        default:
+            break;
+    }
+
+    return 0;
+}
 
 /**
  * processMessageTcp-callback
