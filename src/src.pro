@@ -30,10 +30,10 @@ HEADERS += \
     ../include/libKitsuneProjectCommon/network_session/session_handler.h \
     network_session/timer_thread.h \
     network_session/callbacks.h \
-    network_session/messages/message_definitions.h \
-    network_session/messages/session_processing.h \
-    network_session/messages/heartbeat_processing.h \
-    network_session/messages/error_processing.h
+    network_session/message_definitions.h \
+    network_session/messages_processing/session_processing.h \
+    network_session/messages_processing/heartbeat_processing.h \
+    network_session/messages_processing/error_processing.h
 
 SOURCES += \
     network_session/timer_thread.cpp \

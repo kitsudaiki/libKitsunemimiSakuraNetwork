@@ -28,8 +28,8 @@
 #include <libKitsuneCommon/data_buffer.h>
 #include <libKitsuneProjectCommon/network_session/session_handler.h>
 
-#include <network_session/messages/session_processing.h>
-#include <network_session/messages/heartbeat_processing.h>
+#include <network_session/messages_processing/session_processing.h>
+#include <network_session/messages_processing/heartbeat_processing.h>
 
 
 using Kitsune::Network::MessageRingBuffer;

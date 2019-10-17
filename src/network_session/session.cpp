@@ -23,8 +23,8 @@
 #include <libKitsuneProjectCommon/network_session/session.h>
 #include <libKitsuneNetwork/abstract_socket.h>
 
-#include <network_session/messages/session_processing.h>
-#include <network_session/messages/heartbeat_processing.h>
+#include <network_session/messages_processing/session_processing.h>
+#include <network_session/messages_processing/heartbeat_processing.h>
 
 #include <libKitsunePersistence/logger/logger.h>
 

@@ -24,7 +24,7 @@
 #define SESSION_PROCESSING_H
 
 #include <libKitsuneProjectCommon/network_session/session_handler.h>
-#include <network_session/messages/message_definitions.h>
+#include <network_session/message_definitions.h>
 #include <libKitsuneNetwork/abstract_socket.h>
 
 #include <libKitsunePersistence/logger/logger.h>
