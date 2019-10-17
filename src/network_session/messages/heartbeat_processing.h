@@ -26,10 +26,13 @@
 #include <libKitsuneProjectCommon/network_session/session_handler.h>
 #include <network_session/messages/message_definitions.h>
 #include <libKitsuneNetwork/abstract_socket.h>
+#include <libKitsuneNetwork/message_ring_buffer.h>
 
 #include <libKitsunePersistence/logger/logger.h>
 
+using Kitsune::Network::MessageRingBuffer;
 using Kitsune::Network::AbstractSocket;
+using Kitsune::Network::getObjectFromBuffer;
 
 namespace Kitsune
 {
@@ -95,6 +98,49 @@ process_Heartbeat_Reply(const Heartbeat_Reply_Message* message,
 
     SessionHandler::m_timerThread->removeMessage(message->commonHeader.sessionId,
                                                  message->commonHeader.messageId);
+}
+
+
+/**
+ * @brief process_Heartbeat_Type
+ * @param header
+ * @param recvBuffer
+ * @param socket
+ * @return
+ */
+inline uint64_t
+process_Heartbeat_Type(const CommonMessageHeader* header,
+                       MessageRingBuffer *recvBuffer,
+                       AbstractSocket* socket)
+{
+    LOG_DEBUG("process heartbeat-type");
+    switch(header->subType)
+    {
+        case HEARTBEAT_START_SUBTYPE:
+            {
+                const Heartbeat_Start_Message* message =
+                        getObjectFromBuffer<Heartbeat_Start_Message>(recvBuffer);
+                if(message == nullptr) {
+                    break;
+                }
+                process_Heartbeat_Start(message, socket);
+                return sizeof(Heartbeat_Start_Message);
+            }
+        case HEARTBEAT_REPLY_SUBTYPE:
+            {
+                const Heartbeat_Reply_Message* message =
+                        getObjectFromBuffer<Heartbeat_Reply_Message>(recvBuffer);
+                if(message == nullptr) {
+                    break;
+                }
+                process_Heartbeat_Reply(message, socket);
+                return sizeof(Heartbeat_Reply_Message);
+            }
+        default:
+            break;
+    }
+
+    return 0;
 }
 
 } // namespace Common
