@@ -20,8 +20,8 @@
  *      limitations under the License.
  */
 
-#ifndef SESSION_INIT_PROCESSING_H
-#define SESSION_INIT_PROCESSING_H
+#ifndef SESSION_PROCESSING_H
+#define SESSION_PROCESSING_H
 
 #include <libKitsuneProjectCommon/network_session/session_handler.h>
 #include <network_session/messages/message_definitions.h>
@@ -199,7 +199,6 @@ process_Session_Close_Start(const Session_Close_Start_Message* message,
     LOG_DEBUG("process session close start");
 
     const uint32_t sessionId = message->sessionId;
-
     Session* session = SessionHandler::m_sessionHandler->removeSession(sessionId);
 
     if(session != nullptr)
@@ -248,4 +247,4 @@ process_Session_Close_Reply(const Session_Close_Reply_Message* message,
 } // namespace Project
 } // namespace Kitsune
 
-#endif // SESSION_INIT_PROCESSING_H
+#endif // SESSION_PROCESSING_H

@@ -20,8 +20,8 @@
  *      limitations under the License.
  */
 
-#ifndef MESSAGE_HEADER_H
-#define MESSAGE_HEADER_H
+#ifndef MESSAGE_DEFINITIONS_H
+#define MESSAGE_DEFINITIONS_H
 
 #include <stdint.h>
 
@@ -62,7 +62,6 @@ enum heartbeat_subTypes
 enum error_subTypes
 {
     ERROR_FALSE_VERSION_SUBTYPE = 1,
-    ERROR_TIMEOUT_SUBTYPE = 2,
 };
 
 enum data_subTypes
@@ -213,4 +212,4 @@ struct Heartbeat_Reply_Message
 } // namespace Project
 } // namespace Kitsune
 
-#endif // MESSAGE_HEADER_H
+#endif // MESSAGE_DEFINITIONS_H
