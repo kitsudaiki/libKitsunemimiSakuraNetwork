@@ -48,11 +48,26 @@ Kitsune::Project::Common::SessionHandler* SessionHandler::m_sessionHandler = nul
 /**
  * @brief Session::Session
  */
-SessionHandler::SessionHandler(void* target,
-                               void (*processSession)(void*, Session*))
+SessionHandler::SessionHandler(void* sessionTarget,
+                               void (*processSession)(void*,
+                                                      Session*),
+                               void* dataTarget,
+                               void (*processData)(void*,
+                                                   const uint32_t,
+                                                   void*,
+                                                   const uint32_t),
+                               void* errorTarget,
+                               void (*processError)(void*,
+                                                    const uint32_t,
+                                                    const uint8_t,
+                                                    const std::string))
 {
-    m_target = target;
+    m_sessionTarget = sessionTarget;
     m_processSession = processSession;
+    m_dataTarget = dataTarget;
+    m_processData = processData;
+    m_errorTarget = errorTarget;
+    m_processError = processError;
 
     if(m_timerThread == nullptr)
     {
@@ -307,7 +322,19 @@ SessionHandler::addSession(const uint32_t id, Session* session)
 {
     LOG_DEBUG("add session with id: " + std::to_string(id));
     m_sessions.insert(std::pair<uint32_t, Session*>(id, session));
-    m_processSession(m_target, session);
+}
+
+/**
+ * @brief SessionHandler::confirmSession
+ * @param id
+ */
+void
+SessionHandler::confirmSession(const uint32_t id)
+{
+    LOG_DEBUG("confirm session with id: " + std::to_string(id));
+
+    Session* session = getSession(id);
+    m_processSession(m_sessionTarget, session);
 }
 
 /**

@@ -27,8 +27,18 @@
 
 using Kitsune::Persistence::initLogger;
 
-void callback(void* target, Kitsune::Project::Common::Session* session) {
-    LOG_DEBUG("callback session with id: " + std::to_string(session->sessionId));
+void sessionCallback(void* target, Kitsune::Project::Common::Session* session) {
+    LOG_DEBUG("CALLBACK session with id: " + std::to_string(session->sessionId));
+}
+
+void dataCallback(void* target, const uint32_t sessionId, void* data, const uint32_t dataSize) {
+    LOG_DEBUG("CALLBACK data messageg");
+}
+
+void errorCallback(void* target, const uint32_t sessionId,
+                   const uint8_t errorCode, const std::string errorMessage)
+{
+    LOG_DEBUG("CALLBACK error message");
 }
 
 int main()
@@ -36,7 +46,9 @@ int main()
     initLogger("/tmp", "testlog", true, true);
 
     Kitsune::Project::Common::SessionHandler* m_handler =
-            new Kitsune::Project::Common::SessionHandler(nullptr, &callback);
+            new Kitsune::Project::Common::SessionHandler(nullptr, &sessionCallback,
+                                                         nullptr, &dataCallback,
+                                                         nullptr, &errorCallback);
     m_handler->addTcpServer(1234);
 
     std::cout<<"######################################"<<std::endl;

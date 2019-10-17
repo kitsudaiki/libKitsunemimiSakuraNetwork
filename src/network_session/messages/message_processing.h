@@ -35,6 +35,7 @@
 
 using Kitsune::Network::MessageRingBuffer;
 using Kitsune::Network::AbstractSocket;
+using Kitsune::Network::getObjectFromBuffer;
 
 namespace Kitsune
 {
@@ -42,128 +43,6 @@ namespace Project
 {
 namespace Common
 {
-
-/**
- * @brief getMessageFromBuffer
- * @param recvBuffer
- * @return
- */
-template <typename T>
-const T*
-getMessageFromBuffer(MessageRingBuffer* recvBuffer)
-{
-    const void* data = static_cast<const void*>(getDataPointer(*recvBuffer, sizeof(T)));
-
-    if(data == nullptr) {
-        return nullptr;
-    }
-
-    return static_cast<const T*>(data);
-}
-
-/**
- * @brief process_Session_Init
- * @param recvBuffer
- * @param socket
- * @return
- */
-inline uint64_t
-process_Session_Type(const CommonMessageHeader* header,
-                     MessageRingBuffer *recvBuffer,
-                     AbstractSocket* socket)
-{
-    LOG_DEBUG("process session-type");
-    switch(header->subType)
-    {
-        case SESSION_INIT_START_SUBTYPE:
-            {
-                const Session_Init_Start_Message* message =
-                        getMessageFromBuffer<Session_Init_Start_Message>(recvBuffer);
-                if(message == nullptr) {
-                    break;
-                }
-                process_Session_Init_Start(message, socket);
-                return sizeof(Session_Init_Start_Message);
-            }
-        case SESSION_INIT_REPLY_SUBTYPE:
-            {
-                const Session_Init_Reply_Message* message =
-                        getMessageFromBuffer<Session_Init_Reply_Message>(recvBuffer);
-                if(message == nullptr) {
-                    break;
-                }
-                process_Session_Init_Reply(message, socket);
-                return sizeof(Session_Init_Reply_Message);
-            }
-        case SESSION_CLOSE_START_SUBTYPE:
-            {
-                const Session_Close_Start_Message* message =
-                        getMessageFromBuffer<Session_Close_Start_Message>(recvBuffer);
-                if(message == nullptr) {
-                    break;
-                }
-                process_Session_Close_Start(message, socket);
-                return sizeof(Session_Close_Start_Message);
-            }
-        case SESSION_CLOSE_REPLY_SUBTYPE:
-            {
-                const Session_Close_Reply_Message* message =
-                        getMessageFromBuffer<Session_Close_Reply_Message>(recvBuffer);
-                if(message == nullptr) {
-                    break;
-                }
-                process_Session_Close_Reply(message, socket);
-                return sizeof(Session_Close_Reply_Message);
-            }
-        default:
-            break;
-    }
-
-    return 0;
-}
-
-/**
- * @brief process_Heartbeat_Type
- * @param header
- * @param recvBuffer
- * @param socket
- * @return
- */
-inline uint64_t
-process_Heartbeat_Type(const CommonMessageHeader* header,
-                       MessageRingBuffer *recvBuffer,
-                       AbstractSocket* socket)
-{
-    LOG_DEBUG("process heartbeat-type");
-    switch(header->subType)
-    {
-        case HEARTBEAT_START_SUBTYPE:
-            {
-                const Heartbeat_Start_Message* message =
-                        getMessageFromBuffer<Heartbeat_Start_Message>(recvBuffer);
-                if(message == nullptr) {
-                    break;
-                }
-                process_Heartbeat_Start(message, socket);
-                return sizeof(Heartbeat_Start_Message);
-            }
-        case HEARTBEAT_REPLY_SUBTYPE:
-            {
-                const Heartbeat_Reply_Message* message =
-                        getMessageFromBuffer<Heartbeat_Reply_Message>(recvBuffer);
-                if(message == nullptr) {
-                    break;
-                }
-                process_Heartbeat_Reply(message, socket);
-                return sizeof(Heartbeat_Reply_Message);
-            }
-        default:
-            break;
-    }
-
-    return 0;
-}
-
 /**
  * @brief handleMessage
  * @param target
@@ -178,7 +57,7 @@ processMessage(void*,
 {
     LOG_DEBUG("process message");
 
-    const CommonMessageHeader* header = getMessageFromBuffer<CommonMessageHeader>(recvBuffer);
+    const CommonMessageHeader* header = getObjectFromBuffer<CommonMessageHeader>(recvBuffer);
 
     if(header == nullptr
             || header->version != 0x1)
