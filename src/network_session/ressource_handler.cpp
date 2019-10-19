@@ -82,6 +82,24 @@ RessourceHandler::removeSession(const uint32_t id)
 }
 
 /**
+ * @brief SessionHandler::isIdUsed
+ * @param id
+ * @return
+ */
+bool
+RessourceHandler::isIdUsed(const uint32_t id)
+{
+    std::map<uint32_t, Session*>::iterator it;
+    it = m_sessions.find(id);
+
+    if(it != m_sessions.end()) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * @brief SessionHandler::increaseMessageIdCounter
  * @return
  */

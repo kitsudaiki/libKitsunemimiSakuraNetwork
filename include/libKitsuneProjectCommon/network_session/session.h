@@ -39,6 +39,7 @@ namespace Project
 {
 namespace Common
 {
+class RessourceHandler;
 
 class Session
 {
@@ -55,16 +56,11 @@ public:
 
     bool sendHeartbeat();
 
-    void setCallbacks(void* dataTarget,
-                      void (*processData)(void*, Session*,
-                                          void*, const uint32_t),
-                      void* errorTarget,
-                      void (*processError)(void*, Session*,
-                                           const uint8_t, const std::string));
-
     uint32_t sessionId = 0;
 
 private:
+    friend RessourceHandler;
+
     Kitsune::Common::Statemachine m_statemachine;
     Network::AbstractSocket* m_socket = nullptr;
 
@@ -74,7 +70,6 @@ private:
     void (*m_processError)(void*, Session*, const uint8_t, const std::string);
 
     void initStatemachine();
-
 };
 
 } // namespace Common

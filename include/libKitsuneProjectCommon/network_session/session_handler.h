@@ -64,7 +64,6 @@ public:
                              const std::string certFile,
                              const std::string keyFile);
     bool closeServer(const uint32_t id);
-    Network::AbstractServer* getServer(const uint32_t id);
 
     // session
     void startUnixDomainSession(const std::string socketFile);
@@ -76,7 +75,6 @@ public:
                             const std::string keyFile);
     bool closeSession(const uint32_t id);
     Session* getSession(const uint32_t id);
-    bool isIdUsed(const uint32_t id);
 
 private:
     friend RessourceHandler;

@@ -41,10 +41,6 @@ void errorCallback(void* target, Session* session,
 
 void sessionCallback(void* target, Kitsune::Project::Common::Session* session) {
     LOG_DEBUG("####################### CALLBACK session with id: " + std::to_string(session->sessionId));
-
-    session->setCallbacks(
-                nullptr, &dataCallback,
-                nullptr, &errorCallback);
 }
 
 int main()

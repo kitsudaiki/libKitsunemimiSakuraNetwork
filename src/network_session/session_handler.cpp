@@ -186,24 +186,6 @@ SessionHandler::closeServer(const uint32_t id)
     return false;
 }
 
-/**
- * @brief SessionHandler::getServer
- * @param id
- * @return
- */
-Network::AbstractServer*
-SessionHandler::getServer(const uint32_t id)
-{
-    std::map<uint32_t, Network::AbstractServer*>::iterator it;
-    it = m_ressourceHandler->m_servers.find(id);
-
-    if(it != m_ressourceHandler->m_servers.end()) {
-        return it->second;
-    }
-
-    return nullptr;
-}
-
 //==================================================================================================
 
 /**
@@ -305,24 +287,6 @@ SessionHandler::getSession(const uint32_t id)
 }
 
 //==================================================================================================
-
-/**
- * @brief SessionHandler::isIdUsed
- * @param id
- * @return
- */
-bool
-SessionHandler::isIdUsed(const uint32_t id)
-{
-    std::map<uint32_t, Session*>::iterator it;
-    it = m_ressourceHandler->m_sessions.find(id);
-
-    if(it != m_ressourceHandler->m_sessions.end()) {
-        return true;
-    }
-
-    return false;
-}
 
 } // namespace Common
 } // namespace Project

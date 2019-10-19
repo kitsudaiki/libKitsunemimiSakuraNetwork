@@ -30,6 +30,8 @@ public:
     void confirmSession(const uint32_t id);
     Session* removeSession(const uint32_t id);
 
+    bool isIdUsed(const uint32_t id);
+
     uint32_t increaseMessageIdCounter();
     uint16_t increaseSessionIdCounter();
 
