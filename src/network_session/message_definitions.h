@@ -28,7 +28,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include <network_session/ressource_handler.h>
+#include <network_session/session_handler.h>
 #include <network_session/timer_thread.h>
 
 namespace Kitsune

@@ -24,7 +24,7 @@
 #include <libKitsuneNetwork/abstract_socket.h>
 #include <libKitsuneProjectCommon/network_session/session.h>
 #include <libKitsunePersistence/logger/logger.h>
-#include <network_session/ressource_handler.h>
+#include <network_session/session_handler.h>
 
 namespace Kitsune
 {
@@ -194,7 +194,7 @@ TimerThread::run()
 
         if(counter % 10 == 0)
         {
-            RessourceHandler::m_ressourceHandler->sendHeartBeats();
+            SessionHandler::m_sessionHandler->sendHeartBeats();
             counter = 0;
         }
     }

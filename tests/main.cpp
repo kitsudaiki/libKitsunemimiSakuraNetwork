@@ -23,13 +23,13 @@
 #include <iostream>
 #include <libKitsunePersistence/logger/logger.h>
 #include <libKitsuneProjectCommon/network_session/session_controller.h>
-#include <network_session/ressource_handler.h>
+#include <network_session/session_handler.h>
 #include <libKitsuneProjectCommon/network_session/session.h>
 
 using Kitsune::Persistence::initLogger;
 using Kitsune::Project::Common::Session;
 using Kitsune::Project::Common::SessionController;
-using Kitsune::Project::Common::RessourceHandler;
+using Kitsune::Project::Common::SessionHandler;
 
 void dataCallback(void* target, Session* session, void* data, const uint32_t dataSize) {
     LOG_DEBUG("CALLBACK data messageg");
@@ -57,9 +57,6 @@ int main()
 
     std::cout<<"######################################"<<std::endl;
     m_controller->startTcpSession("127.0.0.1", 1234);
-    sleep(2);
-    std::cout<<"######################################"<<std::endl;
-    RessourceHandler::m_ressourceHandler->sendHeartBeats();
     sleep(2);
     std::cout<<"######################################"<<std::endl;
     m_controller->closeSession(131073);

@@ -24,7 +24,7 @@
 #define HEARTBEAT_PROCESSING_H
 
 #include <network_session/message_definitions.h>
-#include <network_session/ressource_handler.h>
+#include <network_session/session_handler.h>
 
 #include <libKitsuneNetwork/abstract_socket.h>
 #include <libKitsuneNetwork/message_ring_buffer.h>
@@ -57,7 +57,7 @@ send_Heartbeat_Start(const uint32_t sessionId,
     LOG_DEBUG("SEND heartbeat start");
 
     Heartbeat_Start_Message message(sessionId,
-                                    RessourceHandler::m_ressourceHandler->increaseMessageIdCounter());
+                                    SessionHandler::m_sessionHandler->increaseMessageIdCounter());
     socket->sendMessage(&message, sizeof(message));
 }
 
@@ -127,7 +127,7 @@ process_Heartbeat_Type(Session* session,
                     break;
                 }
                 process_Heartbeat_Start(session, message, socket);
-                return sizeof(Heartbeat_Start_Message);
+                return sizeof(*message);
             }
         case HEARTBEAT_REPLY_SUBTYPE:
             {
@@ -137,7 +137,7 @@ process_Heartbeat_Type(Session* session,
                     break;
                 }
                 process_Heartbeat_Reply(session, message, socket);
-                return sizeof(Heartbeat_Reply_Message);
+                return sizeof(*message);
             }
         default:
             break;

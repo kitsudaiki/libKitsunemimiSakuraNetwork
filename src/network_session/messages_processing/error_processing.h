@@ -24,7 +24,8 @@
 #define ERROR_PROCESSING_H
 
 #include <network_session/message_definitions.h>
-#include <network_session/ressource_handler.h>
+#include <network_session/session_handler.h>
+#include <network_session/internal_session_interface.h>
 
 #include <libKitsuneNetwork/abstract_socket.h>
 #include <libKitsuneNetwork/message_ring_buffer.h>
@@ -65,9 +66,9 @@ send_ErrorMessage(Session* session,
         {
             Error_FalseVersion_Message errorMessage(
                     session->sessionId(),
-                    RessourceHandler::m_ressourceHandler->increaseMessageIdCounter(),
+                    SessionHandler::m_sessionHandler->increaseMessageIdCounter(),
                     message);
-            RessourceHandler::m_ressourceHandler->sendMessage(session, &message, sizeof(message));
+            SessionHandler::m_sessionInterface->sendMessage(session, &message, sizeof(message));
             break;
         }
 
@@ -75,9 +76,9 @@ send_ErrorMessage(Session* session,
         {
             Error_UnknownSession_Message errorMessage(
                     session->sessionId(),
-                    RessourceHandler::m_ressourceHandler->increaseMessageIdCounter(),
+                    SessionHandler::m_sessionHandler->increaseMessageIdCounter(),
                     message);
-            RessourceHandler::m_ressourceHandler->sendMessage(session, &message, sizeof(message));
+            SessionHandler::m_sessionInterface->sendMessage(session, &message, sizeof(message));
             break;
         }
 
@@ -85,9 +86,9 @@ send_ErrorMessage(Session* session,
         {
             Error_InvalidMessage_Message errorMessage(
                     session->sessionId(),
-                    RessourceHandler::m_ressourceHandler->increaseMessageIdCounter(),
+                    SessionHandler::m_sessionHandler->increaseMessageIdCounter(),
                     message);
-            RessourceHandler::m_ressourceHandler->sendMessage(session, &message, sizeof(message));
+            SessionHandler::m_sessionInterface->sendMessage(session, &message, sizeof(message));
             break;
         }
 
@@ -107,8 +108,8 @@ send_ErrorMessage(Session* session,
 inline uint64_t
 process_Error_Type(Session* session,
                    const CommonMessageHeader* header,
-                   MessageRingBuffer *recvBuffer,
-                   AbstractSocket* socket)
+                   MessageRingBuffer* recvBuffer,
+                   AbstractSocket*)
 {
     LOG_DEBUG("process error message");
     switch(header->subType)
@@ -121,11 +122,11 @@ process_Error_Type(Session* session,
                     break;
                 }
 
-                RessourceHandler::m_ressourceHandler->receivedError(
+                SessionHandler::m_sessionInterface->receivedError(
                             session,
                             Session::errorCodes::FALSE_VERSION,
                             std::string(message->message));
-                return sizeof(Error_FalseVersion_Message);
+                return sizeof(*message);
             }
         case ERROR_UNKNOWN_SESSION_SUBTYPE:
             {
@@ -135,11 +136,11 @@ process_Error_Type(Session* session,
                     break;
                 }
 
-                RessourceHandler::m_ressourceHandler->receivedError(
+                SessionHandler::m_sessionInterface->receivedError(
                             session,
                             Session::errorCodes::UNKNOWN_SESSION,
                             std::string(message->message));
-                return sizeof(Error_UnknownSession_Message);
+                return sizeof(*message);
             }
 
         case ERROR_INVALID_MESSAGE_SUBTYPE:
@@ -150,11 +151,11 @@ process_Error_Type(Session* session,
                 break;
             }
 
-            RessourceHandler::m_ressourceHandler->receivedError(
+            SessionHandler::m_sessionInterface->receivedError(
                         session,
                         Session::errorCodes::INVALID_MESSAGE_SIZE,
                         std::string(message->message));
-            return sizeof(Error_InvalidMessage_Message);
+            return sizeof(*message);
         }
 
         default:
