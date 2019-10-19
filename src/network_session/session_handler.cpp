@@ -43,7 +43,7 @@ namespace Project
 namespace Common
 {
 
-Kitsune::Project::Common::SessionController* SessionController::m_sessionController = nullptr;
+SessionController* SessionController::m_sessionController = nullptr;
 
 /**
  * @brief Session::Session

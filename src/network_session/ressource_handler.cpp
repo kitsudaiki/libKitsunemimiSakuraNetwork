@@ -45,8 +45,8 @@ namespace Project
 namespace Common
 {
 
-Kitsune::Project::Common::TimerThread* RessourceHandler::m_timerThread = nullptr;
-Kitsune::Project::Common::RessourceHandler* RessourceHandler::m_ressourceHandler = nullptr;
+TimerThread* RessourceHandler::m_timerThread = nullptr;
+RessourceHandler* RessourceHandler::m_ressourceHandler = nullptr;
 
 RessourceHandler::RessourceHandler(void* dataTarget,
                                    void (*processData)(void*, Session*,
