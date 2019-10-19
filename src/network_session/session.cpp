@@ -161,6 +161,7 @@ Session::makeSessionReady()
     if(m_statemachine.goToNextState(START_SESSION) == false) {
         return false;
     }
+
     m_sessionReady = true;;
 
     return true;

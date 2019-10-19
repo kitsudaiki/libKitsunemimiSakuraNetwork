@@ -29,7 +29,7 @@
 #include <libKitsuneNetwork/abstract_socket.h>
 #include <libKitsuneNetwork/message_ring_buffer.h>
 
-#include <libKitsuneProjectCommon/network_session/session_handler.h>
+#include <libKitsuneProjectCommon/network_session/session_controller.h>
 #include <libKitsuneProjectCommon/network_session/session.h>
 
 #include <libKitsunePersistence/logger/logger.h>
@@ -101,9 +101,6 @@ process_Heartbeat_Reply(Session*,
                         AbstractSocket*)
 {
     LOG_DEBUG("process heartbeat reply");
-
-    RessourceHandler::m_timerThread->removeMessage(message->commonHeader.sessionId,
-                                                   message->commonHeader.messageId);
 }
 
 /**

@@ -28,7 +28,7 @@
 
 #include <libKitsuneNetwork/abstract_socket.h>
 
-#include <libKitsuneProjectCommon/network_session/session_handler.h>
+#include <libKitsuneProjectCommon/network_session/session_controller.h>
 #include <libKitsuneProjectCommon/network_session/session.h>
 
 #include <libKitsunePersistence/logger/logger.h>
@@ -70,15 +70,16 @@ send_Session_Init_Start(const uint32_t initialId,
  * @param socket
  */
 inline void
-send_Session_Init_Reply(const uint32_t sessionId,
+send_Session_Init_Reply(const uint32_t initialSessionId,
                         const uint32_t messageId,
+                        const uint32_t completeSessionId,
                         const uint32_t clientSessionId,
                         Network::AbstractSocket* socket)
 {
     LOG_DEBUG("SEND session init reply");
 
-    Session_Init_Reply_Message message(sessionId, messageId);
-    message.completeSessionId = sessionId;
+    Session_Init_Reply_Message message(initialSessionId, messageId);
+    message.completeSessionId = completeSessionId;
     message.clientSessionId = clientSessionId;
 
     // send
@@ -148,8 +149,9 @@ process_Session_Init_Start(Session* session,
     RessourceHandler::m_ressourceHandler->connectiSession(session, completeSessionId, false);
 
     // confirm id
-    send_Session_Init_Reply(completeSessionId,
+    send_Session_Init_Reply(clientSessionId,
                             message->commonHeader.messageId,
+                            completeSessionId,
                             clientSessionId,
                             socket);
 
@@ -180,9 +182,6 @@ process_Session_Init_Reply(Session* session,
 
     if(session != nullptr)
     {
-        RessourceHandler::m_timerThread->removeMessage(initialId,
-                                                       message->commonHeader.messageId);
-
         // try to finish session
         const bool ret = RessourceHandler::m_ressourceHandler->makeSessionReady(session,
                                                                                 completeSessionId);
@@ -206,25 +205,21 @@ process_Session_Close_Start(Session* session,
 {
     LOG_DEBUG("process session close start");
 
-    const uint32_t sessionId = message->sessionId;
-    RessourceHandler::m_ressourceHandler->removeSession(sessionId);
+    RessourceHandler::m_ressourceHandler->removeSession(message->sessionId);
 
-    if(session != nullptr)
+    const bool ret = RessourceHandler::m_ressourceHandler->endSession(session);
+    if(ret)
     {
-        const bool ret = RessourceHandler::m_ressourceHandler->endSession(session);
-        if(ret)
-        {
-            send_Session_Close_Reply(sessionId,
-                                     message->commonHeader.messageId,
-                                     socket);
-        }
-        else
-        {
-            // TODO: error message
-        }
-
-        RessourceHandler::m_ressourceHandler->disconnectSession(session);
+        send_Session_Close_Reply(message->sessionId,
+                                 message->commonHeader.messageId,
+                                 socket);
     }
+    else
+    {
+        // TODO: error message
+    }
+
+    RessourceHandler::m_ressourceHandler->disconnectSession(session);
 }
 
 /**
@@ -237,15 +232,8 @@ process_Session_Close_Reply(Session* session,
 {
     LOG_DEBUG("process session close reply");
 
-    const uint32_t sessionId = message->sessionId;
-    RessourceHandler::m_ressourceHandler->removeSession(sessionId);
-
-    if(session != nullptr)
-    {
-        RessourceHandler::m_timerThread->removeMessage(message->commonHeader.sessionId,
-                                                       message->commonHeader.messageId);
-        RessourceHandler::m_ressourceHandler->disconnectSession(session);
-    }
+    RessourceHandler::m_ressourceHandler->removeSession(message->sessionId);
+    RessourceHandler::m_ressourceHandler->disconnectSession(session);
 }
 
 

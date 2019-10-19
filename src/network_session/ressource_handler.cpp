@@ -26,7 +26,7 @@
 #include <network_session/ressource_handler.h>
 
 #include <libKitsuneProjectCommon/network_session/session.h>
-#include <libKitsuneProjectCommon/network_session/session_handler.h>
+#include <libKitsuneProjectCommon/network_session/session_controller.h>
 
 #include <libKitsuneNetwork/tcp/tcp_server.h>
 #include <libKitsuneNetwork/tcp/tcp_socket.h>

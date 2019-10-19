@@ -27,18 +27,18 @@ INCLUDEPATH += $$PWD \
 
 HEADERS += \
     ../include/libKitsuneProjectCommon/network_session/session.h \
-    ../include/libKitsuneProjectCommon/network_session/session_handler.h \
     network_session/timer_thread.h \
     network_session/callbacks.h \
     network_session/message_definitions.h \
     network_session/messages_processing/session_processing.h \
     network_session/messages_processing/heartbeat_processing.h \
     network_session/messages_processing/error_processing.h \
-    network_session/ressource_handler.h
+    network_session/ressource_handler.h \
+    ../include/libKitsuneProjectCommon/network_session/session_controller.h
 
 SOURCES += \
     network_session/timer_thread.cpp \
-    network_session/session_handler.cpp \
     network_session/session.cpp \
-    network_session/ressource_handler.cpp
+    network_session/ressource_handler.cpp \
+    network_session/session_constroller.cpp
 

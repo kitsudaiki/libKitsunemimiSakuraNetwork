@@ -22,7 +22,7 @@
 
 #include <iostream>
 #include <libKitsunePersistence/logger/logger.h>
-#include <libKitsuneProjectCommon/network_session/session_handler.h>
+#include <libKitsuneProjectCommon/network_session/session_controller.h>
 #include <libKitsuneProjectCommon/network_session/session.h>
 
 using Kitsune::Persistence::initLogger;

@@ -1,5 +1,5 @@
 /**
- *  @file       session_handler.h
+ *  @file       session_controller.h
  *
  *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
