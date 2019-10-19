@@ -23,11 +23,13 @@
 #include <iostream>
 #include <libKitsunePersistence/logger/logger.h>
 #include <libKitsuneProjectCommon/network_session/session_controller.h>
+#include <network_session/ressource_handler.h>
 #include <libKitsuneProjectCommon/network_session/session.h>
 
 using Kitsune::Persistence::initLogger;
 using Kitsune::Project::Common::Session;
 using Kitsune::Project::Common::SessionController;
+using Kitsune::Project::Common::RessourceHandler;
 
 void dataCallback(void* target, Session* session, void* data, const uint32_t dataSize) {
     LOG_DEBUG("CALLBACK data messageg");
@@ -48,19 +50,19 @@ int main()
 {
     initLogger("/tmp", "testlog", true, true);
 
-    SessionController* m_handler = new SessionController(nullptr, &sessionCallback,
-                                                   nullptr, &dataCallback,
-                                                   nullptr, &errorCallback);
-    m_handler->addTcpServer(1234);
+    SessionController* m_controller = new SessionController(nullptr, &sessionCallback,
+                                                            nullptr, &dataCallback,
+                                                            nullptr, &errorCallback);
+    m_controller->addTcpServer(1234);
 
     std::cout<<"######################################"<<std::endl;
-    m_handler->startTcpSession("127.0.0.1", 1234);
+    m_controller->startTcpSession("127.0.0.1", 1234);
     sleep(2);
     std::cout<<"######################################"<<std::endl;
-    //m_handler->getSession(131073)->sendHeartbeat();
+    RessourceHandler::m_ressourceHandler->sendHeartBeats();
     sleep(2);
     std::cout<<"######################################"<<std::endl;
-    m_handler->closeSession(131073);
+    m_controller->closeSession(131073);
     sleep(2);
     std::cout<<"######################################"<<std::endl;
     sleep(2);
