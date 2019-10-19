@@ -187,6 +187,19 @@ Session::sendHeartbeat()
     return false;
 }
 
+void Session::setCallbacks(void* dataTarget,
+                           void (*processData)(void*, const uint32_t,
+                                               void*, const uint32_t),
+                           void* errorTarget,
+                           void (*processError)(void*, const uint32_t,
+                                                const uint8_t, const std::string))
+{
+    m_dataTarget = dataTarget;
+    m_processData = processData;
+    m_errorTarget = errorTarget;
+    m_processError = processError;
+}
+
 /**
  * @brief Session::initStatemachine
  */

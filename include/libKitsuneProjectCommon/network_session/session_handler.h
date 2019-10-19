@@ -45,11 +45,7 @@ class SessionHandler
 {
 public:
     SessionHandler(void* sessionTarget,
-                   void (*processSession)(void*, Session*),
-                   void* dataTarget,
-                   void (*processData)(void*, const uint32_t, void*, const uint32_t),
-                   void* errorTarget,
-                   void (*processError)(void*, const uint32_t, const uint8_t, const std::string));
+                   void (*processSession)(void*, Session*));
     ~SessionHandler();
 
     static Kitsune::Project::Common::TimerThread* m_timerThread;
@@ -93,10 +89,6 @@ private:
     // callback-parameter
     void* m_sessionTarget = nullptr;
     void (*m_processSession)(void*, Session*);
-    void* m_dataTarget = nullptr;
-    void (*m_processData)(void*, const uint32_t, void*, const uint32_t);
-    void* m_errorTarget = nullptr;
-    void (*m_processError)(void*, const uint32_t, const uint8_t, const std::string);
 
     // counter
     std::atomic_flag m_messageIdCounter_lock = ATOMIC_FLAG_INIT;

@@ -48,7 +48,7 @@ namespace Common
  */
 inline void
 send_Heartbeat_Start(const uint32_t sessionId,
-                    Network::AbstractSocket* socket)
+                     Network::AbstractSocket* socket)
 {
     LOG_DEBUG("SEND heartbeat start");
 
@@ -77,7 +77,8 @@ send_Heartbeat_Reply(const uint32_t sessionId,
  * @brief process_Heartbeat_Start
  */
 inline void
-process_Heartbeat_Start(const Heartbeat_Start_Message* message,
+process_Heartbeat_Start(Session*,
+                        const Heartbeat_Start_Message* message,
                         AbstractSocket* socket)
 {
     LOG_DEBUG("process heartbeat start");
@@ -91,7 +92,8 @@ process_Heartbeat_Start(const Heartbeat_Start_Message* message,
  * @brief process_Heartbeat_Reply
  */
 inline void
-process_Heartbeat_Reply(const Heartbeat_Reply_Message* message,
+process_Heartbeat_Reply(Session*,
+                        const Heartbeat_Reply_Message* message,
                         AbstractSocket*)
 {
     LOG_DEBUG("process heartbeat reply");
@@ -109,7 +111,8 @@ process_Heartbeat_Reply(const Heartbeat_Reply_Message* message,
  * @return
  */
 inline uint64_t
-process_Heartbeat_Type(const CommonMessageHeader* header,
+process_Heartbeat_Type(Session* session,
+                       const CommonMessageHeader* header,
                        MessageRingBuffer *recvBuffer,
                        AbstractSocket* socket)
 {
@@ -123,7 +126,7 @@ process_Heartbeat_Type(const CommonMessageHeader* header,
                 if(message == nullptr) {
                     break;
                 }
-                process_Heartbeat_Start(message, socket);
+                process_Heartbeat_Start(session, message, socket);
                 return sizeof(Heartbeat_Start_Message);
             }
         case HEARTBEAT_REPLY_SUBTYPE:
@@ -133,7 +136,7 @@ process_Heartbeat_Type(const CommonMessageHeader* header,
                 if(message == nullptr) {
                     break;
                 }
-                process_Heartbeat_Reply(message, socket);
+                process_Heartbeat_Reply(session, message, socket);
                 return sizeof(Heartbeat_Reply_Message);
             }
         default:

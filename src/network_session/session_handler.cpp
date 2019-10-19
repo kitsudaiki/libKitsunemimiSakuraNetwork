@@ -49,25 +49,10 @@ Kitsune::Project::Common::SessionHandler* SessionHandler::m_sessionHandler = nul
  * @brief Session::Session
  */
 SessionHandler::SessionHandler(void* sessionTarget,
-                               void (*processSession)(void*,
-                                                      Session*),
-                               void* dataTarget,
-                               void (*processData)(void*,
-                                                   const uint32_t,
-                                                   void*,
-                                                   const uint32_t),
-                               void* errorTarget,
-                               void (*processError)(void*,
-                                                    const uint32_t,
-                                                    const uint8_t,
-                                                    const std::string))
+                               void (*processSession)(void*, Session*))
 {
     m_sessionTarget = sessionTarget;
     m_processSession = processSession;
-    m_dataTarget = dataTarget;
-    m_processData = processData;
-    m_errorTarget = errorTarget;
-    m_processError = processError;
 
     if(m_timerThread == nullptr)
     {
@@ -89,6 +74,8 @@ SessionHandler::~SessionHandler()
     // TODO: delete all from timer-thread
     // TODO: close socket
 }
+
+//==================================================================================================
 
 /**
  * @brief SessionHandler::addUnixDomainServer
@@ -194,6 +181,8 @@ SessionHandler::getServer(const uint32_t id)
     return nullptr;
 }
 
+//==================================================================================================
+
 /**
  * @brief SessionHandler::addUnixDomainSocket
  * @param socketFile
@@ -202,9 +191,9 @@ void
 SessionHandler::startUnixDomainSession(const std::string socketFile)
 {
     Network::UnixDomainSocket* unixDomainSocket = new Network::UnixDomainSocket(socketFile);
-    unixDomainSocket->setMessageCallback(this, &processMessageUnixDomain);
-
     Session* newSession = new Session(unixDomainSocket);
+
+    unixDomainSocket->setMessageCallback(newSession, &processMessageUnixDomain);
     newSession->sessionId = increaseSessionIdCounter();
 
     addSession(m_sessionIdCounter, newSession);
@@ -221,9 +210,9 @@ SessionHandler::startTcpSession(const std::string address,
                                 const uint16_t port)
 {
     Network::TcpSocket* tcpSocket = new Network::TcpSocket(address, port);
-    tcpSocket->setMessageCallback(this, &processMessageTcp);
-
     Session* newSession = new Session(tcpSocket);
+
+    tcpSocket->setMessageCallback(newSession, &processMessageTcp);
     newSession->sessionId = increaseSessionIdCounter();
 
     addSession(m_sessionIdCounter, newSession);
@@ -247,9 +236,9 @@ SessionHandler::startTlsTcpSession(const std::string address,
                                                                     port,
                                                                     certFile,
                                                                     keyFile);
-    tlsTcpSocket->setMessageCallback(this, &processMessageTlsTcp);
-
     Session* newSession = new Session(tlsTcpSocket);
+
+    tlsTcpSocket->setMessageCallback(newSession, &processMessageTlsTcp);
     newSession->sessionId = increaseSessionIdCounter();
 
     addSession(m_sessionIdCounter, newSession);
@@ -292,6 +281,8 @@ SessionHandler::getSession(const uint32_t id)
     return nullptr;
 }
 
+//==================================================================================================
+
 /**
  * @brief SessionHandler::isIdUsed
  * @param id
@@ -300,12 +291,10 @@ SessionHandler::getSession(const uint32_t id)
 bool
 SessionHandler::isIdUsed(const uint32_t id)
 {
-    // TODO: avoid race-condition
     std::map<uint32_t, Session*>::iterator it;
     it = m_sessions.find(id);
 
-    if(it != m_sessions.end())
-    {
+    if(it != m_sessions.end()) {
         return true;
     }
 

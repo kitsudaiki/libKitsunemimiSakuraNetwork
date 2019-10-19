@@ -47,19 +47,31 @@ public:
     ~Session();
 
     bool connect(const bool init = false);
-    bool startSession();
-
     bool disconnect();
+
+    bool startSession();
     bool closeSession(const bool init = false,
                       const bool replyExpected = false);
 
     bool sendHeartbeat();
+
+    void setCallbacks(void* dataTarget,
+                      void (*processData)(void*, const uint32_t,
+                                          void*, const uint32_t),
+                      void* errorTarget,
+                      void (*processError)(void*, const uint32_t,
+                                           const uint8_t, const std::string));
 
     uint32_t sessionId = 0;
 
 private:
     Kitsune::Common::Statemachine m_statemachine;
     Network::AbstractSocket* m_socket = nullptr;
+
+    void* m_dataTarget = nullptr;
+    void (*m_processData)(void*, const uint32_t, void*, const uint32_t);
+    void* m_errorTarget = nullptr;
+    void (*m_processError)(void*, const uint32_t, const uint8_t, const std::string);
 
     void initStatemachine();
 
