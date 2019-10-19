@@ -30,7 +30,7 @@
 
 #include <network_session/messages_processing/session_processing.h>
 #include <network_session/messages_processing/heartbeat_processing.h>
-
+#include <network_session/messages_processing/error_processing.h>
 
 using Kitsune::Network::MessageRingBuffer;
 using Kitsune::Network::AbstractSocket;
@@ -63,8 +63,7 @@ processMessage(void* target,
     if(header == nullptr
             || header->version != 0x1)
     {
-        // TODO: error if false version
-        //LOG_DEBUG("message-buffer not bug enough");
+        send_ErrorMessage(session, Session::errorCodes::FALSE_VERSION, "++++++++++++++++++FAIL");
         return 0;
     }
 
@@ -74,6 +73,8 @@ processMessage(void* target,
             return process_Session_Type(session, header, recvBuffer, socket);
         case HEARTBEAT_TYPE:
             return process_Heartbeat_Type(session, header, recvBuffer, socket);
+        case ERROR_TYPE:
+            return process_Error_Type(session, header, recvBuffer, socket);
         default:
             break;
     }

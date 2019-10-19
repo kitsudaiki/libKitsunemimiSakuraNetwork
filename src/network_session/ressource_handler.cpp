@@ -1,3 +1,25 @@
+/**
+ *  @file       ressource_handler.cpp
+ *
+ *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
+ *
+ *  @copyright  Apache License Version 2.0
+ *
+ *      Copyright 2019 Tobias Anker
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License");
+ *      you may not use this file except in compliance with the License.
+ *      You may obtain a copy of the License at
+ *
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *      Unless required by applicable law or agreed to in writing, software
+ *      distributed under the License is distributed on an "AS IS" BASIS,
+ *      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *      See the License for the specific language governing permissions and
+ *      limitations under the License.
+ */
+
 #include "ressource_handler.h"
 
 #include <libKitsuneProjectCommon/network_session/session.h>
@@ -33,6 +55,33 @@ RessourceHandler::RessourceHandler(void* dataTarget,
     m_processError = processError;
 }
 
+/**
+ * @brief RessourceHandler::receivedData
+ * @param session
+ * @param data
+ * @param dataSize
+ */
+void
+RessourceHandler::receivedData(Session* session,
+                               void* data,
+                               const uint32_t dataSize)
+{
+    session->m_processData(session->m_dataTarget, session, data, dataSize);
+}
+
+/**
+ * @brief RessourceHandler::receivedError
+ * @param session
+ * @param errorCode
+ * @param message
+ */
+void
+RessourceHandler::receivedError(Session* session,
+                                const uint8_t errorCode,
+                                const std::string message)
+{
+    session->m_processError(session->m_errorTarget, session, errorCode, message);
+}
 
 /**
  * @brief SessionHandler::addSession
@@ -130,7 +179,6 @@ RessourceHandler::increaseSessionIdCounter()
     m_sessionIdCounter_lock.clear(std::memory_order_release);
     return tempId;
 }
-
 
 } // namespace Common
 } // namespace Project

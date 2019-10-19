@@ -23,7 +23,6 @@
 #ifndef HEARTBEAT_PROCESSING_H
 #define HEARTBEAT_PROCESSING_H
 
-
 #include <network_session/message_definitions.h>
 #include <network_session/ressource_handler.h>
 
@@ -106,7 +105,6 @@ process_Heartbeat_Reply(Session*,
     SessionHandler::m_timerThread->removeMessage(message->commonHeader.sessionId,
                                                  message->commonHeader.messageId);
 }
-
 
 /**
  * @brief process_Heartbeat_Type

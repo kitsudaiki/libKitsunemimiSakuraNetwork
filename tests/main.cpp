@@ -36,7 +36,7 @@ void dataCallback(void* target, Session* session, void* data, const uint32_t dat
 void errorCallback(void* target, Session* session,
                    const uint8_t errorCode, const std::string errorMessage)
 {
-    LOG_DEBUG("CALLBACK error message");
+    LOG_DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! CALLBACK error message");
 }
 
 void sessionCallback(void* target, Kitsune::Project::Common::Session* session) {

@@ -51,7 +51,7 @@ namespace Common
 
 Session::Session(Network::AbstractSocket* socket)
 {
-    m_socket = socket;
+    this->socket = socket;
     initStatemachine();
 }
 
@@ -75,7 +75,7 @@ Session::connect(const bool init)
     }
 
     // connect socket
-    const bool connected = m_socket->initClientSide();
+    const bool connected = socket->initClientSide();
     if(connected == false) {
         return false;
     }
@@ -89,11 +89,11 @@ Session::connect(const bool init)
     }
 
     // start socket-thread to listen for incoming messages
-    m_socket->start();
+    socket->start();
 
     // init session
     if(init) {
-        send_Session_Init_Start(sessionId, m_socket);
+        send_Session_Init_Start(sessionId, socket);
     }
 
     return true;
@@ -131,7 +131,7 @@ Session::disconnect()
             return false;
         }
 
-        m_socket->closeSocket();
+        socket->closeSocket();
         return true;
     }
     return false;
@@ -160,7 +160,7 @@ Session::closeSession(const bool init,
         }
 
         if(init) {
-            send_Session_Close_Start(sessionId, replyExpected, m_socket);
+            send_Session_Close_Start(sessionId, replyExpected, socket);
         }
 
         return true;
@@ -180,7 +180,7 @@ Session::sendHeartbeat()
 
     if(m_statemachine.isInState(SESSION_READY))
     {
-        send_Heartbeat_Start(sessionId, m_socket);
+        send_Heartbeat_Start(sessionId, socket);
         return true;
     }
 
