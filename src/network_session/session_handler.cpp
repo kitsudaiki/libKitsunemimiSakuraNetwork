@@ -195,10 +195,10 @@ SessionController::startUnixDomainSession(const std::string socketFile)
     Session* newSession = new Session(unixDomainSocket);
 
     unixDomainSocket->setMessageCallback(newSession, &processMessageUnixDomain);
-    newSession->sessionId = RessourceHandler::m_ressourceHandler->increaseSessionIdCounter();
+    newSession->m_sessionId = RessourceHandler::m_ressourceHandler->increaseSessionIdCounter();
 
-    RessourceHandler::m_ressourceHandler->addSession(newSession->sessionId, newSession);
-    newSession->connect(true);
+    RessourceHandler::m_ressourceHandler->addSession(newSession->m_sessionId, newSession);
+    newSession->connectiSession(true);
 }
 
 /**
@@ -214,10 +214,10 @@ SessionController::startTcpSession(const std::string address,
     Session* newSession = new Session(tcpSocket);
 
     tcpSocket->setMessageCallback(newSession, &processMessageTcp);
-    newSession->sessionId = RessourceHandler::m_ressourceHandler->increaseSessionIdCounter();
+    newSession->m_sessionId = RessourceHandler::m_ressourceHandler->increaseSessionIdCounter();
 
-    RessourceHandler::m_ressourceHandler->addSession(newSession->sessionId, newSession);
-    newSession->connect(true);
+    RessourceHandler::m_ressourceHandler->addSession(newSession->m_sessionId, newSession);
+    newSession->connectiSession(true);
 }
 
 /**
@@ -240,10 +240,10 @@ SessionController::startTlsTcpSession(const std::string address,
     Session* newSession = new Session(tlsTcpSocket);
 
     tlsTcpSocket->setMessageCallback(newSession, &processMessageTlsTcp);
-    newSession->sessionId = RessourceHandler::m_ressourceHandler->increaseSessionIdCounter();
+    newSession->m_sessionId = RessourceHandler::m_ressourceHandler->increaseSessionIdCounter();
 
-    RessourceHandler::m_ressourceHandler->addSession(newSession->sessionId, newSession);
-    newSession->connect(true);
+    RessourceHandler::m_ressourceHandler->addSession(newSession->m_sessionId, newSession);
+    newSession->connectiSession(true);
 }
 
 /**

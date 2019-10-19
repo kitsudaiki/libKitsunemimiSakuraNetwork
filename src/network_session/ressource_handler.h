@@ -54,19 +54,30 @@ public:
                      void* errorTarget,
                      void (*processError)(void*, Session*, const uint8_t, const std::string));
 
+    // callback-forwarding
     void receivedData(Session* session, void* data, const uint32_t dataSize);
     void receivedError(Session* session, const uint8_t errorCode, const std::string message);
 
-    // (for internal usage)
+    // session-control
     void addSession(const uint32_t id, Session* session);
-    void confirmSession(const uint32_t id);
     Session* removeSession(const uint32_t id);
+    bool connectiSession(Session* session,
+                         const uint32_t sessionId,
+                         const bool init = false);
+    bool makeSessionReady(Session* session,
+                          const uint32_t sessionId);
 
-    bool isIdUsed(const uint32_t id);
+    bool endSession(Session* session,
+                    const bool init = false,
+                    const bool replyExpected = false);
+    bool disconnectSession(Session* session);
 
+    // counter
     uint32_t increaseMessageIdCounter();
     uint16_t increaseSessionIdCounter();
+    uint32_t m_serverIdCounter = 0;
 
+    // callbacks
     void* m_dataTarget = nullptr;
     void (*m_processData)(void*, Session*, void*, const uint32_t);
     void* m_errorTarget = nullptr;
@@ -76,14 +87,14 @@ public:
     std::map<uint32_t, Session*> m_sessions;
     std::map<uint32_t, Network::AbstractServer*> m_servers;
 
-    uint32_t m_serverIdCounter = 0;
-
 private:
     // counter
     std::atomic_flag m_messageIdCounter_lock = ATOMIC_FLAG_INIT;
     uint32_t m_messageIdCounter = 0;
     std::atomic_flag m_sessionIdCounter_lock = ATOMIC_FLAG_INIT;
     uint16_t m_sessionIdCounter = 0;
+
+    bool isIdUsed(const uint32_t id);
 };
 
 } // namespace Common

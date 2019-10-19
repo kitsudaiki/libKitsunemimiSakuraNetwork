@@ -40,26 +40,22 @@ namespace Project
 namespace Common
 {
 class RessourceHandler;
+class SessionController;
 
 class Session
 {
 public:
     Session(Network::AbstractSocket* socket);
-    ~Session();
+    ~Session(); 
 
-    bool connect(const bool init = false);
-    bool disconnect();
+    bool sendData(const void* data, const uint32_t size);
+    bool closeSession(const bool replyExpected = false);
 
-    bool startSession();
-    bool closeSession(const bool init = false,
-                      const bool replyExpected = false);
+    Network::AbstractSocket* socket() const;
+    uint32_t sessionId() const;
 
-    bool sendHeartbeat();
-
-    uint32_t sessionId = 0;
-    Network::AbstractSocket* socket = nullptr;
-
-    enum errorCodes {
+    enum errorCodes
+    {
         UNDEFINED_ERROR = 0,
         FALSE_VERSION = 1,
         UNKNOWN_SESSION = 2,
@@ -69,15 +65,29 @@ public:
 
 private:
     friend RessourceHandler;
+    friend SessionController;
+
+    bool connectiSession(const uint32_t sessionId,
+                         const bool init = false);
+    bool makeSessionReady();
+
+    bool endSession(const bool init = false,
+                    const bool replyExpected = false);
+    bool disconnectSession();
+
+    bool sendHeartbeat();
+    void initStatemachine();
 
     Kitsune::Common::Statemachine m_statemachine;
+    Network::AbstractSocket* m_socket = nullptr;
+    uint32_t m_sessionId = 0;
+    bool m_sessionReady = true;
 
+    // callbacks
     void* m_dataTarget = nullptr;
     void (*m_processData)(void*, Session*, void*, const uint32_t);
     void* m_errorTarget = nullptr;
     void (*m_processError)(void*, Session*, const uint8_t, const std::string);
-
-    void initStatemachine();
 };
 
 } // namespace Common

@@ -103,7 +103,7 @@ process_Heartbeat_Reply(Session*,
     LOG_DEBUG("process heartbeat reply");
 
     RessourceHandler::m_timerThread->removeMessage(message->commonHeader.sessionId,
-                                                 message->commonHeader.messageId);
+                                                   message->commonHeader.messageId);
 }
 
 /**
