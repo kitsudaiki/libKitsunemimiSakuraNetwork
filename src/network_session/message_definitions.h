@@ -111,10 +111,6 @@ struct Session_Init_Start_Message
         commonHeader.messageId = messageId;
         commonHeader.flags = 0x1;
         commonHeader.size = sizeof(*this);
-
-        RessourceHandler::m_timerThread->addMessage(commonHeader.type,
-                                                    commonHeader.sessionId,
-                                                    commonHeader.messageId);
     }
 } __attribute__((packed));
 
@@ -155,12 +151,8 @@ struct Session_Close_Start_Message
         commonHeader.messageId = messageId;
         commonHeader.size = sizeof(*this);
 
-        if(replyExpected)
-        {
+        if(replyExpected) {
             commonHeader.flags = 0x1;
-            RessourceHandler::m_timerThread->addMessage(commonHeader.type,
-                                                        commonHeader.sessionId,
-                                                        commonHeader.messageId);
         }
     }
 } __attribute__((packed));
@@ -199,10 +191,6 @@ struct Heartbeat_Start_Message
         commonHeader.messageId = messageId;
         commonHeader.flags = 0x1;
         commonHeader.size = sizeof(*this);
-
-        RessourceHandler::m_timerThread->addMessage(commonHeader.type,
-                                                    commonHeader.sessionId,
-                                                    commonHeader.messageId);
     }
 } __attribute__((packed));
 

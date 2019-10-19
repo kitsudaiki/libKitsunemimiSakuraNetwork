@@ -24,6 +24,7 @@
 
 #include <network_session/timer_thread.h>
 #include <network_session/ressource_handler.h>
+#include <network_session/message_definitions.h>
 
 #include <libKitsuneProjectCommon/network_session/session.h>
 #include <libKitsuneProjectCommon/network_session/session_controller.h>
@@ -93,6 +94,27 @@ RessourceHandler::receivedError(Session* session,
                                 const std::string message)
 {
     session->m_processError(session->m_errorTarget, session, errorCode, message);
+}
+
+/**
+ * @brief RessourceHandler::sendMessage
+ * @param session
+ * @param data
+ * @param size
+ * @return
+ */
+bool
+RessourceHandler::sendMessage(Session* session,
+                              const void* data,
+                              const uint32_t size)
+{
+    const CommonMessageHeader* header = static_cast<const CommonMessageHeader*>(data);
+
+    if(header->flags == 0x1) {
+        m_timerThread->addMessage(header->type, header->sessionId, header->messageId);
+    }
+
+    return session->m_socket->sendMessage(data, size);
 }
 
 /**

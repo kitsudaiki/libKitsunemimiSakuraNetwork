@@ -99,16 +99,6 @@ Session::sessionId() const
 }
 
 /**
- * @brief Session::socket
- * @return
- */
-Network::AbstractSocket*
-Session::socket() const
-{
-    return m_socket;
-}
-
-/**
  * @brief Session::connect
  * @return
  */

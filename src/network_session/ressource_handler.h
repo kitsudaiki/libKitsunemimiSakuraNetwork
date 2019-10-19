@@ -58,6 +58,8 @@ public:
     void receivedData(Session* session, void* data, const uint32_t dataSize);
     void receivedError(Session* session, const uint8_t errorCode, const std::string message);
 
+    bool sendMessage(Session* session, const void* data, const uint32_t size);
+
     // session-control
     void addSession(const uint32_t id, Session* session);
     Session* removeSession(const uint32_t id);

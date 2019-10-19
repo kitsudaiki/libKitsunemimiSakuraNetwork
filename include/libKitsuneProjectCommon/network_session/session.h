@@ -51,7 +51,6 @@ public:
     bool sendData(const void* data, const uint32_t size);
     bool closeSession(const bool replyExpected = false);
 
-    Network::AbstractSocket* socket() const;
     uint32_t sessionId() const;
 
     enum errorCodes
