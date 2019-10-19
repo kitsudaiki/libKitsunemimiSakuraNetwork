@@ -56,10 +56,10 @@ public:
     bool sendHeartbeat();
 
     void setCallbacks(void* dataTarget,
-                      void (*processData)(void*, const uint32_t,
+                      void (*processData)(void*, Session*,
                                           void*, const uint32_t),
                       void* errorTarget,
-                      void (*processError)(void*, const uint32_t,
+                      void (*processError)(void*, Session*,
                                            const uint8_t, const std::string));
 
     uint32_t sessionId = 0;
@@ -69,9 +69,9 @@ private:
     Network::AbstractSocket* m_socket = nullptr;
 
     void* m_dataTarget = nullptr;
-    void (*m_processData)(void*, const uint32_t, void*, const uint32_t);
+    void (*m_processData)(void*, Session*, void*, const uint32_t);
     void* m_errorTarget = nullptr;
-    void (*m_processError)(void*, const uint32_t, const uint8_t, const std::string);
+    void (*m_processError)(void*, Session*, const uint8_t, const std::string);
 
     void initStatemachine();
 

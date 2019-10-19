@@ -23,10 +23,15 @@
 #ifndef HEARTBEAT_PROCESSING_H
 #define HEARTBEAT_PROCESSING_H
 
-#include <libKitsuneProjectCommon/network_session/session_handler.h>
+
 #include <network_session/message_definitions.h>
+#include <network_session/ressource_handler.h>
+
 #include <libKitsuneNetwork/abstract_socket.h>
 #include <libKitsuneNetwork/message_ring_buffer.h>
+
+#include <libKitsuneProjectCommon/network_session/session_handler.h>
+#include <libKitsuneProjectCommon/network_session/session.h>
 
 #include <libKitsunePersistence/logger/logger.h>
 
@@ -53,7 +58,7 @@ send_Heartbeat_Start(const uint32_t sessionId,
     LOG_DEBUG("SEND heartbeat start");
 
     Heartbeat_Start_Message message(sessionId,
-                                    SessionHandler::m_sessionHandler->increaseMessageIdCounter());
+                                    SessionHandler::m_ressourceHandler->increaseMessageIdCounter());
     socket->sendMessage(&message, sizeof(message));
 }
 

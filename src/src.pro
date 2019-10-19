@@ -33,10 +33,12 @@ HEADERS += \
     network_session/message_definitions.h \
     network_session/messages_processing/session_processing.h \
     network_session/messages_processing/heartbeat_processing.h \
-    network_session/messages_processing/error_processing.h
+    network_session/messages_processing/error_processing.h \
+    network_session/ressource_handler.h
 
 SOURCES += \
     network_session/timer_thread.cpp \
     network_session/session_handler.cpp \
-    network_session/session.cpp
+    network_session/session.cpp \
+    network_session/ressource_handler.cpp
 

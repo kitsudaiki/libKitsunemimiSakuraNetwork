@@ -187,11 +187,16 @@ Session::sendHeartbeat()
     return false;
 }
 
+/**
+ * @brief Session::setCallbacks
+ * @param dataTarget
+ * @param errorTarget
+ */
 void Session::setCallbacks(void* dataTarget,
-                           void (*processData)(void*, const uint32_t,
+                           void (*processData)(void*, Session*,
                                                void*, const uint32_t),
                            void* errorTarget,
-                           void (*processError)(void*, const uint32_t,
+                           void (*processError)(void*, Session*,
                                                 const uint8_t, const std::string))
 {
     m_dataTarget = dataTarget;

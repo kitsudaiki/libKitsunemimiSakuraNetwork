@@ -40,16 +40,22 @@ namespace Project
 namespace Common
 {
 class TimerThread;
+class RessourceHandler;
 
 class SessionHandler
 {
 public:
     SessionHandler(void* sessionTarget,
-                   void (*processSession)(void*, Session*));
+                   void (*processSession)(void*, Session*),
+                   void* dataTarget,
+                   void (*processData)(void*, Session*, void*, const uint32_t),
+                   void* errorTarget,
+                   void (*processError)(void*, Session*, const uint8_t, const std::string));
     ~SessionHandler();
 
     static Kitsune::Project::Common::TimerThread* m_timerThread;
     static Kitsune::Project::Common::SessionHandler* m_sessionHandler;
+    static Kitsune::Project::Common::RessourceHandler* m_ressourceHandler;
 
     // server
     uint32_t addUnixDomainServer(const std::string socketFile);
@@ -72,30 +78,12 @@ public:
     Session* getSession(const uint32_t id);
     bool isIdUsed(const uint32_t id);
 
-
-    // (for internal usage)
-    void addSession(const uint32_t id, Session* session);
-    void confirmSession(const uint32_t id);
-    Session* removeSession(const uint32_t id);
-
-    uint32_t increaseMessageIdCounter();
-    uint16_t increaseSessionIdCounter();
-
 private:
-    // object-holder
-    std::map<uint32_t, Session*> m_sessions;
-    std::map<uint32_t, Network::AbstractServer*> m_servers;
+    friend RessourceHandler;
 
     // callback-parameter
     void* m_sessionTarget = nullptr;
     void (*m_processSession)(void*, Session*);
-
-    // counter
-    std::atomic_flag m_messageIdCounter_lock = ATOMIC_FLAG_INIT;
-    uint32_t m_messageIdCounter = 0;
-    std::atomic_flag m_sessionIdCounter_lock = ATOMIC_FLAG_INIT;
-    uint16_t m_sessionIdCounter = 0;
-    uint32_t m_serverIdCounter = 0;
 };
 
 } // namespace Common

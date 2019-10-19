@@ -23,10 +23,12 @@
 #ifndef SESSION_PROCESSING_H
 #define SESSION_PROCESSING_H
 
-#include <libKitsuneProjectCommon/network_session/session_handler.h>
 #include <network_session/message_definitions.h>
+#include <network_session/ressource_handler.h>
+
 #include <libKitsuneNetwork/abstract_socket.h>
 
+#include <libKitsuneProjectCommon/network_session/session_handler.h>
 #include <libKitsuneProjectCommon/network_session/session.h>
 
 #include <libKitsunePersistence/logger/logger.h>
@@ -55,7 +57,7 @@ send_Session_Init_Start(const uint32_t initialId,
 
     // create message
     Session_Init_Start_Message message(initialId,
-                                       SessionHandler::m_sessionHandler->increaseMessageIdCounter());
+                                       SessionHandler::m_ressourceHandler->increaseMessageIdCounter());
     message.clientSessionId = initialId;
 
     // send
@@ -97,13 +99,13 @@ send_Session_Close_Start(const uint32_t id,
     LOG_DEBUG("SEND session close start");
 
     Session_Close_Start_Message message(id,
-                                        SessionHandler::m_sessionHandler->increaseMessageIdCounter(),
+                                        SessionHandler::m_ressourceHandler->increaseMessageIdCounter(),
                                         replyExpected);
     message.sessionId = id;
 
     // update common-header
     message.commonHeader.sessionId = id;
-    message.commonHeader.messageId = SessionHandler::m_sessionHandler->increaseMessageIdCounter();
+    message.commonHeader.messageId = SessionHandler::m_ressourceHandler->increaseMessageIdCounter();
 
     // send
     socket->sendMessage(&message, sizeof(message));
@@ -139,7 +141,7 @@ process_Session_Init_Start(Session* session,
     LOG_DEBUG("process session init start");
 
     const uint32_t clientSessionId = message->clientSessionId;
-    const uint16_t serverSessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
+    const uint16_t serverSessionId = SessionHandler::m_ressourceHandler->increaseSessionIdCounter();
     const uint32_t completeSessionId = clientSessionId + (serverSessionId * 0x10000);
 
     // create new session
@@ -155,7 +157,7 @@ process_Session_Init_Start(Session* session,
     // try to finish session
     const bool ret = session->startSession();
     if(ret) {
-        SessionHandler::m_sessionHandler->addSession(completeSessionId, session);
+        SessionHandler::m_ressourceHandler->addSession(completeSessionId, session);
     } else {
         // TODO: error message
     }
@@ -175,7 +177,7 @@ process_Session_Init_Reply(Session* session,
     const uint32_t completeSessionId = message->completeSessionId;
     const uint32_t initialId = message->clientSessionId;
 
-    SessionHandler::m_sessionHandler->removeSession(initialId);
+    SessionHandler::m_ressourceHandler->removeSession(initialId);
 
     if(session != nullptr)
     {
@@ -187,7 +189,7 @@ process_Session_Init_Reply(Session* session,
         // try to finish session
         const bool ret = session->startSession();
         if(ret) {
-            SessionHandler::m_sessionHandler->addSession(completeSessionId, session);
+            SessionHandler::m_ressourceHandler->addSession(completeSessionId, session);
         } else {
             // TODO: error message
         }
@@ -205,7 +207,7 @@ process_Session_Close_Start(Session* session,
     LOG_DEBUG("process session close start");
 
     const uint32_t sessionId = message->sessionId;
-    SessionHandler::m_sessionHandler->removeSession(sessionId);
+    SessionHandler::m_ressourceHandler->removeSession(sessionId);
 
     if(session != nullptr)
     {
@@ -236,7 +238,7 @@ process_Session_Close_Reply(Session* session,
     LOG_DEBUG("process session close reply");
 
     const uint32_t sessionId = message->sessionId;
-    SessionHandler::m_sessionHandler->removeSession(sessionId);
+    SessionHandler::m_ressourceHandler->removeSession(sessionId);
 
     if(session != nullptr)
     {
