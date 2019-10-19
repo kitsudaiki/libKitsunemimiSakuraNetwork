@@ -37,7 +37,6 @@
 using Kitsune::Network::MessageRingBuffer;
 using Kitsune::Network::AbstractSocket;
 using Kitsune::Network::getObjectFromBuffer;
-
 using Kitsune::Network::AbstractSocket;
 
 namespace Kitsune

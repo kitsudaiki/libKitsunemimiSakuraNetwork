@@ -109,6 +109,8 @@ struct Session_Init_Start_Message
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
         commonHeader.flags = 0x1;
+        commonHeader.size = sizeof(Session_Init_Start_Message);
+
         RessourceHandler::m_timerThread->addMessage(commonHeader.type,
                                                     commonHeader.sessionId,
                                                     commonHeader.messageId);
@@ -129,6 +131,7 @@ struct Session_Init_Reply_Message
         commonHeader.subType = SESSION_INIT_REPLY_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
+        commonHeader.size = sizeof(Session_Init_Reply_Message);
     }
 } __attribute__((packed));
 
@@ -148,6 +151,7 @@ struct Session_Close_Start_Message
         commonHeader.subType = SESSION_CLOSE_START_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
+        commonHeader.size = sizeof(Session_Close_Start_Message);
 
         if(replyExpected) {
             commonHeader.flags = 0x1;
@@ -171,6 +175,7 @@ struct Session_Close_Reply_Message
         commonHeader.subType = SESSION_CLOSE_REPLY_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
+        commonHeader.size = sizeof(Session_Close_Reply_Message);
     }
 } __attribute__((packed));
 
@@ -189,6 +194,8 @@ struct Heartbeat_Start_Message
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
         commonHeader.flags = 0x1;
+        commonHeader.size = sizeof(Heartbeat_Start_Message);
+
         RessourceHandler::m_timerThread->addMessage(commonHeader.type,
                                                     commonHeader.sessionId,
                                                     commonHeader.messageId);
@@ -207,6 +214,7 @@ struct Heartbeat_Reply_Message
         commonHeader.subType = HEARTBEAT_REPLY_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
+        commonHeader.size = sizeof(Heartbeat_Reply_Message);
     }
 } __attribute__((packed));
 
@@ -227,6 +235,7 @@ struct Error_FalseVersion_Message
         commonHeader.subType = ERROR_FALSE_VERSION_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
+        commonHeader.size = sizeof(Error_FalseVersion_Message);
 
         messageSize = errorMessage.size();
         if(messageSize > 499) {
@@ -251,6 +260,7 @@ struct Error_UnknownSession_Message
         commonHeader.subType = ERROR_UNKNOWN_SESSION_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
+        commonHeader.size = sizeof(Error_UnknownSession_Message);
 
         messageSize = errorMessage.size();
         if(messageSize > 499) {
@@ -275,6 +285,7 @@ struct Error_InvalidMessage_Message
         commonHeader.subType = ERROR_INVALID_MESSAGE_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
+        commonHeader.size = sizeof(Error_InvalidMessage_Message);
 
         messageSize = errorMessage.size();
         if(messageSize > 499) {

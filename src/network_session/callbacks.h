@@ -44,11 +44,13 @@ namespace Common
 {
 
 /**
- * @brief handleMessage
- * @param target
- * @param recvBuffer
- * @param socket
- * @return
+ * process incoming data
+ *
+ * @param target void-pointer to the session, which had received the message
+ * @param recvBuffer data-buffer with the incoming data
+ * @param socket socket, which had received the data
+ *
+ * @return number of bytes, which were taken from the buffer
  */
 uint64_t
 processMessage(void* target,
@@ -57,16 +59,28 @@ processMessage(void* target,
 {
     LOG_DEBUG("process message");
 
+
     const CommonMessageHeader* header = getObjectFromBuffer<CommonMessageHeader>(recvBuffer);
     Session* session = static_cast<Session*>(target);
 
-    if(header == nullptr
-            || header->version != 0x1)
+    // precheck
+    if(header == nullptr){
+        return 0;
+    }
+
+    // check version
+    if(header->version != 0x1)
     {
         send_ErrorMessage(session, Session::errorCodes::FALSE_VERSION, "++++++++++++++++++FAIL");
         return 0;
     }
 
+    // check if there are enough data in the buffer for the complete message
+    if(header->size > recvBuffer->readWriteDiff) {
+        return 0;
+    }
+
+    // process message by type
     switch(header->type)
     {
         case SESSION_TYPE:
