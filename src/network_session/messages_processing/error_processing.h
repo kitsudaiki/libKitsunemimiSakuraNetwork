@@ -23,11 +23,20 @@
 #ifndef ERROR_PROCESSING_H
 #define ERROR_PROCESSING_H
 
-#include <libKitsuneProjectCommon/network_session/session_handler.h>
-#include <network_session/messages/message_definitions.h>
+#include <network_session/message_definitions.h>
+#include <network_session/ressource_handler.h>
+
 #include <libKitsuneNetwork/abstract_socket.h>
+#include <libKitsuneNetwork/message_ring_buffer.h>
+
+#include <libKitsuneProjectCommon/network_session/session_handler.h>
+#include <libKitsuneProjectCommon/network_session/session.h>
 
 #include <libKitsunePersistence/logger/logger.h>
+
+using Kitsune::Network::MessageRingBuffer;
+using Kitsune::Network::AbstractSocket;
+using Kitsune::Network::getObjectFromBuffer;
 
 using Kitsune::Network::AbstractSocket;
 
@@ -38,6 +47,123 @@ namespace Project
 namespace Common
 {
 
+/**
+ * @brief send_ErrorMessage
+ * @param session
+ * @param errorCode
+ * @param message
+ */
+inline void
+send_ErrorMessage(Session* session,
+                  const uint8_t errorCode,
+                  const std::string message)
+{
+    LOG_DEBUG("SEND error message");
+
+    switch(errorCode)
+    {
+        case Session::errorCodes::FALSE_VERSION:
+        {
+            Error_FalseVersion_Message errorMessage(
+                    session->sessionId,
+                    SessionHandler::m_ressourceHandler->increaseMessageIdCounter(),
+                    message);
+            session->socket->sendMessage(&message, sizeof(message));
+            break;
+        }
+
+        case Session::errorCodes::UNKNOWN_SESSION:
+        {
+            Error_UnknownSession_Message errorMessage(
+                    session->sessionId,
+                    SessionHandler::m_ressourceHandler->increaseMessageIdCounter(),
+                    message);
+            session->socket->sendMessage(&message, sizeof(message));
+            break;
+        }
+
+        case Session::errorCodes::INVALID_MESSAGE_SIZE:
+        {
+            Error_InvalidMessage_Message errorMessage(
+                    session->sessionId,
+                    SessionHandler::m_ressourceHandler->increaseMessageIdCounter(),
+                    message);
+            session->socket->sendMessage(&message, sizeof(message));
+            break;
+        }
+
+        default:
+            break;
+    }
+}
+
+/**
+ * @brief process_Error_Type
+ * @param session
+ * @param header
+ * @param recvBuffer
+ * @param socket
+ * @return
+ */
+inline uint64_t
+process_Error_Type(Session* session,
+                   const CommonMessageHeader* header,
+                   MessageRingBuffer *recvBuffer,
+                   AbstractSocket* socket)
+{
+    LOG_DEBUG("process error message");
+    switch(header->subType)
+    {
+        case ERROR_FALSE_VERSION_SUBTYPE:
+            {
+                const Error_FalseVersion_Message* message =
+                        getObjectFromBuffer<Error_FalseVersion_Message>(recvBuffer);
+                if(message == nullptr) {
+                    break;
+                }
+
+                SessionHandler::m_ressourceHandler->receivedError(
+                            session,
+                            Session::errorCodes::FALSE_VERSION,
+                            std::string(message->message));
+                return sizeof(Error_FalseVersion_Message);
+            }
+        case ERROR_UNKNOWN_SESSION_SUBTYPE:
+            {
+                const Error_UnknownSession_Message* message =
+                        getObjectFromBuffer<Error_UnknownSession_Message>(recvBuffer);
+                if(message == nullptr) {
+                    break;
+                }
+
+                SessionHandler::m_ressourceHandler->receivedError(
+                            session,
+                            Session::errorCodes::UNKNOWN_SESSION,
+                            std::string(message->message));
+                return sizeof(Error_UnknownSession_Message);
+            }
+
+        case ERROR_INVALID_MESSAGE_SUBTYPE:
+        {
+            const Error_InvalidMessage_Message* message =
+                    getObjectFromBuffer<Error_InvalidMessage_Message>(recvBuffer);
+            if(message == nullptr) {
+                break;
+            }
+
+            SessionHandler::m_ressourceHandler->receivedError(
+                        session,
+                        Session::errorCodes::INVALID_MESSAGE_SIZE,
+                        std::string(message->message));
+            return sizeof(Error_InvalidMessage_Message);
+        }
+
+        default:
+            break;
+    }
+
+    return 0;
+}
 
 } // namespace Common
 } // namespace Project

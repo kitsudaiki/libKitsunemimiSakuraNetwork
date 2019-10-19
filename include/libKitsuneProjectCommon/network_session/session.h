@@ -39,6 +39,7 @@ namespace Project
 {
 namespace Common
 {
+class RessourceHandler;
 
 class Session
 {
@@ -47,22 +48,36 @@ public:
     ~Session();
 
     bool connect(const bool init = false);
-    bool startSession();
-
     bool disconnect();
+
+    bool startSession();
     bool closeSession(const bool init = false,
                       const bool replyExpected = false);
 
     bool sendHeartbeat();
 
     uint32_t sessionId = 0;
+    Network::AbstractSocket* socket = nullptr;
+
+    enum errorCodes {
+        UNDEFINED_ERROR = 0,
+        FALSE_VERSION = 1,
+        UNKNOWN_SESSION = 2,
+        INVALID_MESSAGE_SIZE = 3,
+        MESSAGE_TIMEOUT = 4,
+    };
 
 private:
+    friend RessourceHandler;
+
     Kitsune::Common::Statemachine m_statemachine;
-    Network::AbstractSocket* m_socket = nullptr;
+
+    void* m_dataTarget = nullptr;
+    void (*m_processData)(void*, Session*, void*, const uint32_t);
+    void* m_errorTarget = nullptr;
+    void (*m_processError)(void*, Session*, const uint8_t, const std::string);
 
     void initStatemachine();
-
 };
 
 } // namespace Common

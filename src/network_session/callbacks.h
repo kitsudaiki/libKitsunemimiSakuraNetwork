@@ -30,7 +30,7 @@
 
 #include <network_session/messages_processing/session_processing.h>
 #include <network_session/messages_processing/heartbeat_processing.h>
-
+#include <network_session/messages_processing/error_processing.h>
 
 using Kitsune::Network::MessageRingBuffer;
 using Kitsune::Network::AbstractSocket;
@@ -51,28 +51,30 @@ namespace Common
  * @return
  */
 uint64_t
-processMessage(void*,
+processMessage(void* target,
                MessageRingBuffer* recvBuffer,
                AbstractSocket* socket)
 {
     LOG_DEBUG("process message");
 
     const CommonMessageHeader* header = getObjectFromBuffer<CommonMessageHeader>(recvBuffer);
+    Session* session = static_cast<Session*>(target);
 
     if(header == nullptr
             || header->version != 0x1)
     {
-        // TODO: error if false version
-        //LOG_DEBUG("message-buffer not bug enough");
+        send_ErrorMessage(session, Session::errorCodes::FALSE_VERSION, "++++++++++++++++++FAIL");
         return 0;
     }
 
     switch(header->type)
     {
         case SESSION_TYPE:
-            return process_Session_Type(header, recvBuffer, socket);
+            return process_Session_Type(session, header, recvBuffer, socket);
         case HEARTBEAT_TYPE:
-            return process_Heartbeat_Type(header, recvBuffer, socket);
+            return process_Heartbeat_Type(session, header, recvBuffer, socket);
+        case ERROR_TYPE:
+            return process_Error_Type(session, header, recvBuffer, socket);
         default:
             break;
     }
@@ -96,7 +98,9 @@ uint64_t processMessageTcp(void* target,
 void processConnectionTcp(void* target,
                           AbstractSocket* socket)
 {
-    socket->setMessageCallback(target, &processMessageTcp);
+    Session* newSession = new Session(socket);
+
+    socket->setMessageCallback(newSession, &processMessageTcp);
     socket->start();
 }
 
@@ -139,7 +143,6 @@ void processConnectionUnixDomain(void* target,
     socket->setMessageCallback(target, &processMessageUnixDomain);
     socket->start();
 }
-
 
 } // namespace Common
 } // namespace Project

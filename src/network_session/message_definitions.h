@@ -24,6 +24,8 @@
 #define MESSAGE_DEFINITIONS_H
 
 #include <stdint.h>
+#include <string.h>
+#include <stdio.h>
 
 #include <libKitsuneProjectCommon/network_session/session_handler.h>
 #include <network_session/timer_thread.h>
@@ -42,6 +44,7 @@ enum types
     HEARTBEAT_TYPE = 2,
     ERROR_TYPE = 3,
     DATA_TYPE = 4,
+    SUB_PROTOCOL_TYPE = 5,
 };
 
 enum session_subTypes
@@ -62,13 +65,14 @@ enum heartbeat_subTypes
 enum error_subTypes
 {
     ERROR_FALSE_VERSION_SUBTYPE = 1,
+    ERROR_UNKNOWN_SESSION_SUBTYPE = 2,
+    ERROR_INVALID_MESSAGE_SUBTYPE = 3,
 };
 
 enum data_subTypes
 {
     DATA_PLAIN_SUBTYPE = 1,
-    DATA_MULTI_SUBTYPE = 2,
-    DATA_REPLY_SUBTYPE = 3,
+    DATA_REPLY_SUBTYPE = 2,
 };
 
 //==================================================================================================
@@ -203,6 +207,80 @@ struct Heartbeat_Reply_Message
         commonHeader.subType = HEARTBEAT_REPLY_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
+    }
+} __attribute__((packed));
+
+//==================================================================================================
+
+struct Error_FalseVersion_Message
+{
+    CommonMessageHeader commonHeader;
+    char message[500];
+    uint64_t messageSize;
+    CommonMessageEnd commonEnd;
+
+    Error_FalseVersion_Message(const uint32_t sessionId,
+                               const uint32_t messageId,
+                               const std::string errorMessage)
+    {
+        commonHeader.type = ERROR_TYPE;
+        commonHeader.subType = ERROR_FALSE_VERSION_SUBTYPE;
+        commonHeader.sessionId = sessionId;
+        commonHeader.messageId = messageId;
+
+        messageSize = errorMessage.size();
+        if(messageSize > 499) {
+            messageSize = 499;
+        }
+        strncpy(message, errorMessage.c_str(), messageSize);
+    }
+} __attribute__((packed));
+
+struct Error_UnknownSession_Message
+{
+    CommonMessageHeader commonHeader;
+    char message[500];
+    uint64_t messageSize;
+    CommonMessageEnd commonEnd;
+
+    Error_UnknownSession_Message(const uint32_t sessionId,
+                                 const uint32_t messageId,
+                                 const std::string errorMessage)
+    {
+        commonHeader.type = ERROR_TYPE;
+        commonHeader.subType = ERROR_UNKNOWN_SESSION_SUBTYPE;
+        commonHeader.sessionId = sessionId;
+        commonHeader.messageId = messageId;
+
+        messageSize = errorMessage.size();
+        if(messageSize > 499) {
+            messageSize = 499;
+        }
+        strncpy(message, errorMessage.c_str(), messageSize);
+    }
+} __attribute__((packed));
+
+struct Error_InvalidMessage_Message
+{
+    CommonMessageHeader commonHeader;
+    char message[500];
+    uint64_t messageSize;
+    CommonMessageEnd commonEnd;
+
+    Error_InvalidMessage_Message(const uint32_t sessionId,
+                                 const uint32_t messageId,
+                                 const std::string errorMessage)
+    {
+        commonHeader.type = ERROR_TYPE;
+        commonHeader.subType = ERROR_INVALID_MESSAGE_SUBTYPE;
+        commonHeader.sessionId = sessionId;
+        commonHeader.messageId = messageId;
+
+        messageSize = errorMessage.size();
+        if(messageSize > 499) {
+            messageSize = 499;
+        }
+        strncpy(message, errorMessage.c_str(), messageSize);
     }
 } __attribute__((packed));
 
