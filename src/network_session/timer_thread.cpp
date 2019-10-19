@@ -24,6 +24,7 @@
 #include <libKitsuneNetwork/abstract_socket.h>
 #include <libKitsuneProjectCommon/network_session/session.h>
 #include <libKitsunePersistence/logger/logger.h>
+#include <network_session/ressource_handler.h>
 
 namespace Kitsune
 {
@@ -31,7 +32,6 @@ namespace Project
 {
 namespace Common
 {
-
 
 /**
  * constructor
@@ -161,9 +161,12 @@ TimerThread::removeMessageFromList(const uint64_t messageId)
 void
 TimerThread::run()
 {
+    uint32_t counter = 0;
+
     while(!m_abort)
     {
         sleepThread(100000);
+        counter += 1;
 
         if(m_abort) {
             break;
@@ -188,6 +191,12 @@ TimerThread::run()
             }
         }
         mutexUnlock();
+
+        if(counter % 10 == 0)
+        {
+            RessourceHandler::m_ressourceHandler->sendHeartBeats();
+            counter = 0;
+        }
     }
 }
 
