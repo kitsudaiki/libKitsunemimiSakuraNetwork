@@ -97,7 +97,7 @@ process_Heartbeat_Start(Session*,
  */
 inline void
 process_Heartbeat_Reply(Session*,
-                        const Heartbeat_Reply_Message* message,
+                        const Heartbeat_Reply_Message*,
                         AbstractSocket*)
 {
     LOG_DEBUG("process heartbeat reply");

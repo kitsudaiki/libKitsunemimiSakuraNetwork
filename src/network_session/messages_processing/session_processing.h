@@ -147,6 +147,8 @@ process_Session_Init_Start(Session* session,
 
     // create new session
     RessourceHandler::m_ressourceHandler->connectiSession(session, completeSessionId, false);
+    RessourceHandler::m_ressourceHandler->makeSessionReady(session, completeSessionId);
+    RessourceHandler::m_ressourceHandler->addSession(completeSessionId, session);
 
     // confirm id
     send_Session_Init_Reply(clientSessionId,
@@ -154,15 +156,6 @@ process_Session_Init_Start(Session* session,
                             completeSessionId,
                             clientSessionId,
                             socket);
-
-    // try to finish session
-    const bool ret = RessourceHandler::m_ressourceHandler->makeSessionReady(session,
-                                                                            completeSessionId);
-    if(ret) {
-        RessourceHandler::m_ressourceHandler->addSession(completeSessionId, session);
-    } else {
-        // TODO: error message
-    }
 }
 
 /**
@@ -179,20 +172,9 @@ process_Session_Init_Reply(Session* session,
     const uint32_t completeSessionId = message->completeSessionId;
     const uint32_t initialId = message->clientSessionId;
 
-
-    if(session != nullptr)
-    {
-        // try to finish session
-        const bool ret = RessourceHandler::m_ressourceHandler->makeSessionReady(session,
-                                                                                completeSessionId);
-        if(ret)
-        {
-            RessourceHandler::m_ressourceHandler->removeSession(initialId);
-            RessourceHandler::m_ressourceHandler->addSession(completeSessionId, session);
-        } else {
-            // TODO: error message
-        }
-    }
+    RessourceHandler::m_ressourceHandler->makeSessionReady(session,completeSessionId);
+    RessourceHandler::m_ressourceHandler->removeSession(initialId);
+    RessourceHandler::m_ressourceHandler->addSession(completeSessionId, session);
 }
 
 /**
@@ -205,20 +187,12 @@ process_Session_Close_Start(Session* session,
 {
     LOG_DEBUG("process session close start");
 
+    send_Session_Close_Reply(message->sessionId,
+                             message->commonHeader.messageId,
+                             socket);
+
     RessourceHandler::m_ressourceHandler->removeSession(message->sessionId);
-
-    const bool ret = RessourceHandler::m_ressourceHandler->endSession(session);
-    if(ret)
-    {
-        send_Session_Close_Reply(message->sessionId,
-                                 message->commonHeader.messageId,
-                                 socket);
-    }
-    else
-    {
-        // TODO: error message
-    }
-
+    RessourceHandler::m_ressourceHandler->endSession(session);
     RessourceHandler::m_ressourceHandler->disconnectSession(session);
 }
 
