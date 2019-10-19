@@ -127,7 +127,7 @@ process_Heartbeat_Type(Session* session,
                     break;
                 }
                 process_Heartbeat_Start(session, message, socket);
-                return sizeof(Heartbeat_Start_Message);
+                return sizeof(*message);
             }
         case HEARTBEAT_REPLY_SUBTYPE:
             {
@@ -137,7 +137,7 @@ process_Heartbeat_Type(Session* session,
                     break;
                 }
                 process_Heartbeat_Reply(session, message, socket);
-                return sizeof(Heartbeat_Reply_Message);
+                return sizeof(*message);
             }
         default:
             break;

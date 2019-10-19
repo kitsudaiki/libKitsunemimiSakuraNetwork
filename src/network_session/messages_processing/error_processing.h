@@ -126,7 +126,7 @@ process_Error_Type(Session* session,
                             session,
                             Session::errorCodes::FALSE_VERSION,
                             std::string(message->message));
-                return sizeof(Error_FalseVersion_Message);
+                return sizeof(*message);
             }
         case ERROR_UNKNOWN_SESSION_SUBTYPE:
             {
@@ -140,7 +140,7 @@ process_Error_Type(Session* session,
                             session,
                             Session::errorCodes::UNKNOWN_SESSION,
                             std::string(message->message));
-                return sizeof(Error_UnknownSession_Message);
+                return sizeof(*message);
             }
 
         case ERROR_INVALID_MESSAGE_SUBTYPE:
@@ -155,7 +155,7 @@ process_Error_Type(Session* session,
                         session,
                         Session::errorCodes::INVALID_MESSAGE_SIZE,
                         std::string(message->message));
-            return sizeof(Error_InvalidMessage_Message);
+            return sizeof(*message);
         }
 
         default:

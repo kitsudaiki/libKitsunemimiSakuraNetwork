@@ -231,7 +231,7 @@ process_Session_Type(Session* session,
                     break;
                 }
                 process_Session_Init_Start(session, message, socket);
-                return sizeof(Session_Init_Start_Message);
+                return sizeof(*message);
             }
         case SESSION_INIT_REPLY_SUBTYPE:
             {
@@ -241,7 +241,7 @@ process_Session_Type(Session* session,
                     break;
                 }
                 process_Session_Init_Reply(session, message, socket);
-                return sizeof(Session_Init_Reply_Message);
+                return sizeof(*message);
             }
         case SESSION_CLOSE_START_SUBTYPE:
             {
@@ -251,7 +251,7 @@ process_Session_Type(Session* session,
                     break;
                 }
                 process_Session_Close_Start(session, message, socket);
-                return sizeof(Session_Close_Start_Message);
+                return sizeof(*message);
             }
         case SESSION_CLOSE_REPLY_SUBTYPE:
             {
@@ -261,7 +261,7 @@ process_Session_Type(Session* session,
                     break;
                 }
                 process_Session_Close_Reply(session, message, socket);
-                return sizeof(Session_Close_Reply_Message);
+                return sizeof(*message);
             }
         default:
             break;
