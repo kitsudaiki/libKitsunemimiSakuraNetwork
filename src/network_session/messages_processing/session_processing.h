@@ -24,7 +24,8 @@
 #define SESSION_PROCESSING_H
 
 #include <network_session/message_definitions.h>
-#include <network_session/ressource_handler.h>
+#include <network_session/session_handler.h>
+#include <network_session/internal_session_interface.h>
 
 #include <libKitsuneNetwork/abstract_socket.h>
 
@@ -57,7 +58,7 @@ send_Session_Init_Start(const uint32_t initialId,
 
     // create message
     Session_Init_Start_Message message(initialId,
-                                       RessourceHandler::m_ressourceHandler->increaseMessageIdCounter());
+                                       SessionHandler::m_sessionHandler->increaseMessageIdCounter());
     message.clientSessionId = initialId;
 
     // send
@@ -93,20 +94,16 @@ send_Session_Init_Reply(const uint32_t initialSessionId,
  * @param socket
  */
 inline void
-send_Session_Close_Start(const uint32_t id,
+send_Session_Close_Start(const uint32_t sessionId,
                          bool replyExpected,
                          Network::AbstractSocket* socket)
 {
     LOG_DEBUG("SEND session close start");
 
-    Session_Close_Start_Message message(id,
-                                        RessourceHandler::m_ressourceHandler->increaseMessageIdCounter(),
+    Session_Close_Start_Message message(sessionId,
+                                        SessionHandler::m_sessionHandler->increaseMessageIdCounter(),
                                         replyExpected);
-    message.sessionId = id;
-
-    // update common-header
-    message.commonHeader.sessionId = id;
-    message.commonHeader.messageId = RessourceHandler::m_ressourceHandler->increaseMessageIdCounter();
+    message.sessionId = sessionId;
 
     // send
     socket->sendMessage(&message, sizeof(message));
@@ -142,13 +139,13 @@ process_Session_Init_Start(Session* session,
     LOG_DEBUG("process session init start");
 
     const uint32_t clientSessionId = message->clientSessionId;
-    const uint16_t serverSessionId = RessourceHandler::m_ressourceHandler->increaseSessionIdCounter();
+    const uint16_t serverSessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
     const uint32_t completeSessionId = clientSessionId + (serverSessionId * 0x10000);
 
     // create new session
-    RessourceHandler::m_ressourceHandler->connectiSession(session, completeSessionId, false);
-    RessourceHandler::m_ressourceHandler->makeSessionReady(session, completeSessionId);
-    RessourceHandler::m_ressourceHandler->addSession(completeSessionId, session);
+    SessionHandler::m_sessionInterface->connectiSession(session, completeSessionId, false);
+    SessionHandler::m_sessionInterface->makeSessionReady(session, completeSessionId);
+    SessionHandler::m_sessionHandler->addSession(completeSessionId, session);
 
     // confirm id
     send_Session_Init_Reply(clientSessionId,
@@ -164,7 +161,7 @@ process_Session_Init_Start(Session* session,
 inline void
 process_Session_Init_Reply(Session* session,
                            const Session_Init_Reply_Message* message,
-                           AbstractSocket* socket)
+                           AbstractSocket*)
 {
     LOG_DEBUG("process session init reply");
 
@@ -172,9 +169,9 @@ process_Session_Init_Reply(Session* session,
     const uint32_t completeSessionId = message->completeSessionId;
     const uint32_t initialId = message->clientSessionId;
 
-    RessourceHandler::m_ressourceHandler->makeSessionReady(session,completeSessionId);
-    RessourceHandler::m_ressourceHandler->removeSession(initialId);
-    RessourceHandler::m_ressourceHandler->addSession(completeSessionId, session);
+    SessionHandler::m_sessionInterface->makeSessionReady(session,completeSessionId);
+    SessionHandler::m_sessionHandler->removeSession(initialId);
+    SessionHandler::m_sessionHandler->addSession(completeSessionId, session);
 }
 
 /**
@@ -191,9 +188,9 @@ process_Session_Close_Start(Session* session,
                              message->commonHeader.messageId,
                              socket);
 
-    RessourceHandler::m_ressourceHandler->removeSession(message->sessionId);
-    RessourceHandler::m_ressourceHandler->endSession(session);
-    RessourceHandler::m_ressourceHandler->disconnectSession(session);
+    SessionHandler::m_sessionHandler->removeSession(message->sessionId);
+    SessionHandler::m_sessionInterface->endSession(session);
+    SessionHandler::m_sessionInterface->disconnectSession(session);
 }
 
 /**
@@ -206,8 +203,8 @@ process_Session_Close_Reply(Session* session,
 {
     LOG_DEBUG("process session close reply");
 
-    RessourceHandler::m_ressourceHandler->removeSession(message->sessionId);
-    RessourceHandler::m_ressourceHandler->disconnectSession(session);
+    SessionHandler::m_sessionHandler->removeSession(message->sessionId);
+    SessionHandler::m_sessionInterface->disconnectSession(session);
 }
 
 

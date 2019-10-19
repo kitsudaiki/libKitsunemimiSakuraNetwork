@@ -39,8 +39,9 @@ namespace Project
 {
 namespace Common
 {
-class RessourceHandler;
+class SessionHandler;
 class SessionController;
+class InternalSessionInterface;
 
 class Session
 {
@@ -63,8 +64,9 @@ public:
     };
 
 private:
-    friend RessourceHandler;
+    friend SessionHandler;
     friend SessionController;
+    friend InternalSessionInterface;
 
     bool connectiSession(const uint32_t sessionId,
                          const bool init = false);

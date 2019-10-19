@@ -83,7 +83,7 @@ processMessage(void* target,
     // remove from timer-thread if message is reply
     if(header->flags == 0x2)
     {
-        RessourceHandler::m_timerThread->removeMessage(header->sessionId,
+        SessionHandler::m_timerThread->removeMessage(header->sessionId,
                                                        header->messageId);
     }
 

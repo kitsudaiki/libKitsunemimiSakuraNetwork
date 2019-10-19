@@ -73,8 +73,6 @@ public:
     Session* getSession(const uint32_t id);
 
 private:
-    friend RessourceHandler;
-
     // callback-parameter
     void* m_sessionTarget = nullptr;
     void (*m_processSession)(void*, Session*);
