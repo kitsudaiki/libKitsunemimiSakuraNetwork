@@ -39,23 +39,19 @@ namespace Project
 {
 namespace Common
 {
-class TimerThread;
-class RessourceHandler;
 
-class SessionHandler
+class SessionController
 {
 public:
-    SessionHandler(void* sessionTarget,
-                   void (*processSession)(void*, Session*),
-                   void* dataTarget,
-                   void (*processData)(void*, Session*, void*, const uint32_t),
-                   void* errorTarget,
-                   void (*processError)(void*, Session*, const uint8_t, const std::string));
-    ~SessionHandler();
+    SessionController(void* sessionTarget,
+                      void (*processSession)(void*, Session*),
+                      void* dataTarget,
+                      void (*processData)(void*, Session*, void*, const uint32_t),
+                      void* errorTarget,
+                      void (*processError)(void*, Session*, const uint8_t, const std::string));
+    ~SessionController();
 
-    static Kitsune::Project::Common::TimerThread* m_timerThread;
-    static Kitsune::Project::Common::SessionHandler* m_sessionHandler;
-    static Kitsune::Project::Common::RessourceHandler* m_ressourceHandler;
+    static Kitsune::Project::Common::SessionController* m_sessionController;
 
     // server
     uint32_t addUnixDomainServer(const std::string socketFile);

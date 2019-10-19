@@ -57,7 +57,7 @@ send_Session_Init_Start(const uint32_t initialId,
 
     // create message
     Session_Init_Start_Message message(initialId,
-                                       SessionHandler::m_ressourceHandler->increaseMessageIdCounter());
+                                       RessourceHandler::m_ressourceHandler->increaseMessageIdCounter());
     message.clientSessionId = initialId;
 
     // send
@@ -99,13 +99,13 @@ send_Session_Close_Start(const uint32_t id,
     LOG_DEBUG("SEND session close start");
 
     Session_Close_Start_Message message(id,
-                                        SessionHandler::m_ressourceHandler->increaseMessageIdCounter(),
+                                        RessourceHandler::m_ressourceHandler->increaseMessageIdCounter(),
                                         replyExpected);
     message.sessionId = id;
 
     // update common-header
     message.commonHeader.sessionId = id;
-    message.commonHeader.messageId = SessionHandler::m_ressourceHandler->increaseMessageIdCounter();
+    message.commonHeader.messageId = RessourceHandler::m_ressourceHandler->increaseMessageIdCounter();
 
     // send
     socket->sendMessage(&message, sizeof(message));
@@ -141,7 +141,7 @@ process_Session_Init_Start(Session* session,
     LOG_DEBUG("process session init start");
 
     const uint32_t clientSessionId = message->clientSessionId;
-    const uint16_t serverSessionId = SessionHandler::m_ressourceHandler->increaseSessionIdCounter();
+    const uint16_t serverSessionId = RessourceHandler::m_ressourceHandler->increaseSessionIdCounter();
     const uint32_t completeSessionId = clientSessionId + (serverSessionId * 0x10000);
 
     // create new session
@@ -157,7 +157,7 @@ process_Session_Init_Start(Session* session,
     // try to finish session
     const bool ret = session->startSession();
     if(ret) {
-        SessionHandler::m_ressourceHandler->addSession(completeSessionId, session);
+        RessourceHandler::m_ressourceHandler->addSession(completeSessionId, session);
     } else {
         // TODO: error message
     }
@@ -177,19 +177,19 @@ process_Session_Init_Reply(Session* session,
     const uint32_t completeSessionId = message->completeSessionId;
     const uint32_t initialId = message->clientSessionId;
 
-    SessionHandler::m_ressourceHandler->removeSession(initialId);
+    RessourceHandler::m_ressourceHandler->removeSession(initialId);
 
     if(session != nullptr)
     {
-        SessionHandler::m_timerThread->removeMessage(initialId,
-                                                     message->commonHeader.messageId);
+        RessourceHandler::m_timerThread->removeMessage(initialId,
+                                                       message->commonHeader.messageId);
 
         session->sessionId = completeSessionId;
 
         // try to finish session
         const bool ret = session->startSession();
         if(ret) {
-            SessionHandler::m_ressourceHandler->addSession(completeSessionId, session);
+            RessourceHandler::m_ressourceHandler->addSession(completeSessionId, session);
         } else {
             // TODO: error message
         }
@@ -207,7 +207,7 @@ process_Session_Close_Start(Session* session,
     LOG_DEBUG("process session close start");
 
     const uint32_t sessionId = message->sessionId;
-    SessionHandler::m_ressourceHandler->removeSession(sessionId);
+    RessourceHandler::m_ressourceHandler->removeSession(sessionId);
 
     if(session != nullptr)
     {
@@ -238,12 +238,12 @@ process_Session_Close_Reply(Session* session,
     LOG_DEBUG("process session close reply");
 
     const uint32_t sessionId = message->sessionId;
-    SessionHandler::m_ressourceHandler->removeSession(sessionId);
+    RessourceHandler::m_ressourceHandler->removeSession(sessionId);
 
     if(session != nullptr)
     {
-        SessionHandler::m_timerThread->removeMessage(message->commonHeader.sessionId,
-                                                     message->commonHeader.messageId);
+        RessourceHandler::m_timerThread->removeMessage(message->commonHeader.sessionId,
+                                                       message->commonHeader.messageId);
         session->disconnect();
     }
 }

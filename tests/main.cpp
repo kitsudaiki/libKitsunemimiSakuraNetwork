@@ -27,7 +27,7 @@
 
 using Kitsune::Persistence::initLogger;
 using Kitsune::Project::Common::Session;
-using Kitsune::Project::Common::SessionHandler;
+using Kitsune::Project::Common::SessionController;
 
 void dataCallback(void* target, Session* session, void* data, const uint32_t dataSize) {
     LOG_DEBUG("CALLBACK data messageg");
@@ -47,7 +47,7 @@ int main()
 {
     initLogger("/tmp", "testlog", true, true);
 
-    SessionHandler* m_handler = new SessionHandler(nullptr, &sessionCallback,
+    SessionController* m_handler = new SessionController(nullptr, &sessionCallback,
                                                    nullptr, &dataCallback,
                                                    nullptr, &errorCallback);
     m_handler->addTcpServer(1234);

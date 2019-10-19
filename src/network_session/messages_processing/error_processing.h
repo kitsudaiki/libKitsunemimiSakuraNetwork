@@ -66,7 +66,7 @@ send_ErrorMessage(Session* session,
         {
             Error_FalseVersion_Message errorMessage(
                     session->sessionId,
-                    SessionHandler::m_ressourceHandler->increaseMessageIdCounter(),
+                    RessourceHandler::m_ressourceHandler->increaseMessageIdCounter(),
                     message);
             session->socket->sendMessage(&message, sizeof(message));
             break;
@@ -76,7 +76,7 @@ send_ErrorMessage(Session* session,
         {
             Error_UnknownSession_Message errorMessage(
                     session->sessionId,
-                    SessionHandler::m_ressourceHandler->increaseMessageIdCounter(),
+                    RessourceHandler::m_ressourceHandler->increaseMessageIdCounter(),
                     message);
             session->socket->sendMessage(&message, sizeof(message));
             break;
@@ -86,7 +86,7 @@ send_ErrorMessage(Session* session,
         {
             Error_InvalidMessage_Message errorMessage(
                     session->sessionId,
-                    SessionHandler::m_ressourceHandler->increaseMessageIdCounter(),
+                    RessourceHandler::m_ressourceHandler->increaseMessageIdCounter(),
                     message);
             session->socket->sendMessage(&message, sizeof(message));
             break;
@@ -122,7 +122,7 @@ process_Error_Type(Session* session,
                     break;
                 }
 
-                SessionHandler::m_ressourceHandler->receivedError(
+                RessourceHandler::m_ressourceHandler->receivedError(
                             session,
                             Session::errorCodes::FALSE_VERSION,
                             std::string(message->message));
@@ -136,7 +136,7 @@ process_Error_Type(Session* session,
                     break;
                 }
 
-                SessionHandler::m_ressourceHandler->receivedError(
+                RessourceHandler::m_ressourceHandler->receivedError(
                             session,
                             Session::errorCodes::UNKNOWN_SESSION,
                             std::string(message->message));
@@ -151,7 +151,7 @@ process_Error_Type(Session* session,
                 break;
             }
 
-            SessionHandler::m_ressourceHandler->receivedError(
+            RessourceHandler::m_ressourceHandler->receivedError(
                         session,
                         Session::errorCodes::INVALID_MESSAGE_SIZE,
                         std::string(message->message));

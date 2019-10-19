@@ -22,6 +22,9 @@
 
 #include "ressource_handler.h"
 
+#include <network_session/timer_thread.h>
+#include <network_session/ressource_handler.h>
+
 #include <libKitsuneProjectCommon/network_session/session.h>
 #include <libKitsuneProjectCommon/network_session/session_handler.h>
 
@@ -42,6 +45,9 @@ namespace Project
 namespace Common
 {
 
+Kitsune::Project::Common::TimerThread* RessourceHandler::m_timerThread = nullptr;
+Kitsune::Project::Common::RessourceHandler* RessourceHandler::m_ressourceHandler = nullptr;
+
 RessourceHandler::RessourceHandler(void* dataTarget,
                                    void (*processData)(void*, Session*,
                                                        void*, const uint32_t),
@@ -53,6 +59,12 @@ RessourceHandler::RessourceHandler(void* dataTarget,
     m_processData = processData;
     m_errorTarget = errorTarget;
     m_processError = processError;
+
+    if(m_timerThread == nullptr)
+    {
+        m_timerThread = new TimerThread;
+        m_timerThread->start();
+    }
 }
 
 /**
@@ -104,7 +116,7 @@ RessourceHandler::confirmSession(const uint32_t id)
 {
     LOG_DEBUG("confirm session with id: " + std::to_string(id));
 
-    SessionHandler* sHandler = SessionHandler::m_sessionHandler;
+    SessionController* sHandler = SessionController::m_sessionController;
     Session* session = sHandler->getSession(id);
     sHandler->m_processSession(sHandler->m_sessionTarget, session);
 }

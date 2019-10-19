@@ -57,7 +57,7 @@ send_Heartbeat_Start(const uint32_t sessionId,
     LOG_DEBUG("SEND heartbeat start");
 
     Heartbeat_Start_Message message(sessionId,
-                                    SessionHandler::m_ressourceHandler->increaseMessageIdCounter());
+                                    RessourceHandler::m_ressourceHandler->increaseMessageIdCounter());
     socket->sendMessage(&message, sizeof(message));
 }
 
@@ -102,7 +102,7 @@ process_Heartbeat_Reply(Session*,
 {
     LOG_DEBUG("process heartbeat reply");
 
-    SessionHandler::m_timerThread->removeMessage(message->commonHeader.sessionId,
+    RessourceHandler::m_timerThread->removeMessage(message->commonHeader.sessionId,
                                                  message->commonHeader.messageId);
 }
 

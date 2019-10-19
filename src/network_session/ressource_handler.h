@@ -38,10 +38,17 @@ namespace Project
 namespace Common
 {
 class Session;
+class TimerThread;
+class SessionController;
 
 class RessourceHandler
 {
 public:
+
+    static Kitsune::Project::Common::TimerThread* m_timerThread;
+    static Kitsune::Project::Common::SessionController* m_sessionController;
+    static Kitsune::Project::Common::RessourceHandler* m_ressourceHandler;
+
     RessourceHandler(void* dataTarget,
                      void (*processData)(void*, Session*, void*, const uint32_t),
                      void* errorTarget,

@@ -27,7 +27,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <libKitsuneProjectCommon/network_session/session_handler.h>
+#include <network_session/ressource_handler.h>
 #include <network_session/timer_thread.h>
 
 namespace Kitsune
@@ -109,9 +109,9 @@ struct Session_Init_Start_Message
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
         commonHeader.flags = 0x1;
-        SessionHandler::m_timerThread->addMessage(commonHeader.type,
-                                                  commonHeader.sessionId,
-                                                  commonHeader.messageId);
+        RessourceHandler::m_timerThread->addMessage(commonHeader.type,
+                                                    commonHeader.sessionId,
+                                                    commonHeader.messageId);
     }
 } __attribute__((packed));
 
@@ -151,9 +151,9 @@ struct Session_Close_Start_Message
 
         if(replyExpected) {
             commonHeader.flags = 0x1;
-            SessionHandler::m_timerThread->addMessage(commonHeader.type,
-                                                      commonHeader.sessionId,
-                                                      commonHeader.messageId);
+            RessourceHandler::m_timerThread->addMessage(commonHeader.type,
+                                                        commonHeader.sessionId,
+                                                        commonHeader.messageId);
         }
     }
 } __attribute__((packed));
@@ -189,9 +189,9 @@ struct Heartbeat_Start_Message
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
         commonHeader.flags = 0x1;
-        SessionHandler::m_timerThread->addMessage(commonHeader.type,
-                                                  commonHeader.sessionId,
-                                                  commonHeader.messageId);
+        RessourceHandler::m_timerThread->addMessage(commonHeader.type,
+                                                    commonHeader.sessionId,
+                                                    commonHeader.messageId);
     }
 } __attribute__((packed));
 

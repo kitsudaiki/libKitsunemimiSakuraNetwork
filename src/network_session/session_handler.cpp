@@ -43,52 +43,45 @@ namespace Project
 namespace Common
 {
 
-Kitsune::Project::Common::TimerThread* SessionHandler::m_timerThread = nullptr;
-Kitsune::Project::Common::SessionHandler* SessionHandler::m_sessionHandler = nullptr;
-Kitsune::Project::Common::RessourceHandler* SessionHandler::m_ressourceHandler = nullptr;
+Kitsune::Project::Common::SessionController* SessionController::m_sessionController = nullptr;
 
 /**
  * @brief Session::Session
  */
-SessionHandler::SessionHandler(void* sessionTarget,
-                               void (*processSession)(void*,
+SessionController::SessionController(void* sessionTarget,
+                                     void (*processSession)(void*,
                                                       Session*),
-                               void* dataTarget,
-                               void (*processData)(void*,
-                                                   Session*,
-                                                   void*,
-                                                   const uint32_t),
-                               void* errorTarget,
-                               void (*processError)(void*,
-                                                    Session*,
-                                                    const uint8_t,
-                                                    const std::string))
+                                     void* dataTarget,
+                                     void (*processData)(void*,
+                                                         Session*,
+                                                         void*,
+                                                         const uint32_t),
+                                     void* errorTarget,
+                                     void (*processError)(void*,
+                                                          Session*,
+                                                          const uint8_t,
+                                                          const std::string))
 {
     m_sessionTarget = sessionTarget;
     m_processSession = processSession;
 
-    if(m_timerThread == nullptr)
+    if(m_sessionController == nullptr) {
+        m_sessionController = this;
+    }
+
+    if(RessourceHandler::m_ressourceHandler == nullptr)
     {
-        m_timerThread = new TimerThread;
-        m_timerThread->start();
-    }
-
-    if(m_ressourceHandler == nullptr) {
-        m_ressourceHandler = new RessourceHandler(dataTarget,
-                                                  processData,
-                                                  errorTarget,
-                                                  processError);
-    }
-
-    if(m_sessionHandler == nullptr) {
-        m_sessionHandler = this;
+        RessourceHandler::m_ressourceHandler = new RessourceHandler(dataTarget,
+                                                                    processData,
+                                                                    errorTarget,
+                                                                    processError);
     }
 }
 
 /**
  * @brief Session::~Session
  */
-SessionHandler::~SessionHandler()
+SessionController::~SessionController()
 {
     // TODO: send finish-message
     // TODO: delete all from timer-thread
@@ -103,18 +96,19 @@ SessionHandler::~SessionHandler()
  * @return
  */
 uint32_t
-SessionHandler::addUnixDomainServer(const std::string socketFile)
+SessionController::addUnixDomainServer(const std::string socketFile)
 {
     Network::UnixDomainServer* server = new Network::UnixDomainServer(this,
                                                                       &processConnectionUnixDomain);
     server->initServer(socketFile);
     server->start();
 
-    m_ressourceHandler->m_serverIdCounter++;
-    m_ressourceHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
-                         m_ressourceHandler->m_serverIdCounter, server));
+    RessourceHandler* rHandler = RessourceHandler::m_ressourceHandler;
+    rHandler->m_serverIdCounter++;
+    rHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
+                         rHandler->m_serverIdCounter, server));
 
-    return m_ressourceHandler->m_serverIdCounter;
+    return rHandler->m_serverIdCounter;
 }
 
 /**
@@ -123,18 +117,19 @@ SessionHandler::addUnixDomainServer(const std::string socketFile)
  * @return
  */
 uint32_t
-SessionHandler::addTcpServer(const uint16_t port)
+SessionController::addTcpServer(const uint16_t port)
 {
     Network::TcpServer* server = new Network::TcpServer(this,
                                                         &processConnectionTcp);
     server->initServer(port);
     server->start();
 
-    m_ressourceHandler->m_serverIdCounter++;
-    m_ressourceHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
-                         m_ressourceHandler->m_serverIdCounter, server));
+    RessourceHandler* rHandler = RessourceHandler::m_ressourceHandler;
+    rHandler->m_serverIdCounter++;
+    rHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
+                         rHandler->m_serverIdCounter, server));
 
-    return m_ressourceHandler->m_serverIdCounter;
+    return rHandler->m_serverIdCounter;
 }
 
 /**
@@ -145,7 +140,7 @@ SessionHandler::addTcpServer(const uint16_t port)
  * @return
  */
 uint32_t
-SessionHandler::addTlsTcpServer(const uint16_t port,
+SessionController::addTlsTcpServer(const uint16_t port,
                                 const std::string certFile,
                                 const std::string keyFile)
 {
@@ -156,11 +151,12 @@ SessionHandler::addTlsTcpServer(const uint16_t port,
     server->initServer(port);
     server->start();
 
-    m_ressourceHandler->m_serverIdCounter++;
-    m_ressourceHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
-                         m_ressourceHandler->m_serverIdCounter, server));
+    RessourceHandler* rHandler = RessourceHandler::m_ressourceHandler;
+    rHandler->m_serverIdCounter++;
+    rHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
+                         rHandler->m_serverIdCounter, server));
 
-    return m_ressourceHandler->m_serverIdCounter;
+    return rHandler->m_serverIdCounter;
 }
 
 /**
@@ -169,17 +165,17 @@ SessionHandler::addTlsTcpServer(const uint16_t port,
  * @return
  */
 bool
-SessionHandler::closeServer(const uint32_t id)
+SessionController::closeServer(const uint32_t id)
 {
     std::map<uint32_t, Network::AbstractServer*>::iterator it;
-    it = m_ressourceHandler->m_servers.find(id);
+    it = RessourceHandler::m_ressourceHandler->m_servers.find(id);
 
-    if(it != m_ressourceHandler->m_servers.end())
+    if(it != RessourceHandler::m_ressourceHandler->m_servers.end())
     {
         Network::AbstractServer* server = it->second;
         server->closeServer();
         delete server;
-        m_ressourceHandler->m_servers.erase(it);
+        RessourceHandler::m_ressourceHandler->m_servers.erase(it);
         return true;
     }
 
@@ -193,15 +189,15 @@ SessionHandler::closeServer(const uint32_t id)
  * @param socketFile
  */
 void
-SessionHandler::startUnixDomainSession(const std::string socketFile)
+SessionController::startUnixDomainSession(const std::string socketFile)
 {
     Network::UnixDomainSocket* unixDomainSocket = new Network::UnixDomainSocket(socketFile);
     Session* newSession = new Session(unixDomainSocket);
 
     unixDomainSocket->setMessageCallback(newSession, &processMessageUnixDomain);
-    newSession->sessionId = m_ressourceHandler->increaseSessionIdCounter();
+    newSession->sessionId = RessourceHandler::m_ressourceHandler->increaseSessionIdCounter();
 
-    m_ressourceHandler->addSession(newSession->sessionId, newSession);
+    RessourceHandler::m_ressourceHandler->addSession(newSession->sessionId, newSession);
     newSession->connect(true);
 }
 
@@ -211,16 +207,16 @@ SessionHandler::startUnixDomainSession(const std::string socketFile)
  * @param port
  */
 void
-SessionHandler::startTcpSession(const std::string address,
+SessionController::startTcpSession(const std::string address,
                                 const uint16_t port)
 {
     Network::TcpSocket* tcpSocket = new Network::TcpSocket(address, port);
     Session* newSession = new Session(tcpSocket);
 
     tcpSocket->setMessageCallback(newSession, &processMessageTcp);
-    newSession->sessionId = m_ressourceHandler->increaseSessionIdCounter();
+    newSession->sessionId = RessourceHandler::m_ressourceHandler->increaseSessionIdCounter();
 
-    m_ressourceHandler->addSession(newSession->sessionId, newSession);
+    RessourceHandler::m_ressourceHandler->addSession(newSession->sessionId, newSession);
     newSession->connect(true);
 }
 
@@ -232,7 +228,7 @@ SessionHandler::startTcpSession(const std::string address,
  * @param keyFile
  */
 void
-SessionHandler::startTlsTcpSession(const std::string address,
+SessionController::startTlsTcpSession(const std::string address,
                                    const uint16_t port,
                                    const std::string certFile,
                                    const std::string keyFile)
@@ -244,9 +240,9 @@ SessionHandler::startTlsTcpSession(const std::string address,
     Session* newSession = new Session(tlsTcpSocket);
 
     tlsTcpSocket->setMessageCallback(newSession, &processMessageTlsTcp);
-    newSession->sessionId = m_ressourceHandler->increaseSessionIdCounter();
+    newSession->sessionId = RessourceHandler::m_ressourceHandler->increaseSessionIdCounter();
 
-    m_ressourceHandler->addSession(newSession->sessionId, newSession);
+    RessourceHandler::m_ressourceHandler->addSession(newSession->sessionId, newSession);
     newSession->connect(true);
 }
 
@@ -256,12 +252,12 @@ SessionHandler::startTlsTcpSession(const std::string address,
  * @return
  */
 bool
-SessionHandler::closeSession(const uint32_t id)
+SessionController::closeSession(const uint32_t id)
 {
     std::map<uint32_t, Session*>::iterator it;
-    it = m_ressourceHandler->m_sessions.find(id);
+    it = RessourceHandler::m_ressourceHandler->m_sessions.find(id);
 
-    if(it != m_ressourceHandler->m_sessions.end()) {
+    if(it != RessourceHandler::m_ressourceHandler->m_sessions.end()) {
         return it->second->closeSession(true);
     }
 
@@ -274,12 +270,12 @@ SessionHandler::closeSession(const uint32_t id)
  * @return
  */
 Session*
-SessionHandler::getSession(const uint32_t id)
+SessionController::getSession(const uint32_t id)
 {
     std::map<uint32_t, Session*>::iterator it;
-    it = m_ressourceHandler->m_sessions.find(id);
+    it = RessourceHandler::m_ressourceHandler->m_sessions.find(id);
 
-    if(it != m_ressourceHandler->m_sessions.end()) {
+    if(it != RessourceHandler::m_ressourceHandler->m_sessions.end()) {
         return it->second;
     }
 
