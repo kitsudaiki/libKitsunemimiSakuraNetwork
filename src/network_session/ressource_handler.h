@@ -58,6 +58,9 @@ public:
     void receivedData(Session* session, void* data, const uint32_t dataSize);
     void receivedError(Session* session, const uint8_t errorCode, const std::string message);
 
+    bool sendMessage(Session* session, const void* data, const uint32_t size);
+    void sendHeartBeats();
+
     // session-control
     void addSession(const uint32_t id, Session* session);
     Session* removeSession(const uint32_t id);
@@ -84,6 +87,7 @@ public:
     void (*m_processError)(void*, Session*, const uint8_t, const std::string);
 
     // object-holder
+    std::atomic_flag m_sessionMap_lock = ATOMIC_FLAG_INIT;
     std::map<uint32_t, Session*> m_sessions;
     std::map<uint32_t, Network::AbstractServer*> m_servers;
 

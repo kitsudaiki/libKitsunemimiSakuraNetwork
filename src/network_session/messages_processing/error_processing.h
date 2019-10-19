@@ -67,7 +67,7 @@ send_ErrorMessage(Session* session,
                     session->sessionId(),
                     RessourceHandler::m_ressourceHandler->increaseMessageIdCounter(),
                     message);
-            session->socket()->sendMessage(&message, sizeof(message));
+            RessourceHandler::m_ressourceHandler->sendMessage(session, &message, sizeof(message));
             break;
         }
 
@@ -77,7 +77,7 @@ send_ErrorMessage(Session* session,
                     session->sessionId(),
                     RessourceHandler::m_ressourceHandler->increaseMessageIdCounter(),
                     message);
-            session->socket()->sendMessage(&message, sizeof(message));
+            RessourceHandler::m_ressourceHandler->sendMessage(session, &message, sizeof(message));
             break;
         }
 
@@ -87,7 +87,7 @@ send_ErrorMessage(Session* session,
                     session->sessionId(),
                     RessourceHandler::m_ressourceHandler->increaseMessageIdCounter(),
                     message);
-            session->socket()->sendMessage(&message, sizeof(message));
+            RessourceHandler::m_ressourceHandler->sendMessage(session, &message, sizeof(message));
             break;
         }
 

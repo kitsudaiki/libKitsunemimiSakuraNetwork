@@ -24,6 +24,7 @@
 
 #include <network_session/timer_thread.h>
 #include <network_session/ressource_handler.h>
+#include <network_session/message_definitions.h>
 
 #include <libKitsuneProjectCommon/network_session/session.h>
 #include <libKitsuneProjectCommon/network_session/session_controller.h>
@@ -96,6 +97,43 @@ RessourceHandler::receivedError(Session* session,
 }
 
 /**
+ * @brief RessourceHandler::sendMessage
+ * @param session
+ * @param data
+ * @param size
+ * @return
+ */
+bool
+RessourceHandler::sendMessage(Session* session,
+                              const void* data,
+                              const uint32_t size)
+{
+    const CommonMessageHeader* header = static_cast<const CommonMessageHeader*>(data);
+
+    if(header->flags == 0x1) {
+        m_timerThread->addMessage(header->type, header->sessionId, header->messageId);
+    }
+
+    return session->m_socket->sendMessage(data, size);
+}
+
+/**
+ * @brief RessourceHandler::sendHeartBeats
+ */
+void
+RessourceHandler::sendHeartBeats()
+{
+    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))  // acquire lock
+                 ; // spin
+    std::map<uint32_t, Session*>::iterator it;
+    for(it = m_sessions.begin(); it != m_sessions.end(); it++)
+    {
+        it->second->sendHeartbeat();
+    }
+    m_sessionMap_lock.clear(std::memory_order_release);
+}
+
+/**
  * @brief SessionHandler::addSession
  * @param id
  * @param session
@@ -104,7 +142,10 @@ void
 RessourceHandler::addSession(const uint32_t id, Session* session)
 {
     LOG_DEBUG("add session with id: " + std::to_string(id));
+    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))  // acquire lock
+                 ; // spin
     m_sessions.insert(std::pair<uint32_t, Session*>(id, session));
+    m_sessionMap_lock.clear(std::memory_order_release);
 }
 
 /**
@@ -115,17 +156,21 @@ Session*
 RessourceHandler::removeSession(const uint32_t id)
 {
     LOG_DEBUG("remove session with id: " + std::to_string(id));
+
+    Session* ret = nullptr;
+    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))  // acquire lock
+                 ; // spin
     std::map<uint32_t, Session*>::iterator it;
     it = m_sessions.find(id);
 
     if(it != m_sessions.end())
     {
-        Session* tempSession = it->second;
+        ret = it->second;
         m_sessions.erase(it);
-        return tempSession;
     }
+    m_sessionMap_lock.clear(std::memory_order_release);
 
-    return nullptr;
+    return ret;
 }
 
 /**
@@ -191,14 +236,19 @@ RessourceHandler::disconnectSession(Session* session)
 bool
 RessourceHandler::isIdUsed(const uint32_t id)
 {
+    bool ret = false;
+
+    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))  // acquire lock
+                 ; // spin
     std::map<uint32_t, Session*>::iterator it;
     it = m_sessions.find(id);
 
     if(it != m_sessions.end()) {
-        return true;
+        ret = true;
     }
+    m_sessionMap_lock.clear(std::memory_order_release);
 
-    return false;
+    return ret;
 }
 
 /**
