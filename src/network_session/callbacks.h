@@ -26,7 +26,7 @@
 #include <libKitsuneNetwork/abstract_socket.h>
 #include <libKitsuneNetwork/message_ring_buffer.h>
 #include <libKitsuneCommon/data_buffer.h>
-#include <libKitsuneProjectCommon/network_session/session_handler.h>
+#include <libKitsuneProjectCommon/network_session/session_controller.h>
 
 #include <network_session/messages_processing/session_processing.h>
 #include <network_session/messages_processing/heartbeat_processing.h>
@@ -59,18 +59,18 @@ processMessage(void* target,
 {
     LOG_DEBUG("process message");
 
-
     const CommonMessageHeader* header = getObjectFromBuffer<CommonMessageHeader>(recvBuffer);
     Session* session = static_cast<Session*>(target);
 
     // precheck
-    if(header == nullptr){
+    if(header == nullptr) {
         return 0;
     }
 
     // check version
     if(header->version != 0x1)
     {
+        LOG_ERROR("false message-version");
         send_ErrorMessage(session, Session::errorCodes::FALSE_VERSION, "++++++++++++++++++FAIL");
         return 0;
     }
@@ -78,6 +78,13 @@ processMessage(void* target,
     // check if there are enough data in the buffer for the complete message
     if(header->size > recvBuffer->readWriteDiff) {
         return 0;
+    }
+
+    // remove from timer-thread if message is reply
+    if(header->flags == 0x2)
+    {
+        RessourceHandler::m_timerThread->removeMessage(header->sessionId,
+                                                       header->messageId);
     }
 
     // process message by type

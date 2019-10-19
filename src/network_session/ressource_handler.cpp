@@ -26,7 +26,7 @@
 #include <network_session/ressource_handler.h>
 
 #include <libKitsuneProjectCommon/network_session/session.h>
-#include <libKitsuneProjectCommon/network_session/session_handler.h>
+#include <libKitsuneProjectCommon/network_session/session_controller.h>
 
 #include <libKitsuneNetwork/tcp/tcp_server.h>
 #include <libKitsuneNetwork/tcp/tcp_socket.h>
@@ -108,20 +108,6 @@ RessourceHandler::addSession(const uint32_t id, Session* session)
 }
 
 /**
- * @brief SessionHandler::confirmSession
- * @param id
- */
-void
-RessourceHandler::confirmSession(const uint32_t id)
-{
-    LOG_DEBUG("confirm session with id: " + std::to_string(id));
-
-    SessionController* sHandler = SessionController::m_sessionController;
-    Session* session = sHandler->getSession(id);
-    sHandler->m_processSession(sHandler->m_sessionTarget, session);
-}
-
-/**
  * @brief SessionHandler::removeSession
  * @param id
  */
@@ -140,6 +126,61 @@ RessourceHandler::removeSession(const uint32_t id)
     }
 
     return nullptr;
+}
+
+/**
+ * @brief RessourceHandler::connectiSession
+ * @param session
+ * @param sessionId
+ * @param init
+ * @return
+ */
+bool
+RessourceHandler::connectiSession(Session* session,
+                                  const uint32_t sessionId,
+                                  const bool init)
+{
+    return session->connectiSession(sessionId, init);
+}
+
+/**
+ * @brief RessourceHandler::makeSessionReady
+ * @param session
+ * @param sessionId
+ * @return
+ */
+bool
+RessourceHandler::makeSessionReady(Session* session,
+                                   const uint32_t sessionId)
+{
+    session->m_sessionId = sessionId;
+    return session->makeSessionReady();
+}
+
+/**
+ * @brief RessourceHandler::endSession
+ * @param session
+ * @param init
+ * @param replyExpected
+ * @return
+ */
+bool
+RessourceHandler::endSession(Session* session,
+                             const bool init,
+                             const bool replyExpected)
+{
+    return session->endSession(init, replyExpected);
+}
+
+/**
+ * @brief RessourceHandler::disconnectSession
+ * @param session
+ * @return
+ */
+bool
+RessourceHandler::disconnectSession(Session* session)
+{
+    return session->disconnectSession();
 }
 
 /**

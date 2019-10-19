@@ -83,7 +83,7 @@ struct CommonMessageHeader
     uint8_t version = 0x1;
     uint8_t type = 0;
     uint8_t subType = 0;
-    uint8_t flags = 0;   // 0x1 = Reply required
+    uint8_t flags = 0;   // 0x1 = reply required; 0x2 = is reply
     uint32_t messageId = 0;
     uint32_t sessionId = 0;
     uint32_t size = 0;
@@ -132,6 +132,7 @@ struct Session_Init_Reply_Message
         commonHeader.subType = SESSION_INIT_REPLY_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
+        commonHeader.flags = 0x2;
         commonHeader.size = sizeof(*this);
     }
 } __attribute__((packed));
@@ -177,6 +178,7 @@ struct Session_Close_Reply_Message
         commonHeader.subType = SESSION_CLOSE_REPLY_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
+        commonHeader.flags = 0x2;
         commonHeader.size = sizeof(*this);
     }
 } __attribute__((packed));
@@ -216,6 +218,7 @@ struct Heartbeat_Reply_Message
         commonHeader.subType = HEARTBEAT_REPLY_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
+        commonHeader.flags = 0x2;
         commonHeader.size = sizeof(*this);
     }
 } __attribute__((packed));

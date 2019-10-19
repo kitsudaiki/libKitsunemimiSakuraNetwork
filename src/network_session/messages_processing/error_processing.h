@@ -29,7 +29,7 @@
 #include <libKitsuneNetwork/abstract_socket.h>
 #include <libKitsuneNetwork/message_ring_buffer.h>
 
-#include <libKitsuneProjectCommon/network_session/session_handler.h>
+#include <libKitsuneProjectCommon/network_session/session_controller.h>
 #include <libKitsuneProjectCommon/network_session/session.h>
 
 #include <libKitsunePersistence/logger/logger.h>
@@ -64,30 +64,30 @@ send_ErrorMessage(Session* session,
         case Session::errorCodes::FALSE_VERSION:
         {
             Error_FalseVersion_Message errorMessage(
-                    session->sessionId,
+                    session->sessionId(),
                     RessourceHandler::m_ressourceHandler->increaseMessageIdCounter(),
                     message);
-            session->socket->sendMessage(&message, sizeof(message));
+            session->socket()->sendMessage(&message, sizeof(message));
             break;
         }
 
         case Session::errorCodes::UNKNOWN_SESSION:
         {
             Error_UnknownSession_Message errorMessage(
-                    session->sessionId,
+                    session->sessionId(),
                     RessourceHandler::m_ressourceHandler->increaseMessageIdCounter(),
                     message);
-            session->socket->sendMessage(&message, sizeof(message));
+            session->socket()->sendMessage(&message, sizeof(message));
             break;
         }
 
         case Session::errorCodes::INVALID_MESSAGE_SIZE:
         {
             Error_InvalidMessage_Message errorMessage(
-                    session->sessionId,
+                    session->sessionId(),
                     RessourceHandler::m_ressourceHandler->increaseMessageIdCounter(),
                     message);
-            session->socket->sendMessage(&message, sizeof(message));
+            session->socket()->sendMessage(&message, sizeof(message));
             break;
         }
 

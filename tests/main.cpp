@@ -22,7 +22,7 @@
 
 #include <iostream>
 #include <libKitsunePersistence/logger/logger.h>
-#include <libKitsuneProjectCommon/network_session/session_handler.h>
+#include <libKitsuneProjectCommon/network_session/session_controller.h>
 #include <libKitsuneProjectCommon/network_session/session.h>
 
 using Kitsune::Persistence::initLogger;
@@ -40,7 +40,8 @@ void errorCallback(void* target, Session* session,
 }
 
 void sessionCallback(void* target, Kitsune::Project::Common::Session* session) {
-    LOG_DEBUG("####################### CALLBACK session with id: " + std::to_string(session->sessionId));
+    LOG_DEBUG("####################### CALLBACK session with id: "
+              + std::to_string(session->sessionId()));
 }
 
 int main()
@@ -56,7 +57,7 @@ int main()
     m_handler->startTcpSession("127.0.0.1", 1234);
     sleep(2);
     std::cout<<"######################################"<<std::endl;
-    m_handler->getSession(131073)->sendHeartbeat();
+    //m_handler->getSession(131073)->sendHeartbeat();
     sleep(2);
     std::cout<<"######################################"<<std::endl;
     m_handler->closeSession(131073);

@@ -51,13 +51,61 @@ namespace Common
 
 Session::Session(Network::AbstractSocket* socket)
 {
-    this->socket = socket;
+    m_socket = socket;
     initStatemachine();
 }
 
 Session::~Session()
 {
-    // TODO
+    closeSession(false);
+}
+
+/**
+ * @brief Session::sendData
+ * @param data
+ * @param size
+ * @return
+ */
+bool
+Session::sendData(const void* data, const uint32_t size)
+{
+    if(m_sessionReady == false) {
+        return false;
+    }
+
+    // TODO send data
+
+    return true;
+}
+
+/**
+ * @brief Session::closeSession
+ * @return
+ */
+bool
+Session::closeSession(const bool replyExpected)
+{
+    return endSession(true, replyExpected);
+}
+
+/**
+ * @brief Session::sessionId
+ * @return
+ */
+uint32_t
+Session::sessionId() const
+{
+    return m_sessionId;
+}
+
+/**
+ * @brief Session::socket
+ * @return
+ */
+Network::AbstractSocket*
+Session::socket() const
+{
+    return m_socket;
 }
 
 /**
@@ -65,35 +113,31 @@ Session::~Session()
  * @return
  */
 bool
-Session::connect(const bool init)
+Session::connectiSession(const uint32_t sessionId,
+                         bool init)
 {
-    LOG_DEBUG("CALL session connect: " + std::to_string(sessionId));
+    LOG_DEBUG("CALL session connect: " + std::to_string(m_sessionId));
 
     // check if already connected
-    if(m_statemachine.isInState(CONNECTED)) {
-        return true;
+    if(m_statemachine.isInState(NOT_CONNECTED) == false) {
+        return false;
     }
 
     // connect socket
-    const bool connected = socket->initClientSide();
-    if(connected == false) {
+    if(m_socket->initClientSide() == false) {
         return false;
     }
 
     // git into connected state
-    const bool ret = m_statemachine.goToNextState(CONNECT);
-    LOG_DEBUG("state of state machine: " + m_statemachine.getCurrentState());
-
-    if(ret == false) {
+    if(m_statemachine.goToNextState(CONNECT) == false) {
         return false;
     }
-
-    // start socket-thread to listen for incoming messages
-    socket->start();
+    m_sessionId = sessionId;
+    m_socket->start();
 
     // init session
     if(init) {
-        send_Session_Init_Start(sessionId, socket);
+        send_Session_Init_Start(m_sessionId, m_socket);
     }
 
     return true;
@@ -105,40 +149,26 @@ Session::connect(const bool init)
  * @return
  */
 bool
-Session::startSession()
+Session::makeSessionReady()
 {
-    LOG_DEBUG("CALL session start: " + std::to_string(sessionId));
+    LOG_DEBUG("CALL session start: " + std::to_string(m_sessionId));
 
-    const bool ret = m_statemachine.goToNextState(START_SESSION);
-    LOG_DEBUG("state of state machine: " + m_statemachine.getCurrentState());
-    return ret;
-}
-
-/**
- * @brief Session::disconnect
- * @return
- */
-bool
-Session::disconnect()
-{
-    LOG_DEBUG("CALL session disconnect: " + std::to_string(sessionId));
-
-    if(m_statemachine.isInState(CONNECTED))
-    {
-        const bool ret = m_statemachine.goToNextState(DISCONNECT);
-        LOG_DEBUG("state of state machine: " + m_statemachine.getCurrentState());
-        if(ret == false) {
-            return false;
-        }
-
-        socket->closeSocket();
-        return true;
+    // check statemachine
+    if(m_statemachine.isInState(SESSION_NOT_READY) == false) {
+        return false;
     }
-    return false;
+
+    if(m_statemachine.goToNextState(START_SESSION) == false) {
+        return false;
+    }
+
+    m_sessionReady = true;;
+
+    return true;
 }
 
 /**
- * @brief Session::closeSession
+ * @brief Session::endSession
  *
  * @param init
  * @param replyExpected
@@ -146,27 +176,48 @@ Session::disconnect()
  * @return
  */
 bool
-Session::closeSession(const bool init,
-                      const bool replyExpected)
+Session::endSession(const bool init,
+                    const bool replyExpected)
 {
-    LOG_DEBUG("CALL session close: " + std::to_string(sessionId));
+    LOG_DEBUG("CALL session close: " + std::to_string(m_sessionId));
 
-    if(m_statemachine.isInState(SESSION_READY))
-    {
-        const bool ret = m_statemachine.goToNextState(STOP_SESSION);
-        LOG_DEBUG("state of state machine: " + m_statemachine.getCurrentState());
-        if(ret == false) {
-            return false;
-        }
-
-        if(init) {
-            send_Session_Close_Start(sessionId, replyExpected, socket);
-        }
-
-        return true;
+    // check statemachine
+    if(m_statemachine.isInState(SESSION_READY) == false) {
+        return false;
     }
 
-    return false;
+    if(m_statemachine.goToNextState(STOP_SESSION) == false) {
+        return false;
+    }
+    m_sessionReady = true;;
+
+    if(init) {
+        send_Session_Close_Start(m_sessionId, replyExpected, m_socket);
+    }
+
+    return true;
+}
+
+/**
+ * @brief Session::disconnect
+ * @return
+ */
+bool
+Session::disconnectSession()
+{
+    LOG_DEBUG("CALL session disconnect: " + std::to_string(m_sessionId));
+
+    // check statemachine
+    if(m_statemachine.isInState(CONNECTED) == false) {
+        return false;
+    }
+
+    if(m_statemachine.goToNextState(DISCONNECT) == false) {
+        return false;
+    }
+    m_socket->closeSocket();
+
+    return true;
 }
 
 /**
@@ -176,15 +227,15 @@ Session::closeSession(const bool init,
 bool
 Session::sendHeartbeat()
 {
-    LOG_DEBUG("CALL send hearbeat: " + std::to_string(sessionId));
+    LOG_DEBUG("CALL send hearbeat: " + std::to_string(m_sessionId));
 
-    if(m_statemachine.isInState(SESSION_READY))
-    {
-        send_Heartbeat_Start(sessionId, socket);
-        return true;
+    if(m_statemachine.isInState(SESSION_READY) == false) {
+        return false;
     }
 
-    return false;
+    send_Heartbeat_Start(m_sessionId, m_socket);
+
+    return true;
 }
 
 /**
