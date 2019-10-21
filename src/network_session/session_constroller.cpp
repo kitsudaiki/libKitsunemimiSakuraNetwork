@@ -55,7 +55,7 @@ SessionController::SessionController(void* sessionTarget,
                                      void (*processData)(void*,
                                                          Session*,
                                                          void*,
-                                                         const uint32_t),
+                                                         const uint64_t),
                                      void* errorTarget,
                                      void (*processError)(void*,
                                                           Session*,
@@ -72,9 +72,9 @@ SessionController::SessionController(void* sessionTarget,
     if(SessionHandler::m_sessionHandler == nullptr)
     {
         SessionHandler::m_sessionHandler = new SessionHandler(dataTarget,
-                                                                    processData,
-                                                                    errorTarget,
-                                                                    processError);
+                                                              processData,
+                                                              errorTarget,
+                                                              processError);
     }
 }
 
@@ -103,12 +103,12 @@ SessionController::addUnixDomainServer(const std::string socketFile)
     server->initServer(socketFile);
     server->start();
 
-    SessionHandler* rHandler = SessionHandler::m_sessionHandler;
-    rHandler->m_serverIdCounter++;
-    rHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
-                         rHandler->m_serverIdCounter, server));
+    SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
+    sessionHandler->m_serverIdCounter++;
+    sessionHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
+                                     sessionHandler->m_serverIdCounter, server));
 
-    return rHandler->m_serverIdCounter;
+    return sessionHandler->m_serverIdCounter;
 }
 
 /**
@@ -124,12 +124,12 @@ SessionController::addTcpServer(const uint16_t port)
     server->initServer(port);
     server->start();
 
-    SessionHandler* rHandler = SessionHandler::m_sessionHandler;
-    rHandler->m_serverIdCounter++;
-    rHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
-                         rHandler->m_serverIdCounter, server));
+    SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
+    sessionHandler->m_serverIdCounter++;
+    sessionHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
+                                     sessionHandler->m_serverIdCounter, server));
 
-    return rHandler->m_serverIdCounter;
+    return sessionHandler->m_serverIdCounter;
 }
 
 /**
@@ -151,12 +151,12 @@ SessionController::addTlsTcpServer(const uint16_t port,
     server->initServer(port);
     server->start();
 
-    SessionHandler* rHandler = SessionHandler::m_sessionHandler;
-    rHandler->m_serverIdCounter++;
-    rHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
-                         rHandler->m_serverIdCounter, server));
+    SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
+    sessionHandler->m_serverIdCounter++;
+    sessionHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
+                                     sessionHandler->m_serverIdCounter, server));
 
-    return rHandler->m_serverIdCounter;
+    return sessionHandler->m_serverIdCounter;
 }
 
 /**

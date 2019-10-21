@@ -49,7 +49,10 @@ public:
     Session(Network::AbstractSocket* socket);
     ~Session(); 
 
-    bool sendData(const void* data, const uint32_t size);
+    bool sendData(const void* data,
+                  const uint64_t size,
+                  const bool dynamic = false,
+                  const bool replyExpected = false);
     bool closeSession(const bool replyExpected = false);
 
     uint32_t sessionId() const;
@@ -86,7 +89,7 @@ private:
 
     // callbacks
     void* m_dataTarget = nullptr;
-    void (*m_processData)(void*, Session*, void*, const uint32_t);
+    void (*m_processData)(void*, Session*, void*, const uint64_t);
     void* m_errorTarget = nullptr;
     void (*m_processError)(void*, Session*, const uint8_t, const std::string);
 };

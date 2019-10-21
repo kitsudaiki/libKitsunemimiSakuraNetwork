@@ -45,7 +45,7 @@ InternalSessionInterface* SessionHandler::m_sessionInterface = nullptr;
 
 SessionHandler::SessionHandler(void* dataTarget,
                                void (*processData)(void*, Session*,
-                                                   void*, const uint32_t),
+                                                   void*, const uint64_t),
                                void* errorTarget,
                                void (*processError)(void*, Session*,
                                                     const uint8_t, const std::string))
@@ -75,6 +75,12 @@ void
 SessionHandler::addSession(const uint32_t id, Session* session)
 {
     LOG_DEBUG("add session with id: " + std::to_string(id));
+
+    session->m_dataTarget = m_dataTarget;
+    session->m_processData = m_processData;
+    session->m_errorTarget = m_errorTarget;
+    session->m_processError = m_processError;
+
     while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))  // acquire lock
                  ; // spin
     m_sessions.insert(std::pair<uint32_t, Session*>(id, session));
