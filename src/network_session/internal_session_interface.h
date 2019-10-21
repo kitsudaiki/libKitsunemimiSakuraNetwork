@@ -45,7 +45,7 @@ public:
     InternalSessionInterface();
 
     // callback-forwarding
-    void receivedData(Session* session, void* data, const uint32_t dataSize);
+    void receivedData(Session* session, void* data, const uint64_t dataSize);
     void receivedError(Session* session, const uint8_t errorCode, const std::string message);
 
     bool sendMessage(Session* session, const void* data, const uint32_t size);

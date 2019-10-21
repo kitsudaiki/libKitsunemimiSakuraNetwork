@@ -50,7 +50,7 @@ InternalSessionInterface::InternalSessionInterface()
 void
 InternalSessionInterface::receivedData(Session* session,
                                        void* data,
-                                       const uint32_t dataSize)
+                                       const uint64_t dataSize)
 {
     session->m_processData(session->m_dataTarget, session, data, dataSize);
 }

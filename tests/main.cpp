@@ -31,8 +31,11 @@ using Kitsune::Project::Common::Session;
 using Kitsune::Project::Common::SessionController;
 using Kitsune::Project::Common::SessionHandler;
 
-void dataCallback(void* target, Session* session, void* data, const uint32_t dataSize) {
-    LOG_DEBUG("CALLBACK data messageg");
+void dataCallback(void* target, Session* session, void* data, const uint64_t dataSize)
+{
+    LOG_DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! CALLBACK data message");
+    LOG_DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! message: "
+              + std::string(static_cast<char*>(data), dataSize));
 }
 
 void errorCallback(void* target, Session* session,
@@ -57,6 +60,12 @@ int main()
 
     std::cout<<"######################################"<<std::endl;
     m_controller->startTcpSession("127.0.0.1", 1234);
+    sleep(2);
+    std::cout<<"######################################"<<std::endl;
+    Session* session = m_controller->getSession(131073);
+    std::string testString = "hello!!!";
+    session->sendData(testString.c_str(), testString.size(), false, true);
+
     sleep(2);
     std::cout<<"######################################"<<std::endl;
     m_controller->closeSession(131073);

@@ -25,6 +25,7 @@
 
 #include <network_session/messages_processing/session_processing.h>
 #include <network_session/messages_processing/heartbeat_processing.h>
+#include <network_session/messages_processing/data_processing.h>
 
 #include <libKitsunePersistence/logger/logger.h>
 
@@ -67,14 +68,19 @@ Session::~Session()
  * @return
  */
 bool
-Session::sendData(const void* data, const uint32_t size)
+Session::sendData(const void* data,
+                  const uint64_t size,
+                  const bool dynamic,
+                  const bool replyExpected)
 {
     if(m_sessionReady == false) {
         return false;
     }
 
-    // TODO send data
-
+    send_Data_Single_Static(m_sessionId,
+                            data,
+                            size,
+                            m_socket);
     return true;
 }
 
