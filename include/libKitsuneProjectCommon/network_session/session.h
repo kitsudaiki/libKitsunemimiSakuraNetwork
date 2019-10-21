@@ -88,6 +88,8 @@ private:
     bool m_sessionReady = true;
 
     // callbacks
+    void* m_sessionTarget = nullptr;
+    void (*m_processSession)(void*, Session*);
     void* m_dataTarget = nullptr;
     void (*m_processData)(void*, Session*, void*, const uint64_t);
     void* m_errorTarget = nullptr;
