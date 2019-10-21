@@ -50,7 +50,7 @@ SessionController* SessionController::m_sessionController = nullptr;
  */
 SessionController::SessionController(void* sessionTarget,
                                      void (*processSession)(void*,
-                                                      Session*),
+                                                            Session*),
                                      void* dataTarget,
                                      void (*processData)(void*,
                                                          Session*,
@@ -62,16 +62,15 @@ SessionController::SessionController(void* sessionTarget,
                                                           const uint8_t,
                                                           const std::string))
 {
-    m_sessionTarget = sessionTarget;
-    m_processSession = processSession;
-
     if(m_sessionController == nullptr) {
         m_sessionController = this;
     }
 
     if(SessionHandler::m_sessionHandler == nullptr)
     {
-        SessionHandler::m_sessionHandler = new SessionHandler(dataTarget,
+        SessionHandler::m_sessionHandler = new SessionHandler(sessionTarget,
+                                                              processSession,
+                                                              dataTarget,
                                                               processData,
                                                               errorTarget,
                                                               processError);

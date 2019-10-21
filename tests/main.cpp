@@ -44,9 +44,18 @@ void errorCallback(void* target, Session* session,
     LOG_DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! CALLBACK error message");
 }
 
-void sessionCallback(void* target, Kitsune::Project::Common::Session* session) {
-    LOG_DEBUG("####################### CALLBACK session with id: "
+void sessionCallback(void* target, Kitsune::Project::Common::Session* session)
+{
+    LOG_DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! CALLBACK session with id: "
               + std::to_string(session->sessionId()));
+
+    std::string testString = "hello!!!";
+    session->sendData(testString.c_str(), testString.size(), false, true);
+
+    sleep(2);
+    std::cout<<"######################################"<<std::endl;
+    session->closeSession();
+    sleep(2);
 }
 
 int main()
@@ -62,14 +71,7 @@ int main()
     m_controller->startTcpSession("127.0.0.1", 1234);
     sleep(2);
     std::cout<<"######################################"<<std::endl;
-    Session* session = m_controller->getSession(131073);
-    std::string testString = "hello!!!";
-    session->sendData(testString.c_str(), testString.size(), false, true);
-
-    sleep(2);
-    std::cout<<"######################################"<<std::endl;
-    m_controller->closeSession(131073);
-    sleep(2);
+    sleep(6);
     std::cout<<"######################################"<<std::endl;
     sleep(2);
 

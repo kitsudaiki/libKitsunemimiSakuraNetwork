@@ -143,9 +143,9 @@ process_Session_Init_Start(Session* session,
     const uint32_t completeSessionId = clientSessionId + (serverSessionId * 0x10000);
 
     // create new session
+    SessionHandler::m_sessionHandler->addSession(completeSessionId, session);
     SessionHandler::m_sessionInterface->connectiSession(session, completeSessionId, false);
     SessionHandler::m_sessionInterface->makeSessionReady(session, completeSessionId);
-    SessionHandler::m_sessionHandler->addSession(completeSessionId, session);
 
     // confirm id
     send_Session_Init_Reply(clientSessionId,

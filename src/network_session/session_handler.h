@@ -51,7 +51,9 @@ public:
     static Kitsune::Project::Common::SessionHandler* m_sessionHandler;
     static Kitsune::Project::Common::InternalSessionInterface* m_sessionInterface;
 
-    SessionHandler(void* dataTarget,
+    SessionHandler(void* sessionTarget,
+                   void (*processSession)(void*, Session*),
+                   void* dataTarget,
                    void (*processData)(void*, Session*, void*, const uint64_t),
                    void* errorTarget,
                    void (*processError)(void*, Session*, const uint8_t, const std::string));
@@ -67,6 +69,8 @@ public:
     uint32_t m_serverIdCounter = 0;
 
     // callbacks
+    void* m_sessionTarget = nullptr;
+    void (*m_processSession)(void*, Session*);
     void* m_dataTarget = nullptr;
     void (*m_processData)(void*, Session*, void*, const uint64_t);
     void* m_errorTarget = nullptr;

@@ -158,7 +158,8 @@ Session::makeSessionReady()
         return false;
     }
 
-    m_sessionReady = true;;
+    m_sessionReady = true;
+    m_processSession(m_sessionTarget, this);
 
     return true;
 }

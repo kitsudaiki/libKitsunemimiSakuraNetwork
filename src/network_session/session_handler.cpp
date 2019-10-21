@@ -43,13 +43,17 @@ TimerThread* SessionHandler::m_timerThread = nullptr;
 SessionHandler* SessionHandler::m_sessionHandler = nullptr;
 InternalSessionInterface* SessionHandler::m_sessionInterface = nullptr;
 
-SessionHandler::SessionHandler(void* dataTarget,
+SessionHandler::SessionHandler(void* sessionTarget,
+                               void (*processSession)(void*, Session*),
+                               void* dataTarget,
                                void (*processData)(void*, Session*,
                                                    void*, const uint64_t),
                                void* errorTarget,
                                void (*processError)(void*, Session*,
                                                     const uint8_t, const std::string))
 {
+    m_sessionTarget = sessionTarget;
+    m_processSession = processSession;
     m_dataTarget = dataTarget;
     m_processData = processData;
     m_errorTarget = errorTarget;
@@ -76,6 +80,8 @@ SessionHandler::addSession(const uint32_t id, Session* session)
 {
     LOG_DEBUG("add session with id: " + std::to_string(id));
 
+    session->m_sessionTarget = m_sessionTarget;
+    session->m_processSession = m_processSession;
     session->m_dataTarget = m_dataTarget;
     session->m_processData = m_processData;
     session->m_errorTarget = m_errorTarget;
