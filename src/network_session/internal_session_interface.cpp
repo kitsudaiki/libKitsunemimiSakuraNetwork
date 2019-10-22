@@ -36,9 +36,22 @@ namespace Project
 namespace Common
 {
 
-InternalSessionInterface::InternalSessionInterface()
+InternalSessionInterface::InternalSessionInterface(void* sessionTarget,
+                                                   void (*processSession)(void*, Session*),
+                                                   void* dataTarget,
+                                                   void (*processData)(void*, Session*,
+                                                                       void*, const uint64_t),
+                                                   void* errorTarget,
+                                                   void (*processError)(void*, Session*,
+                                                                        const uint8_t,
+                                                                        const std::string))
 {
-
+    m_sessionTarget = sessionTarget;
+    m_processSession = processSession;
+    m_dataTarget = dataTarget;
+    m_processData = processData;
+    m_errorTarget = errorTarget;
+    m_processError = processError;
 }
 
 /**
@@ -93,6 +106,16 @@ InternalSessionInterface::sendMessage(Session* session,
 }
 
 /**
+ * @brief InternalSessionInterface::sendHeartbeat
+ * @param session
+ */
+void
+InternalSessionInterface::sendHeartbeat(Session *session)
+{
+    session->sendHeartbeat();
+}
+
+/**
  * @brief RessourceHandler::connectiSession
  * @param session
  * @param sessionId
@@ -104,6 +127,13 @@ InternalSessionInterface::connectiSession(Session* session,
                                           const uint32_t sessionId,
                                           const bool init)
 {
+    session->m_sessionTarget = m_sessionTarget;
+    session->m_processSession = m_processSession;
+    session->m_dataTarget = m_dataTarget;
+    session->m_processData = m_processData;
+    session->m_errorTarget = m_errorTarget;
+    session->m_processError = m_processError;
+
     return session->connectiSession(sessionId, init);
 }
 

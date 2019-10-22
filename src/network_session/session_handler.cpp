@@ -52,15 +52,14 @@ SessionHandler::SessionHandler(void* sessionTarget,
                                void (*processError)(void*, Session*,
                                                     const uint8_t, const std::string))
 {
-    m_sessionTarget = sessionTarget;
-    m_processSession = processSession;
-    m_dataTarget = dataTarget;
-    m_processData = processData;
-    m_errorTarget = errorTarget;
-    m_processError = processError;
-
-    if(m_sessionInterface == nullptr) {
-        m_sessionInterface = new InternalSessionInterface();
+    if(m_sessionInterface == nullptr)
+    {
+        m_sessionInterface = new InternalSessionInterface(sessionTarget,
+                                                          processSession,
+                                                          dataTarget,
+                                                          processData,
+                                                          errorTarget,
+                                                          processError);
     }
 
     if(m_timerThread == nullptr)
@@ -79,14 +78,6 @@ void
 SessionHandler::addSession(const uint32_t id, Session* session)
 {
     LOG_DEBUG("add session with id: " + std::to_string(id));
-
-    session->m_sessionTarget = m_sessionTarget;
-    session->m_processSession = m_processSession;
-    session->m_dataTarget = m_dataTarget;
-    session->m_processData = m_processData;
-    session->m_errorTarget = m_errorTarget;
-    session->m_processError = m_processError;
-
     while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))  // acquire lock
                  ; // spin
     m_sessions.insert(std::pair<uint32_t, Session*>(id, session));
@@ -185,7 +176,7 @@ SessionHandler::sendHeartBeats()
     std::map<uint32_t, Session*>::iterator it;
     for(it = m_sessions.begin(); it != m_sessions.end(); it++)
     {
-        it->second->sendHeartbeat();
+        m_sessionInterface->sendHeartbeat(it->second);
     }
     m_sessionMap_lock.clear(std::memory_order_release);
 }

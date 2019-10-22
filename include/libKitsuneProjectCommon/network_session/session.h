@@ -67,10 +67,14 @@ public:
     };
 
 private:
-    friend SessionHandler;
-    friend SessionController;
     friend InternalSessionInterface;
 
+    Kitsune::Common::Statemachine m_statemachine;
+    Network::AbstractSocket* m_socket = nullptr;
+    uint32_t m_sessionId = 0;
+    bool m_sessionReady = true;
+
+    // internal methods triggered by the InternalSessionInterface
     bool connectiSession(const uint32_t sessionId,
                          const bool init = false);
     bool makeSessionReady();
@@ -81,11 +85,6 @@ private:
 
     bool sendHeartbeat();
     void initStatemachine();
-
-    Kitsune::Common::Statemachine m_statemachine;
-    Network::AbstractSocket* m_socket = nullptr;
-    uint32_t m_sessionId = 0;
-    bool m_sessionReady = true;
 
     // callbacks
     void* m_sessionTarget = nullptr;
