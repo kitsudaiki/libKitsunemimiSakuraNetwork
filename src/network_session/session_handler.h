@@ -68,14 +68,6 @@ public:
     uint16_t increaseSessionIdCounter();
     uint32_t m_serverIdCounter = 0;
 
-    // callbacks
-    void* m_sessionTarget = nullptr;
-    void (*m_processSession)(void*, Session*);
-    void* m_dataTarget = nullptr;
-    void (*m_processData)(void*, Session*, void*, const uint64_t);
-    void* m_errorTarget = nullptr;
-    void (*m_processError)(void*, Session*, const uint8_t, const std::string);
-
     // object-holder
     std::atomic_flag m_sessionMap_lock = ATOMIC_FLAG_INIT;
     std::map<uint32_t, Session*> m_sessions;

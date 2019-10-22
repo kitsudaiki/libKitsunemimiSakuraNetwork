@@ -192,12 +192,11 @@ SessionController::startUnixDomainSession(const std::string socketFile)
 {
     Network::UnixDomainSocket* unixDomainSocket = new Network::UnixDomainSocket(socketFile);
     Session* newSession = new Session(unixDomainSocket);
-
     unixDomainSocket->setMessageCallback(newSession, &processMessageUnixDomain);
-    newSession->m_sessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
 
-    SessionHandler::m_sessionHandler->addSession(newSession->m_sessionId, newSession);
-    newSession->connectiSession(newSession->m_sessionId, true);
+    const uint32_t newId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
+    SessionHandler::m_sessionHandler->addSession(newId, newSession);
+    SessionHandler::m_sessionInterface->connectiSession(newSession, newId, true);
 }
 
 /**
@@ -211,12 +210,11 @@ SessionController::startTcpSession(const std::string address,
 {
     Network::TcpSocket* tcpSocket = new Network::TcpSocket(address, port);
     Session* newSession = new Session(tcpSocket);
-
     tcpSocket->setMessageCallback(newSession, &processMessageTcp);
-    newSession->m_sessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
 
-    SessionHandler::m_sessionHandler->addSession(newSession->m_sessionId, newSession);
-    newSession->connectiSession(newSession->m_sessionId, true);
+    const uint32_t newId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
+    SessionHandler::m_sessionHandler->addSession(newId, newSession);
+    SessionHandler::m_sessionInterface->connectiSession(newSession, newId, true);
 }
 
 /**
@@ -237,12 +235,11 @@ SessionController::startTlsTcpSession(const std::string address,
                                                                     certFile,
                                                                     keyFile);
     Session* newSession = new Session(tlsTcpSocket);
-
     tlsTcpSocket->setMessageCallback(newSession, &processMessageTlsTcp);
-    newSession->m_sessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
 
-    SessionHandler::m_sessionHandler->addSession(newSession->m_sessionId, newSession);
-    newSession->connectiSession(newSession->m_sessionId, true);
+    const uint32_t newId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
+    SessionHandler::m_sessionHandler->addSession(newId, newSession);
+    SessionHandler::m_sessionInterface->connectiSession(newSession, newId, true);
 }
 
 /**

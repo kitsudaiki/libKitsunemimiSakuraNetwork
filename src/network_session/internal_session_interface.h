@@ -42,13 +42,21 @@ class Session;
 class InternalSessionInterface
 {
 public:
-    InternalSessionInterface();
+    InternalSessionInterface(void* sessionTarget,
+                             void (*processSession)(void*, Session*),
+                             void* dataTarget,
+                             void (*processData)(void*, Session*,
+                                                 void*, const uint64_t),
+                             void* errorTarget,
+                             void (*processError)(void*, Session*,
+                                                  const uint8_t, const std::string));
 
     // callback-forwarding
     void receivedData(Session* session, void* data, const uint64_t dataSize);
     void receivedError(Session* session, const uint8_t errorCode, const std::string message);
 
     bool sendMessage(Session* session, const void* data, const uint32_t size);
+    void sendHeartbeat(Session* session);
 
     bool connectiSession(Session* session,
                          const uint32_t sessionId,
@@ -60,6 +68,17 @@ public:
                     const bool init = false,
                     const bool replyExpected = false);
     bool disconnectSession(Session* session);
+
+private:
+
+    // callbacks
+    void* m_sessionTarget = nullptr;
+    void (*m_processSession)(void*, Session*);
+    void* m_dataTarget = nullptr;
+    void (*m_processData)(void*, Session*, void*, const uint64_t);
+    void* m_errorTarget = nullptr;
+    void (*m_processError)(void*, Session*, const uint8_t, const std::string);
+
 };
 
 } // namespace Common
