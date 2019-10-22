@@ -46,13 +46,13 @@ public:
                              void (*processSession)(void*, Session*),
                              void* dataTarget,
                              void (*processData)(void*, Session*,
-                                                 void*, const uint64_t),
+                                                 const void*, const uint64_t),
                              void* errorTarget,
                              void (*processError)(void*, Session*,
                                                   const uint8_t, const std::string));
 
     // callback-forwarding
-    void receivedData(Session* session, void* data, const uint64_t dataSize);
+    void receivedData(Session* session, const void *data, const uint64_t dataSize);
     void receivedError(Session* session, const uint8_t errorCode, const std::string message);
 
     bool sendMessage(Session* session, const void* data, const uint32_t size);
@@ -75,7 +75,7 @@ private:
     void* m_sessionTarget = nullptr;
     void (*m_processSession)(void*, Session*);
     void* m_dataTarget = nullptr;
-    void (*m_processData)(void*, Session*, void*, const uint64_t);
+    void (*m_processData)(void*, Session*, const void*, const uint64_t);
     void* m_errorTarget = nullptr;
     void (*m_processError)(void*, Session*, const uint8_t, const std::string);
 

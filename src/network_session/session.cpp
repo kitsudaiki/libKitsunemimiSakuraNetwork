@@ -77,10 +77,21 @@ Session::sendData(const void* data,
         return false;
     }
 
-    send_Data_Single_Static(m_sessionId,
-                            data,
-                            size,
-                            m_socket);
+    if(dynamic)
+    {
+        send_Data_Single_Dynamic(m_sessionId,
+                                 data,
+                                 size,
+                                 m_socket);
+    }
+    else
+    {
+        send_Data_Single_Static(m_sessionId,
+                                data,
+                                size,
+                                m_socket);
+    }
+
     return true;
 }
 

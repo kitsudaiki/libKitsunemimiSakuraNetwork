@@ -300,8 +300,8 @@ struct Error_InvalidMessage_Message
 struct Data_SingleStatic_Message
 {
     CommonMessageHeader commonHeader;
-    uint64_t messageSize = 0;
-    uint8_t message[500];
+    uint64_t payloadSize = 0;
+    uint8_t payload[500];
     CommonMessageEnd commonEnd;
 
     Data_SingleStatic_Message(const uint32_t sessionId,
@@ -318,7 +318,7 @@ struct Data_SingleStatic_Message
 struct Data_SingleDynamic_Message
 {
     CommonMessageHeader commonHeader;
-    uint64_t messageSize = 0;
+    uint64_t payloadSize = 0;
 
     Data_SingleDynamic_Message(const uint32_t sessionId,
                                const uint32_t messageId)
