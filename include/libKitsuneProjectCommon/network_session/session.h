@@ -90,7 +90,7 @@ private:
     void* m_sessionTarget = nullptr;
     void (*m_processSession)(void*, Session*);
     void* m_dataTarget = nullptr;
-    void (*m_processData)(void*, Session*, void*, const uint64_t);
+    void (*m_processData)(void*, Session*, const void*, const uint64_t);
     void* m_errorTarget = nullptr;
     void (*m_processError)(void*, Session*, const uint8_t, const std::string);
 };

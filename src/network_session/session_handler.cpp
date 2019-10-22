@@ -47,7 +47,7 @@ SessionHandler::SessionHandler(void* sessionTarget,
                                void (*processSession)(void*, Session*),
                                void* dataTarget,
                                void (*processData)(void*, Session*,
-                                                   void*, const uint64_t),
+                                                   const void*, const uint64_t),
                                void* errorTarget,
                                void (*processError)(void*, Session*,
                                                     const uint8_t, const std::string))
