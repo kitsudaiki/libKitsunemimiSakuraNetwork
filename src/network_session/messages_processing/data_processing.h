@@ -51,30 +51,28 @@ namespace Common
  * @brief send_Data_Single_Static
  */
 inline void
-send_Data_Single_Static(const uint32_t sessionId,
+send_Data_Single_Static(Session* session,
                         const void* data,
-                        uint64_t size,
-                        AbstractSocket* socket)
+                        uint64_t size)
 {
     LOG_DEBUG("SEND data single static");
 
-    Data_SingleStatic_Message message(sessionId,
+    Data_SingleStatic_Message message(session->sessionId(),
                                       SessionHandler::m_sessionHandler->increaseMessageIdCounter());
 
     memcpy(message.payload, data, size);
     message.payloadSize = size;
 
-    socket->sendMessage(&message, sizeof(message));
+    session->socket()->sendMessage(&message, sizeof(message));
 }
 
 /**
  * @brief send_Data_Single_Dynamic
  */
 inline void
-send_Data_Single_Dynamic(const uint32_t sessionId,
+send_Data_Single_Dynamic(Session* session,
                          const void* data,
-                         const uint64_t size,
-                         AbstractSocket* socket)
+                         const uint64_t size)
 {
     LOG_DEBUG("SEND data single dynamic");
 
@@ -83,7 +81,7 @@ send_Data_Single_Dynamic(const uint32_t sessionId,
                                     + sizeof(CommonMessageEnd);
 
     uint8_t completeMessage[totalMessageSize];
-    Data_SingleDynamic_Message header(sessionId,
+    Data_SingleDynamic_Message header(session->sessionId(),
                                       SessionHandler::m_sessionHandler->increaseMessageIdCounter());
     header.payloadSize = size;
     CommonMessageEnd end;
@@ -94,53 +92,118 @@ send_Data_Single_Dynamic(const uint32_t sessionId,
            &end,
            sizeof(CommonMessageEnd));
 
-    socket->sendMessage(completeMessage, totalMessageSize);
+    session->socket()->sendMessage(completeMessage, totalMessageSize);
 }
 
 /**
  * @brief send_Data_Single_Reply
  */
 inline void
-send_Data_Single_Reply(const uint32_t sessionId,
-                       const uint32_t messageId,
-                       AbstractSocket* socket)
+send_Data_Single_Reply(Session* session,
+                       const uint32_t messageId)
 {
     LOG_DEBUG("SEND data single reply");
 
-    Data_SingleReply_Message message(sessionId, messageId);
-    socket->sendMessage(&message, sizeof(message));
+    Data_SingleReply_Message message(session->sessionId(), messageId);
+    session->socket()->sendMessage(&message, sizeof(message));
 }
 
 /**
- * @brief process_Heartbeat_Start
+ * @brief send_Data_Multi_Init
+ */
+inline void
+send_Data_Multi_Init(Session* session,
+                     const uint64_t requestedSize)
+{
+    LOG_DEBUG("SEND data multi init");
+
+    Data_MultiInit_Message message(session->sessionId(),
+                                   SessionHandler::m_sessionHandler->increaseMessageIdCounter());
+    message.totalSize = requestedSize;
+
+    session->socket()->sendMessage(&message, sizeof(message));
+}
+
+/**
+ * @brief send_Data_Multi_Init_Reply
+ */
+inline void
+send_Data_Multi_Init_Reply(Session* session,
+                           const uint32_t messageId,
+                           const uint8_t status)
+{
+    LOG_DEBUG("SEND data multi init reply");
+
+    Data_MultiInitReply_Message message(session->sessionId(), messageId);
+    message.status = status;
+
+    session->socket()->sendMessage(&message, sizeof(message));
+}
+
+/**
+ * @brief send_Data_Multi_Static
+ */
+inline void
+send_Data_Multi_Static(Session* session,
+                       const uint32_t totalPartNumber,
+                       const uint32_t partId,
+                       const void* data,
+                       const uint64_t size)
+{
+    LOG_DEBUG("SEND data multi static");
+
+    Data_MultiStatic_Message message(session->sessionId(),
+                                     SessionHandler::m_sessionHandler->increaseMessageIdCounter());
+
+    message.totalPartNumber = totalPartNumber;
+    message.partId = partId;
+
+    memcpy(message.payload, data, size);
+    message.payloadSize = size;
+
+    session->socket()->sendMessage(&message, sizeof(message));
+}
+
+/**
+ * @brief send_Data_Multi_Finish
+ * @param session
+ */
+inline void
+send_Data_Multi_Finish(Session* session)
+{
+    LOG_DEBUG("SEND data multi finish");
+
+    Data_MultiFinish_Message message(session->sessionId(),
+                                     SessionHandler::m_sessionHandler->increaseMessageIdCounter());
+    session->socket()->sendMessage(&message, sizeof(message));
+    std::cout<<"poi"<<std::endl;
+}
+
+/**
+ * @brief process_Data_Single_Static
  */
 inline void
 process_Data_Single_Static(Session* session,
-                           const Data_SingleStatic_Message* message,
-                           AbstractSocket* socket)
+                           const Data_SingleStatic_Message* message)
 {
     LOG_DEBUG("process data single static");
 
     SessionHandler::m_sessionInterface->receivedData(session,
+                                                     true,
                                                      static_cast<const void*>(message->payload),
                                                      message->payloadSize);
 
-    send_Data_Single_Reply(message->commonHeader.sessionId,
-                           message->commonHeader.messageId,
-                           socket);
+    send_Data_Single_Reply(session,
+                           message->commonHeader.messageId);
 }
 
 /**
  * @brief process_Data_Single_Dynamic
- * @param session
- * @param message
- * @param socket
  */
 inline uint64_t
 process_Data_Single_Dynamic(Session* session,
                             const Data_SingleDynamic_Message* message,
-                            MessageRingBuffer* recvBuffer,
-                            AbstractSocket* socket)
+                            MessageRingBuffer* recvBuffer)
 {
     LOG_DEBUG("process data single dynamic");
 
@@ -155,25 +218,124 @@ process_Data_Single_Dynamic(Session* session,
 
     const void* payload = completeMessage + sizeof(Data_SingleDynamic_Message);
     SessionHandler::m_sessionInterface->receivedData(session,
+                                                     true,
                                                      payload,
                                                      message->payloadSize);
 
-    send_Data_Single_Reply(message->commonHeader.sessionId,
-                           message->commonHeader.messageId,
-                           socket);
+    send_Data_Single_Reply(session,
+                           message->commonHeader.messageId);
 
     return totalMessageSize;
 }
 
 /**
- * @brief process_Heartbeat_Reply
+ * @brief process_Data_Single_Reply
  */
 inline void
 process_Data_Single_Reply(Session*,
-                          const Data_SingleReply_Message*,
-                          AbstractSocket*)
+                          const Data_SingleReply_Message*)
 {
     LOG_DEBUG("process data single reply");
+}
+
+/**
+ * @brief process_Data_Multi_Init
+ */
+inline void
+process_Data_Multi_Init(Session* session,
+                        const Data_MultiInit_Message* message)
+{
+    LOG_DEBUG("process data multi init");
+    const bool ret = SessionHandler::m_sessionInterface->initMultiblockBuffer(session,
+                                                                              message->totalSize);
+    if(ret)
+    {
+        send_Data_Multi_Init_Reply(session,
+                                   message->commonHeader.messageId,
+                                   Data_MultiInitReply_Message::OK);
+    }
+    else
+    {
+        send_Data_Multi_Init_Reply(session,
+                                   message->commonHeader.messageId,
+                                   Data_MultiInitReply_Message::FAIL);
+    }
+}
+
+/**
+ * @brief process_Data_Multi_Init_Reply
+ */
+inline void
+process_Data_Multi_Init_Reply(Session* session,
+                              const Data_MultiInitReply_Message* message)
+{
+    LOG_DEBUG("process data multi init reply");
+
+    if(message->status == Data_MultiInitReply_Message::OK)
+    {
+        uint64_t totalSize = SessionHandler::m_sessionInterface->getTotalBufferSize(session);
+        uint32_t partCounter = 0;
+        uint32_t totalPartNumber = static_cast<uint32_t>(totalSize / 500) + 1;
+        uint8_t* dataPointer = SessionHandler::m_sessionInterface->getDataPointer(session);
+
+        while(partCounter < totalPartNumber)
+        {
+            if(partCounter == totalPartNumber - 1)
+            {
+                send_Data_Multi_Static(session,
+                                       totalPartNumber,
+                                       partCounter,
+                                       dataPointer + (500 * partCounter),
+                                       totalSize % 500);
+            }
+            else
+            {
+                send_Data_Multi_Static(session,
+                                       totalPartNumber,
+                                       partCounter,
+                                       dataPointer + (500 * partCounter),
+                                       500);
+            }
+
+            partCounter++;
+        }
+
+        send_Data_Multi_Finish(session);
+    }
+    else
+    {
+        // TODO: error-call
+    }
+}
+
+/**
+ * @brief process_Data_Multi_Static
+ */
+inline void
+process_Data_Multi_Static(Session* session,
+                          const Data_MultiStatic_Message* message)
+{
+    LOG_DEBUG("process data multi static");
+    SessionHandler::m_sessionInterface->writeDataIntoBuffer(session,
+                                                            message->payload,
+                                                            message->payloadSize);
+}
+
+/**
+ * @brief process_Data_Multi_Finish
+ */
+inline void
+process_Data_Multi_Finish(Session* session,
+                          const Data_MultiFinish_Message*)
+{
+    LOG_DEBUG("process data multi finish");
+
+    const uint64_t totalSize = SessionHandler::m_sessionInterface->getTotalBufferSize(session);
+    const uint8_t* dataPointer = SessionHandler::m_sessionInterface->getDataPointer(session);
+    SessionHandler::m_sessionInterface->receivedData(session,
+                                                     false,
+                                                     dataPointer,
+                                                     totalSize);
 }
 
 /**
@@ -187,10 +349,9 @@ process_Data_Single_Reply(Session*,
 inline uint64_t
 process_Data_Type(Session* session,
                   const CommonMessageHeader* header,
-                  MessageRingBuffer* recvBuffer,
-                  AbstractSocket* socket)
+                  MessageRingBuffer* recvBuffer)
 {
-    LOG_DEBUG("process heartbeat-type");
+    LOG_DEBUG("process data-type");
     switch(header->subType)
     {
         case DATA_SINGLE_STATIC_SUBTYPE:
@@ -200,7 +361,7 @@ process_Data_Type(Session* session,
                 if(message == nullptr) {
                     break;
                 }
-                process_Data_Single_Static(session, message, socket);
+                process_Data_Single_Static(session, message);
                 return sizeof(*message);
             }
         case DATA_SINGLE_DYNAMIC_SUBTYPE:
@@ -212,8 +373,7 @@ process_Data_Type(Session* session,
                 }
                 const uint64_t messageSize = process_Data_Single_Dynamic(session,
                                                                          messageHeader,
-                                                                         recvBuffer,
-                                                                         socket);
+                                                                         recvBuffer);
                 return messageSize;
             }
         case DATA_SINGLE_REPLY_SUBTYPE:
@@ -223,7 +383,47 @@ process_Data_Type(Session* session,
                 if(message == nullptr) {
                     break;
                 }
-                process_Data_Single_Reply(session, message, socket);
+                process_Data_Single_Reply(session, message);
+                return sizeof(*message);
+            }
+        case DATA_MULTI_INIT_SUBTYPE:
+            {
+                const Data_MultiInit_Message* message =
+                        getObjectFromBuffer<Data_MultiInit_Message>(recvBuffer);
+                if(message == nullptr) {
+                    break;
+                }
+                process_Data_Multi_Init(session, message);
+                return sizeof(*message);
+            }
+        case DATA_MULTI_INIT_REPLY_SUBTYPE:
+            {
+                const Data_MultiInitReply_Message* message =
+                        getObjectFromBuffer<Data_MultiInitReply_Message>(recvBuffer);
+                if(message == nullptr) {
+                    break;
+                }
+                process_Data_Multi_Init_Reply(session, message);
+                return sizeof(*message);
+            }
+        case DATA_MULTI_STATIC_SUBTYPE:
+            {
+                const Data_MultiStatic_Message* message =
+                        getObjectFromBuffer<Data_MultiStatic_Message>(recvBuffer);
+                if(message == nullptr) {
+                    break;
+                }
+                process_Data_Multi_Static(session, message);
+                return sizeof(*message);
+            }
+        case DATA_MULTI_FINISH_SUBTYPE:
+            {
+                const Data_MultiFinish_Message* message =
+                        getObjectFromBuffer<Data_MultiFinish_Message>(recvBuffer);
+                if(message == nullptr) {
+                    break;
+                }
+                process_Data_Multi_Finish(session, message);
                 return sizeof(*message);
             }
         default:

@@ -29,6 +29,8 @@
 
 #include <libKitsuneNetwork/abstract_socket.h>
 
+#include <libKitsuneCommon/data_buffer.h>
+
 namespace Kitsune
 {
 namespace Project
@@ -37,12 +39,17 @@ namespace Common
 {
 
 InternalSessionInterface::InternalSessionInterface(void* sessionTarget,
-                                                   void (*processSession)(void*, Session*),
+                                                   void (*processSession)(void*,
+                                                                          Session*),
                                                    void* dataTarget,
-                                                   void (*processData)(void*, Session*,
-                                                                       const void*, const uint64_t),
+                                                   void (*processData)(void*,
+                                                                       Session*,
+                                                                       const bool,
+                                                                       const void*,
+                                                                       const uint64_t),
                                                    void* errorTarget,
-                                                   void (*processError)(void*, Session*,
+                                                   void (*processError)(void*,
+                                                                        Session*,
                                                                         const uint8_t,
                                                                         const std::string))
 {
@@ -55,17 +62,23 @@ InternalSessionInterface::InternalSessionInterface(void* sessionTarget,
 }
 
 /**
- * @brief RessourceHandler::receivedData
+ * @brief InternalSessionInterface::receivedData
  * @param session
+ * @param isStream
  * @param data
  * @param dataSize
  */
 void
 InternalSessionInterface::receivedData(Session* session,
+                                       const bool isStream,
                                        const void* data,
                                        const uint64_t dataSize)
 {
-    session->m_processData(session->m_dataTarget, session, data, dataSize);
+    session->m_processData(session->m_dataTarget,
+                           session,
+                           isStream,
+                           data,
+                           dataSize);
 }
 
 /**
@@ -79,7 +92,10 @@ InternalSessionInterface::receivedError(Session* session,
                                         const uint8_t errorCode,
                                         const std::string message)
 {
-    session->m_processError(session->m_errorTarget, session, errorCode, message);
+    session->m_processError(session->m_errorTarget,
+                            session,
+                            errorCode,
+                            message);
 }
 
 /**
@@ -92,7 +108,7 @@ InternalSessionInterface::receivedError(Session* session,
 bool
 InternalSessionInterface::sendMessage(Session* session,
                                       const void* data,
-                                      const uint32_t size)
+                                      const uint64_t size)
 {
     const CommonMessageHeader* header = static_cast<const CommonMessageHeader*>(data);
 
@@ -103,6 +119,80 @@ InternalSessionInterface::sendMessage(Session* session,
     }
 
     return session->m_socket->sendMessage(data, size);
+}
+
+/**
+ * @brief InternalSessionInterface::initMultiblockBuffer
+ * @param session
+ * @param size
+ * @return
+ */
+bool
+InternalSessionInterface::initMultiblockBuffer(Session* session,
+                                               const uint64_t size)
+{
+    const uint32_t numberOfBlocks = static_cast<uint32_t>(size / 4096) + 1;
+    session->m_multiBlockBuffer = new Kitsune::Common::DataBuffer(numberOfBlocks);
+
+    // TODO: check if allocation was successful
+    return true;
+}
+
+/**
+ * @brief InternalSessionInterface::writeDataIntoBuffer
+ * @param session
+ * @param data
+ * @param size
+ * @return
+ */
+bool
+InternalSessionInterface::writeDataIntoBuffer(Session* session,
+                                              const void* data,
+                                              const uint64_t size)
+{
+    return Kitsune::Common::addDataToBuffer(session->m_multiBlockBuffer,
+                                            data,
+                                            size);
+}
+
+/**
+ * @brief InternalSessionInterface::getTotalBufferSize
+ * @param session
+ * @return
+ */
+uint64_t
+InternalSessionInterface::getTotalBufferSize(Session* session)
+{
+    return session->m_multiBlockBuffer->bufferPosition;
+}
+
+/**
+ * @brief InternalSessionInterface::getDataPointer
+ * @param session
+ * @return
+ */
+uint8_t*
+InternalSessionInterface::getDataPointer(Session *session)
+{
+    return session->m_multiBlockBuffer->getBlock(0);
+}
+
+/**
+ * @brief InternalSessionInterface::deleteBuffer
+ * @param session
+ * @return
+ */
+bool
+InternalSessionInterface::deleteBuffer(Session* session)
+{
+    if(session->m_multiBlockBuffer != nullptr)
+    {
+        delete session->m_multiBlockBuffer;
+        session->m_multiBlockBuffer = nullptr;
+        return true;
+    }
+
+    return false;
 }
 
 /**

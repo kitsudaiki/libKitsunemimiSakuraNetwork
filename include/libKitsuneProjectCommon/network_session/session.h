@@ -26,12 +26,10 @@
 #include <iostream>
 #include <assert.h>
 #include <libKitsuneCommon/statemachine.h>
+#include <libKitsuneCommon/data_buffer.h>
 
 namespace Kitsune
 {
-namespace Common {
-class Statemachine;
-}
 namespace Network {
 class AbstractSocket;
 }
@@ -49,13 +47,17 @@ public:
     Session(Network::AbstractSocket* socket);
     ~Session(); 
 
-    bool sendData(const void* data,
-                  const uint64_t size,
-                  const bool dynamic = false,
-                  const bool replyExpected = false);
+    bool sendStreamData(const void* data,
+                        const uint64_t size,
+                        const bool dynamic = false,
+                        const bool replyExpected = false);
+    bool sendStandaloneData(const void* data,
+                            const uint64_t size,
+                            const bool replyExpected = false);
     bool closeSession(const bool replyExpected = false);
 
     uint32_t sessionId() const;
+    Network::AbstractSocket* socket() const;
 
     enum errorCodes
     {
@@ -70,6 +72,7 @@ private:
     friend InternalSessionInterface;
 
     Kitsune::Common::Statemachine m_statemachine;
+    Kitsune::Common::DataBuffer* m_multiBlockBuffer = nullptr;
     Network::AbstractSocket* m_socket = nullptr;
     uint32_t m_sessionId = 0;
     bool m_sessionReady = true;
@@ -90,7 +93,7 @@ private:
     void* m_sessionTarget = nullptr;
     void (*m_processSession)(void*, Session*);
     void* m_dataTarget = nullptr;
-    void (*m_processData)(void*, Session*, const void*, const uint64_t);
+    void (*m_processData)(void*, Session*, const bool, const void*, const uint64_t);
     void* m_errorTarget = nullptr;
     void (*m_processError)(void*, Session*, const uint8_t, const std::string);
 };
