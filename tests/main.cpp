@@ -31,11 +31,11 @@ using Kitsune::Project::Common::Session;
 using Kitsune::Project::Common::SessionController;
 using Kitsune::Project::Common::SessionHandler;
 
-void dataCallback(void* target, Session* session, void* data, const uint64_t dataSize)
+void dataCallback(void* target, Session* session, const void* data, const uint64_t dataSize)
 {
     LOG_DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! CALLBACK data message");
     LOG_DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! message: "
-              + std::string(static_cast<char*>(data), dataSize));
+              + std::string(static_cast<const char*>(data), dataSize));
 }
 
 void errorCallback(void* target, Session* session,
@@ -49,10 +49,14 @@ void sessionCallback(void* target, Kitsune::Project::Common::Session* session)
     LOG_DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! CALLBACK session with id: "
               + std::to_string(session->sessionId()));
 
-    std::string testString = "hello!!!";
-    session->sendData(testString.c_str(), testString.size(), false, true);
+    std::string staticTestString = "hello!!! (static)";
+    session->sendData(staticTestString.c_str(), staticTestString.size(), false, true);
 
-    sleep(2);
+    sleep(1);
+
+    std::string dynamicTestString = "hello!!! (dynamic)";
+    session->sendData(dynamicTestString.c_str(), dynamicTestString.size(), true, true);
+
     std::cout<<"######################################"<<std::endl;
     session->closeSession();
     sleep(2);

@@ -38,6 +38,7 @@
 using Kitsune::Network::MessageRingBuffer;
 using Kitsune::Network::AbstractSocket;
 using Kitsune::Network::getObjectFromBuffer;
+using Kitsune::Network::getDataPointer;
 
 namespace Kitsune
 {
@@ -47,9 +48,7 @@ namespace Common
 {
 
 /**
- * @brief send_Heartbeat_Start
- * @param id
- * @param socket
+ * @brief send_Data_Single_Static
  */
 inline void
 send_Data_Single_Static(const uint32_t sessionId,
@@ -62,16 +61,44 @@ send_Data_Single_Static(const uint32_t sessionId,
     Data_SingleStatic_Message message(sessionId,
                                       SessionHandler::m_sessionHandler->increaseMessageIdCounter());
 
-    memcpy(message.message, data, size);
-    message.messageSize = size;
+    memcpy(message.payload, data, size);
+    message.payloadSize = size;
 
     socket->sendMessage(&message, sizeof(message));
 }
 
 /**
- * @brief send_Heartbeat_Reply
- * @param id
- * @param socket
+ * @brief send_Data_Single_Dynamic
+ */
+inline void
+send_Data_Single_Dynamic(const uint32_t sessionId,
+                         const void* data,
+                         const uint64_t size,
+                         AbstractSocket* socket)
+{
+    LOG_DEBUG("SEND data single dynamic");
+
+    const uint64_t totalMessageSize = sizeof(Data_SingleDynamic_Message)
+                                    + size
+                                    + sizeof(CommonMessageEnd);
+
+    uint8_t completeMessage[totalMessageSize];
+    Data_SingleDynamic_Message header(sessionId,
+                                      SessionHandler::m_sessionHandler->increaseMessageIdCounter());
+    header.payloadSize = size;
+    CommonMessageEnd end;
+
+    memcpy(&completeMessage[0], &header, sizeof(Data_SingleDynamic_Message));
+    memcpy(&completeMessage[sizeof(Data_SingleDynamic_Message)], data, size);
+    memcpy(&completeMessage[sizeof(Data_SingleDynamic_Message) + size],
+           &end,
+           sizeof(CommonMessageEnd));
+
+    socket->sendMessage(completeMessage, totalMessageSize);
+}
+
+/**
+ * @brief send_Data_Single_Reply
  */
 inline void
 send_Data_Single_Reply(const uint32_t sessionId,
@@ -94,14 +121,48 @@ process_Data_Single_Static(Session* session,
 {
     LOG_DEBUG("process data single static");
 
-    uint8_t* data = new uint8_t[message->messageSize];
-    mempcpy(data, message->message, message->messageSize);
-
-    SessionHandler::m_sessionInterface->receivedData(session, data, message->messageSize);
+    SessionHandler::m_sessionInterface->receivedData(session,
+                                                     static_cast<const void*>(message->payload),
+                                                     message->payloadSize);
 
     send_Data_Single_Reply(message->commonHeader.sessionId,
                            message->commonHeader.messageId,
                            socket);
+}
+
+/**
+ * @brief process_Data_Single_Dynamic
+ * @param session
+ * @param message
+ * @param socket
+ */
+inline uint64_t
+process_Data_Single_Dynamic(Session* session,
+                            const Data_SingleDynamic_Message* message,
+                            MessageRingBuffer* recvBuffer,
+                            AbstractSocket* socket)
+{
+    LOG_DEBUG("process data single dynamic");
+
+    const uint64_t totalMessageSize = sizeof(Data_SingleDynamic_Message)
+                                    + message->payloadSize
+                                    + sizeof(CommonMessageEnd);
+
+    const uint8_t* completeMessage = getDataPointer(*recvBuffer, totalMessageSize);
+    if(completeMessage == nullptr) {
+        return 0;
+    }
+
+    const void* payload = completeMessage + sizeof(Data_SingleDynamic_Message);
+    SessionHandler::m_sessionInterface->receivedData(session,
+                                                     payload,
+                                                     message->payloadSize);
+
+    send_Data_Single_Reply(message->commonHeader.sessionId,
+                           message->commonHeader.messageId,
+                           socket);
+
+    return totalMessageSize;
 }
 
 /**
@@ -126,7 +187,7 @@ process_Data_Single_Reply(Session*,
 inline uint64_t
 process_Data_Type(Session* session,
                   const CommonMessageHeader* header,
-                  MessageRingBuffer *recvBuffer,
+                  MessageRingBuffer* recvBuffer,
                   AbstractSocket* socket)
 {
     LOG_DEBUG("process heartbeat-type");
@@ -141,6 +202,19 @@ process_Data_Type(Session* session,
                 }
                 process_Data_Single_Static(session, message, socket);
                 return sizeof(*message);
+            }
+        case DATA_SINGLE_DYNAMIC_SUBTYPE:
+            {
+                const Data_SingleDynamic_Message* messageHeader =
+                        getObjectFromBuffer<Data_SingleDynamic_Message>(recvBuffer);
+                if(messageHeader == nullptr) {
+                    break;
+                }
+                const uint64_t messageSize = process_Data_Single_Dynamic(session,
+                                                                         messageHeader,
+                                                                         recvBuffer,
+                                                                         socket);
+                return messageSize;
             }
         case DATA_SINGLE_REPLY_SUBTYPE:
             {
