@@ -62,10 +62,10 @@ public:
     bool closeServer(const uint32_t id);
 
     // session
-    void startUnixDomainSession(const std::string socketFile);
-    void startTcpSession(const std::string address,
+    bool startUnixDomainSession(const std::string socketFile);
+    bool startTcpSession(const std::string address,
                          const uint16_t port);
-    void startTlsTcpSession(const std::string address,
+    bool startTlsTcpSession(const std::string address,
                             const uint16_t port,
                             const std::string certFile,
                             const std::string keyFile);
