@@ -46,7 +46,7 @@ InternalSessionInterface* SessionHandler::m_sessionInterface = nullptr;
 SessionHandler::SessionHandler(void* sessionTarget,
                                void (*processSession)(void*, Session*),
                                void* dataTarget,
-                               void (*processData)(void*, Session*,
+                               void (*processData)(void*, Session*, const bool,
                                                    const void*, const uint64_t),
                                void* errorTarget,
                                void (*processError)(void*, Session*,
@@ -171,6 +171,7 @@ SessionHandler::increaseSessionIdCounter()
 void
 SessionHandler::sendHeartBeats()
 {
+    return;
     while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))  // acquire lock
                  ; // spin
     std::map<uint32_t, Session*>::iterator it;

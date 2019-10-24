@@ -79,8 +79,7 @@ enum data_subTypes
     DATA_MULTI_INIT_SUBTYPE = 4,
     DATA_MULTI_INIT_REPLY_SUBTYPE = 5,
     DATA_MULTI_STATIC_SUBTYPE = 6,
-    DATA_MULTI_REPLY_SUBTYPE = 7,
-    DATA_MULTI_FINISH_SUBTYPE = 8,
+    DATA_MULTI_FINISH_SUBTYPE = 7,
 };
 
 //==================================================================================================
@@ -343,6 +342,7 @@ struct Data_SingleReply_Message
         commonHeader.subType = DATA_SINGLE_REPLY_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
+        commonHeader.flags = 0x2;
         commonHeader.size = sizeof(*this);
     }
 } __attribute__((packed));
@@ -361,6 +361,7 @@ struct Data_MultiInit_Message
         commonHeader.subType = DATA_MULTI_INIT_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
+        commonHeader.flags = 0x1;
         commonHeader.size = sizeof(*this);
     }
 } __attribute__((packed));
@@ -384,6 +385,7 @@ struct Data_MultiInitReply_Message
         commonHeader.subType = DATA_MULTI_INIT_REPLY_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
+        commonHeader.flags = 0x2;
         commonHeader.size = sizeof(*this);
     }
 } __attribute__((packed));
@@ -394,8 +396,8 @@ struct Data_MultiStatic_Message
     CommonMessageHeader commonHeader;
     uint32_t totalPartNumber = 0;
     uint32_t partId = 0;
-    uint64_t messageSize = 0;
-    uint8_t message[500];
+    uint64_t payloadSize = 0;
+    uint8_t payload[500];
     CommonMessageEnd commonEnd;
 
     Data_MultiStatic_Message(const uint32_t sessionId,
@@ -409,17 +411,16 @@ struct Data_MultiStatic_Message
     }
 } __attribute__((packed));
 
-struct Data_MultiReply_Message
+struct Data_MultiFinish_Message
 {
     CommonMessageHeader commonHeader;
-    uint32_t partId = 0;
     CommonMessageEnd commonEnd;
 
-    Data_MultiReply_Message(const uint32_t sessionId,
-                            const uint32_t messageId)
+    Data_MultiFinish_Message(const uint32_t sessionId,
+                             const uint32_t messageId)
     {
         commonHeader.type = DATA_TYPE;
-        commonHeader.subType = DATA_MULTI_REPLY_SUBTYPE;
+        commonHeader.subType = DATA_MULTI_FINISH_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
         commonHeader.size = sizeof(*this);

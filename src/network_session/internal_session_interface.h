@@ -45,18 +45,25 @@ public:
     InternalSessionInterface(void* sessionTarget,
                              void (*processSession)(void*, Session*),
                              void* dataTarget,
-                             void (*processData)(void*, Session*,
+                             void (*processData)(void*, Session*, const bool,
                                                  const void*, const uint64_t),
                              void* errorTarget,
                              void (*processError)(void*, Session*,
                                                   const uint8_t, const std::string));
 
     // callback-forwarding
-    void receivedData(Session* session, const void *data, const uint64_t dataSize);
+    void receivedData(Session* session, const bool isStream,
+                      const void* data, const uint64_t dataSize);
     void receivedError(Session* session, const uint8_t errorCode, const std::string message);
 
-    bool sendMessage(Session* session, const void* data, const uint32_t size);
+    bool sendMessage(Session* session, const void* data, const uint64_t size);
     void sendHeartbeat(Session* session);
+
+    bool initMultiblockBuffer(Session* session, const uint64_t size);
+    bool writeDataIntoBuffer(Session* session, const void* data, const uint64_t size);
+    uint64_t getTotalBufferSize(Session* session);
+    uint8_t* getDataPointer(Session* session);
+    bool deleteBuffer(Session* session);
 
     bool connectiSession(Session* session,
                          const uint32_t sessionId,
@@ -75,7 +82,7 @@ private:
     void* m_sessionTarget = nullptr;
     void (*m_processSession)(void*, Session*);
     void* m_dataTarget = nullptr;
-    void (*m_processData)(void*, Session*, const void*, const uint64_t);
+    void (*m_processData)(void*, Session*, const bool, const void*, const uint64_t);
     void* m_errorTarget = nullptr;
     void (*m_processError)(void*, Session*, const uint8_t, const std::string);
 

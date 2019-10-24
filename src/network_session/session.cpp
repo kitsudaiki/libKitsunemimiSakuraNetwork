@@ -68,29 +68,44 @@ Session::~Session()
  * @return
  */
 bool
-Session::sendData(const void* data,
-                  const uint64_t size,
-                  const bool dynamic,
-                  const bool replyExpected)
+Session::sendStreamData(const void* data,
+                        const uint64_t size,
+                        const bool dynamic,
+                        const bool replyExpected)
 {
     if(m_sessionReady == false) {
         return false;
     }
 
-    if(dynamic)
-    {
-        send_Data_Single_Dynamic(m_sessionId,
-                                 data,
-                                 size,
-                                 m_socket);
+    if(dynamic) {
+        send_Data_Single_Dynamic(this, data, size);
+    } else {
+        send_Data_Single_Static(this, data, size);
     }
-    else
-    {
-        send_Data_Single_Static(m_sessionId,
-                                data,
-                                size,
-                                m_socket);
+
+    return true;
+}
+
+/**
+ * @brief Session::sendStandaloneData
+ * @param data
+ * @param size
+ * @param replyExpected
+ * @return
+ */
+bool
+Session::sendStandaloneData(const void* data,
+                            const uint64_t size,
+                            const bool replyExpected)
+{
+    if(m_sessionReady == false) {
+        return false;
     }
+
+    SessionHandler::m_sessionInterface->initMultiblockBuffer(this, size);
+    SessionHandler::m_sessionInterface->writeDataIntoBuffer(this, data, size);
+
+    send_Data_Multi_Init(this, size);
 
     return true;
 }
@@ -113,6 +128,16 @@ uint32_t
 Session::sessionId() const
 {
     return m_sessionId;
+}
+
+/**
+ * @brief Session::socket
+ * @return
+ */
+Network::AbstractSocket*
+Session::socket() const
+{
+    return m_socket;
 }
 
 /**
