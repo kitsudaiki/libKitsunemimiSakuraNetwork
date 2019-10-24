@@ -188,7 +188,7 @@ SessionController::closeServer(const uint32_t id)
  * @brief SessionHandler::addUnixDomainSocket
  * @param socketFile
  */
-void
+bool
 SessionController::startUnixDomainSession(const std::string socketFile)
 {
     Network::UnixDomainSocket* unixDomainSocket = new Network::UnixDomainSocket(socketFile);
@@ -197,7 +197,7 @@ SessionController::startUnixDomainSession(const std::string socketFile)
 
     const uint32_t newId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
     SessionHandler::m_sessionHandler->addSession(newId, newSession);
-    SessionHandler::m_sessionInterface->connectiSession(newSession, newId, true);
+    return SessionHandler::m_sessionInterface->connectiSession(newSession, newId, true);
 }
 
 /**
@@ -205,7 +205,7 @@ SessionController::startUnixDomainSession(const std::string socketFile)
  * @param address
  * @param port
  */
-void
+bool
 SessionController::startTcpSession(const std::string address,
                                    const uint16_t port)
 {
@@ -215,7 +215,7 @@ SessionController::startTcpSession(const std::string address,
 
     const uint32_t newId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
     SessionHandler::m_sessionHandler->addSession(newId, newSession);
-    SessionHandler::m_sessionInterface->connectiSession(newSession, newId, true);
+    return SessionHandler::m_sessionInterface->connectiSession(newSession, newId, true);
 }
 
 /**
@@ -225,7 +225,7 @@ SessionController::startTcpSession(const std::string address,
  * @param certFile
  * @param keyFile
  */
-void
+bool
 SessionController::startTlsTcpSession(const std::string address,
                                       const uint16_t port,
                                       const std::string certFile,
@@ -240,7 +240,7 @@ SessionController::startTlsTcpSession(const std::string address,
 
     const uint32_t newId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
     SessionHandler::m_sessionHandler->addSession(newId, newSession);
-    SessionHandler::m_sessionInterface->connectiSession(newSession, newId, true);
+    return SessionHandler::m_sessionInterface->connectiSession(newSession, newId, true);
 }
 
 /**

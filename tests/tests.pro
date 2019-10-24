@@ -29,4 +29,8 @@ LIBS += -L../src -lKitsuneProjectCommon
 
 
 SOURCES += \
-    main.cpp
+    main.cpp \
+    session_test.cpp
+
+HEADERS += \
+    session_test.h

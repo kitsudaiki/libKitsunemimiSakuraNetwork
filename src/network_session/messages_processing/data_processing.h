@@ -176,7 +176,6 @@ send_Data_Multi_Finish(Session* session)
     Data_MultiFinish_Message message(session->sessionId(),
                                      SessionHandler::m_sessionHandler->increaseMessageIdCounter());
     session->socket()->sendMessage(&message, sizeof(message));
-    std::cout<<"poi"<<std::endl;
 }
 
 /**

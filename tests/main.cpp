@@ -20,74 +20,16 @@
  *      limitations under the License.
  */
 
-#include <iostream>
 #include <libKitsunePersistence/logger/logger.h>
-#include <libKitsuneProjectCommon/network_session/session_controller.h>
-#include <network_session/session_handler.h>
-#include <libKitsuneProjectCommon/network_session/session.h>
-#include <libKitsuneNetwork/abstract_socket.h>
+
+#include <session_test.h>
 
 using Kitsune::Persistence::initLogger;
-using Kitsune::Project::Common::Session;
-using Kitsune::Project::Common::SessionController;
-using Kitsune::Project::Common::SessionHandler;
 
-void dataCallback(void* target,
-                  Session* session,
-                  const bool isStream,
-                  const void* data,
-                  const uint64_t dataSize)
-{
-    LOG_DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! CALLBACK data message");
-    LOG_DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! message: "
-              + std::string(static_cast<const char*>(data), dataSize));
-}
-
-void errorCallback(void* target,
-                   Session* session,
-                   const uint8_t errorCode,
-                   const std::string errorMessage)
-{
-    LOG_DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! CALLBACK error message");
-}
-
-void sessionCallback(void* target,
-                     Kitsune::Project::Common::Session* session)
-{
-    LOG_DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! CALLBACK session with id: "
-              + std::to_string(session->sessionId()));
-
-    if(session->socket()->isClientSide())
-    {
-        std::string staticTestString = "hello!!! (static)";
-        session->sendStreamData(staticTestString.c_str(), staticTestString.size(), false, true);
-
-        std::string dynamicTestString = "hello!!! (dynamic)";
-        session->sendStreamData(dynamicTestString.c_str(), dynamicTestString.size(), true, true);
-
-        std::cout<<"######################################"<<std::endl;
-
-
-        std::string multiblockTestString = "-------------------------------------------------------------------------------------------------------------#-------------------------------------------------------------------------------------------------------------#-------------------------------------------------------------------------------------------------------------#-------------------------------------------------------------------------------------------------------------#-------------------------------------------------------------------------------------------------------------#-------------------------------------------------------------------------------------------------------------#-------------------------------------------------------------------------------------------------------------#---------------------------#";
-        session->sendStandaloneData(multiblockTestString.c_str(), multiblockTestString.size(), true);
-
-        std::cout<<"######################################"<<std::endl;
-    }
-}
 
 int main()
 {
-    initLogger("/tmp", "testlog", true, true);
+    //initLogger("/tmp", "testlog", true, true);
 
-    SessionController* m_controller = new SessionController(nullptr, &sessionCallback,
-                                                            nullptr, &dataCallback,
-                                                            nullptr, &errorCallback);
-    m_controller->addTcpServer(1234);
-
-    std::cout<<"######################################"<<std::endl;
-    m_controller->startTcpSession("127.0.0.1", 1234);
-    sleep(2);
-    std::cout<<"######################################"<<std::endl;
-    m_controller->getSession(131073)->closeSession();
-
+    Kitsune::Project::Common::Session_Test();
 }
