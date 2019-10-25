@@ -44,7 +44,6 @@ class InternalSessionInterface;
 class Session
 {
 public:
-    Session(Network::AbstractSocket* socket);
     ~Session(); 
 
     bool sendStreamData(const void* data,
@@ -70,6 +69,8 @@ public:
 
 private:
     friend InternalSessionInterface;
+
+    Session(Network::AbstractSocket* socket);
 
     Kitsune::Common::Statemachine m_statemachine;
     Kitsune::Common::DataBuffer* m_multiBlockBuffer = nullptr;

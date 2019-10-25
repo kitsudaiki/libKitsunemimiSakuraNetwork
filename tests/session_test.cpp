@@ -156,6 +156,8 @@ Session_Test::runTest()
     UNITTEST(m_controller->getSession(131073)->closeSession(), true);
     UNITTEST(m_controller->getSession(131073)->closeSession(), false);
 
+    delete m_controller;
+
 }
 
 } // namespace Common

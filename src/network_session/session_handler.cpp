@@ -70,6 +70,30 @@ SessionHandler::SessionHandler(void* sessionTarget,
 }
 
 /**
+ * @brief SessionHandler::~SessionHandler
+ */
+SessionHandler::~SessionHandler()
+{
+    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))  // acquire lock
+                 ; // spin
+    m_sessions.clear();
+    m_servers.clear();
+    m_sessionMap_lock.clear(std::memory_order_release);
+
+    if(m_sessionInterface != nullptr)
+    {
+        delete m_sessionInterface;
+        m_sessionInterface = nullptr;
+    }
+
+    if(m_timerThread != nullptr)
+    {
+        delete m_timerThread;
+        m_timerThread = nullptr;
+    }
+}
+
+/**
  * @brief SessionHandler::addSession
  * @param id
  * @param session

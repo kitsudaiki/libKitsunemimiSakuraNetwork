@@ -25,6 +25,7 @@
 
 #include <network_session/message_definitions.h>
 #include <network_session/session_handler.h>
+#include <network_session/internal_session_interface.h>
 
 #include <libKitsuneNetwork/abstract_socket.h>
 #include <libKitsuneNetwork/message_ring_buffer.h>
@@ -54,7 +55,9 @@ inline void
 send_Heartbeat_Start(const uint32_t sessionId,
                      Network::AbstractSocket* socket)
 {
-    LOG_DEBUG("SEND heartbeat start");
+    if(DEBUG_MODE) {
+        LOG_DEBUG("SEND heartbeat start");
+    }
 
     Heartbeat_Start_Message message(sessionId,
                                     SessionHandler::m_sessionHandler->increaseMessageIdCounter());
@@ -71,7 +74,9 @@ send_Heartbeat_Reply(const uint32_t sessionId,
                      const uint32_t messageId,
                      Network::AbstractSocket* socket)
 {
-    LOG_DEBUG("SEND heartbeat reply");
+    if(DEBUG_MODE) {
+        LOG_DEBUG("SEND heartbeat reply");
+    }
 
     Heartbeat_Reply_Message message(sessionId, messageId);
     socket->sendMessage(&message, sizeof(message));
@@ -85,7 +90,9 @@ process_Heartbeat_Start(Session*,
                         const Heartbeat_Start_Message* message,
                         AbstractSocket* socket)
 {
-    LOG_DEBUG("process heartbeat start");
+    if(DEBUG_MODE) {
+        LOG_DEBUG("process heartbeat start");
+    }
 
     send_Heartbeat_Reply(message->commonHeader.sessionId,
                          message->commonHeader.messageId,
@@ -100,7 +107,9 @@ process_Heartbeat_Reply(Session*,
                         const Heartbeat_Reply_Message*,
                         AbstractSocket*)
 {
-    LOG_DEBUG("process heartbeat reply");
+    if(DEBUG_MODE) {
+        LOG_DEBUG("process heartbeat reply");
+    }
 }
 
 /**
@@ -116,7 +125,10 @@ process_Heartbeat_Type(Session* session,
                        MessageRingBuffer *recvBuffer,
                        AbstractSocket* socket)
 {
-    LOG_DEBUG("process heartbeat-type");
+    if(DEBUG_MODE) {
+        LOG_DEBUG("process heartbeat-type");
+    }
+
     switch(header->subType)
     {
         case HEARTBEAT_START_SUBTYPE:

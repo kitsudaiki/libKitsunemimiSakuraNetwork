@@ -54,7 +54,7 @@ inline void
 send_Session_Init_Start(const uint32_t initialId,
                         Network::AbstractSocket* socket)
 {
-    if(DEBUG_MODE) LOG_DEBUG("SEND session init start");
+    LOG_DEBUG("SEND session init start");
 
     // create message
     Session_Init_Start_Message message(initialId,
@@ -77,7 +77,7 @@ send_Session_Init_Reply(const uint32_t initialSessionId,
                         const uint32_t clientSessionId,
                         Network::AbstractSocket* socket)
 {
-    if(DEBUG_MODE) LOG_DEBUG("SEND session init reply");
+    LOG_DEBUG("SEND session init reply");
 
     Session_Init_Reply_Message message(initialSessionId, messageId);
     message.completeSessionId = completeSessionId;
@@ -98,7 +98,7 @@ send_Session_Close_Start(const uint32_t sessionId,
                          bool replyExpected,
                          Network::AbstractSocket* socket)
 {
-    if(DEBUG_MODE) LOG_DEBUG("SEND session close start");
+    LOG_DEBUG("SEND session close start");
 
     Session_Close_Start_Message message(sessionId,
                                         SessionHandler::m_sessionHandler->increaseMessageIdCounter(),
@@ -119,7 +119,7 @@ send_Session_Close_Reply(const uint32_t sessionId,
                          const uint32_t messageId,
                          Network::AbstractSocket* socket)
 {
-    if(DEBUG_MODE) LOG_DEBUG("SEND session close reply");
+    LOG_DEBUG("SEND session close reply");
 
     Session_Close_Reply_Message message(sessionId, messageId);
     message.sessionId = sessionId;
@@ -136,7 +136,7 @@ process_Session_Init_Start(Session* session,
                            const Session_Init_Start_Message* message,
                            AbstractSocket* socket)
 {
-    if(DEBUG_MODE) LOG_DEBUG("process session init start");
+    LOG_DEBUG("process session init start");
 
     const uint32_t clientSessionId = message->clientSessionId;
     const uint16_t serverSessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
@@ -163,7 +163,7 @@ process_Session_Init_Reply(Session* session,
                            const Session_Init_Reply_Message* message,
                            AbstractSocket*)
 {
-    if(DEBUG_MODE) LOG_DEBUG("process session init reply");
+    LOG_DEBUG("process session init reply");
 
     // get session
     const uint32_t completeSessionId = message->completeSessionId;
@@ -182,7 +182,7 @@ process_Session_Close_Start(Session* session,
                             const Session_Close_Start_Message* message,
                             AbstractSocket* socket)
 {
-    if(DEBUG_MODE) LOG_DEBUG("process session close start");
+    LOG_DEBUG("process session close start");
 
     send_Session_Close_Reply(message->sessionId,
                              message->commonHeader.messageId,
@@ -201,7 +201,7 @@ process_Session_Close_Reply(Session* session,
                             const Session_Close_Reply_Message* message,
                             AbstractSocket*)
 {
-    if(DEBUG_MODE) LOG_DEBUG("process session close reply");
+    LOG_DEBUG("process session close reply");
 
     SessionHandler::m_sessionHandler->removeSession(message->sessionId);
     SessionHandler::m_sessionInterface->disconnectSession(session);
@@ -220,7 +220,9 @@ process_Session_Type(Session* session,
                      MessageRingBuffer *recvBuffer,
                      AbstractSocket* socket)
 {
-    if(DEBUG_MODE) LOG_DEBUG("process session-type");
+    if(DEBUG_MODE) {
+        LOG_DEBUG("process session-type");
+    }
 
     switch(header->subType)
     {

@@ -34,6 +34,7 @@ namespace Kitsune
 {
 namespace Network {
 class AbstractServer;
+class AbstractSocket;
 }
 namespace Project
 {
@@ -52,21 +53,26 @@ public:
                              void* errorTarget,
                              void (*processError)(void*, Session*,
                                                   const uint8_t, const std::string));
+    ~InternalSessionInterface();
 
     // callback-forwarding
     void receivedData(Session* session, const bool isStream,
                       const void* data, const uint64_t dataSize);
     void receivedError(Session* session, const uint8_t errorCode, const std::string message);
 
+    // send messages
     bool sendMessage(Session* session, const void* data, const uint64_t size);
     void sendHeartbeat(Session* session);
 
+    // multi-block data operations
     bool initMultiblockBuffer(Session* session, const uint64_t size);
     bool writeDataIntoBuffer(Session* session, const void* data, const uint64_t size);
     uint64_t getTotalBufferSize(Session* session);
     uint8_t* getDataPointer(Session* session);
     bool deleteBuffer(Session* session);
 
+    // session-control
+    Session* createNewSession(Network::AbstractSocket* socket);
     bool connectiSession(Session* session,
                          const uint32_t sessionId,
                          const bool init = false);
@@ -79,7 +85,6 @@ public:
     bool disconnectSession(Session* session);
 
 private:
-
     // callbacks
     void* m_sessionTarget = nullptr;
     void (*m_processSession)(void*, Session*);
@@ -87,7 +92,6 @@ private:
     void (*m_processData)(void*, Session*, const bool, const void*, const uint64_t);
     void* m_errorTarget = nullptr;
     void (*m_processError)(void*, Session*, const uint8_t, const std::string);
-
 };
 
 } // namespace Common
