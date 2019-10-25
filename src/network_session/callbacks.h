@@ -119,7 +119,7 @@ uint64_t processMessageTcp(void* target,
 /**
  * processConnectionTcp-callback
  */
-void processConnectionTcp(void* target,
+void processConnectionTcp(void*,
                           AbstractSocket* socket)
 {
     Session* newSession = SessionHandler::m_sessionInterface->createNewSession(socket);
@@ -141,10 +141,12 @@ uint64_t processMessageTlsTcp(void* target,
 /**
  * processConnectionTlsTcp-callback
  */
-void processConnectionTlsTcp(void* target,
+void processConnectionTlsTcp(void*,
                              AbstractSocket* socket)
 {
-    socket->setMessageCallback(target, &processMessageTlsTcp);
+    Session* newSession = SessionHandler::m_sessionInterface->createNewSession(socket);
+
+    socket->setMessageCallback(newSession, &processMessageTlsTcp);
     socket->start();
 }
 
@@ -161,10 +163,12 @@ uint64_t processMessageUnixDomain(void* target,
 /**
  * processConnectionUnixDomain-callback
  */
-void processConnectionUnixDomain(void* target,
+void processConnectionUnixDomain(void*,
                                  AbstractSocket* socket)
 {
-    socket->setMessageCallback(target, &processMessageUnixDomain);
+    Session* newSession = SessionHandler::m_sessionInterface->createNewSession(socket);
+
+    socket->setMessageCallback(newSession, &processMessageUnixDomain);
     socket->start();
 }
 
