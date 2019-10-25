@@ -110,29 +110,6 @@ SessionHandler::removeSession(const uint32_t id)
 }
 
 /**
- * @brief SessionHandler::isIdUsed
- * @param id
- * @return
- */
-bool
-SessionHandler::isIdUsed(const uint32_t id)
-{
-    bool ret = false;
-
-    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))  // acquire lock
-                 ; // spin
-    std::map<uint32_t, Session*>::iterator it;
-    it = m_sessions.find(id);
-
-    if(it != m_sessions.end()) {
-        ret = true;
-    }
-    m_sessionMap_lock.clear(std::memory_order_release);
-
-    return ret;
-}
-
-/**
  * @brief SessionHandler::increaseMessageIdCounter
  * @return
  */
@@ -163,7 +140,6 @@ SessionHandler::increaseSessionIdCounter()
     m_sessionIdCounter_lock.clear(std::memory_order_release);
     return tempId;
 }
-
 
 /**
  * @brief RessourceHandler::sendHeartBeats
