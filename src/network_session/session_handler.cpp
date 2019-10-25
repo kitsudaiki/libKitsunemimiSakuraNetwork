@@ -147,7 +147,6 @@ SessionHandler::increaseSessionIdCounter()
 void
 SessionHandler::sendHeartBeats()
 {
-    return;
     while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))  // acquire lock
                  ; // spin
     std::map<uint32_t, Session*>::iterator it;
