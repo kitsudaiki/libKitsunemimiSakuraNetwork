@@ -53,12 +53,14 @@ namespace Common
 inline void
 send_Data_Single_Static(Session* session,
                         const void* data,
-                        uint64_t size)
+                        uint64_t size,
+                        const bool replyExpected)
 {
     if(DEBUG_MODE) LOG_DEBUG("SEND data single static");
 
     Data_SingleStatic_Message message(session->sessionId(),
-                                      SessionHandler::m_sessionHandler->increaseMessageIdCounter());
+                                      SessionHandler::m_sessionHandler->increaseMessageIdCounter(),
+                                      replyExpected);
 
     memcpy(message.payload, data, size);
     message.payloadSize = size;
@@ -72,7 +74,8 @@ send_Data_Single_Static(Session* session,
 inline void
 send_Data_Single_Dynamic(Session* session,
                          const void* data,
-                         const uint64_t size)
+                         const uint64_t size,
+                         const bool replyExpected)
 {
     if(DEBUG_MODE) LOG_DEBUG("SEND data single dynamic");
 
@@ -82,7 +85,8 @@ send_Data_Single_Dynamic(Session* session,
 
     uint8_t completeMessage[totalMessageSize];
     Data_SingleDynamic_Message header(session->sessionId(),
-                                      SessionHandler::m_sessionHandler->increaseMessageIdCounter());
+                                      SessionHandler::m_sessionHandler->increaseMessageIdCounter(),
+                                      replyExpected);
     header.payloadSize = size;
     CommonMessageEnd end;
 

@@ -78,9 +78,9 @@ Session::sendStreamData(const void* data,
     }
 
     if(dynamic) {
-        send_Data_Single_Dynamic(this, data, size);
+        send_Data_Single_Dynamic(this, data, size, replyExpected);
     } else {
-        send_Data_Single_Static(this, data, size);
+        send_Data_Single_Static(this, data, size, replyExpected);
     }
 
     return true;
