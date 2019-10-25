@@ -79,8 +79,6 @@ private:
     uint32_t m_messageIdCounter = 0;
     std::atomic_flag m_sessionIdCounter_lock = ATOMIC_FLAG_INIT;
     uint16_t m_sessionIdCounter = 0;
-
-    bool isIdUsed(const uint32_t id);
 };
 
 } // namespace Common

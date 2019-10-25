@@ -28,6 +28,8 @@
 #include <map>
 #include <atomic>
 
+#define DEBUG_MODE true
+
 namespace Kitsune
 {
 namespace Network {
