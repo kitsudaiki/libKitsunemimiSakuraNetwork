@@ -112,6 +112,7 @@ process_Error_Type(Session* session,
                    AbstractSocket*)
 {
     LOG_DEBUG("process error message");
+
     switch(header->subType)
     {
         case ERROR_FALSE_VERSION_SUBTYPE:

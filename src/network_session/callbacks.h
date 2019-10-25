@@ -60,7 +60,9 @@ processMessage(void* target,
                MessageRingBuffer* recvBuffer,
                AbstractSocket* socket)
 {
-    if(DEBUG_MODE) LOG_DEBUG("process message");
+    if(DEBUG_MODE) {
+        LOG_DEBUG("process message");
+    }
 
     const CommonMessageHeader* header = getObjectFromBuffer<CommonMessageHeader>(recvBuffer);
     Session* session = static_cast<Session*>(target);
