@@ -34,6 +34,7 @@ namespace Kitsune
 {
 namespace Network {
 class AbstractServer;
+class AbstractSocket;
 }
 namespace Project
 {
@@ -52,6 +53,8 @@ public:
                              void* errorTarget,
                              void (*processError)(void*, Session*,
                                                   const uint8_t, const std::string));
+
+    Session* createNewSession(Network::AbstractSocket* socket);
 
     // callback-forwarding
     void receivedData(Session* session, const bool isStream,

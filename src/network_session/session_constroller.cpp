@@ -192,7 +192,7 @@ bool
 SessionController::startUnixDomainSession(const std::string socketFile)
 {
     Network::UnixDomainSocket* unixDomainSocket = new Network::UnixDomainSocket(socketFile);
-    Session* newSession = new Session(unixDomainSocket);
+    Session* newSession = SessionHandler::m_sessionInterface->createNewSession(unixDomainSocket);
     unixDomainSocket->setMessageCallback(newSession, &processMessageUnixDomain);
 
     const uint32_t newId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
@@ -210,7 +210,7 @@ SessionController::startTcpSession(const std::string address,
                                    const uint16_t port)
 {
     Network::TcpSocket* tcpSocket = new Network::TcpSocket(address, port);
-    Session* newSession = new Session(tcpSocket);
+    Session* newSession = SessionHandler::m_sessionInterface->createNewSession(tcpSocket);
     tcpSocket->setMessageCallback(newSession, &processMessageTcp);
 
     const uint32_t newId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
@@ -235,7 +235,7 @@ SessionController::startTlsTcpSession(const std::string address,
                                                                     port,
                                                                     certFile,
                                                                     keyFile);
-    Session* newSession = new Session(tlsTcpSocket);
+    Session* newSession = SessionHandler::m_sessionInterface->createNewSession(tlsTcpSocket);
     tlsTcpSocket->setMessageCallback(newSession, &processMessageTlsTcp);
 
     const uint32_t newId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();

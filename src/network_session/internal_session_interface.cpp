@@ -62,6 +62,17 @@ InternalSessionInterface::InternalSessionInterface(void* sessionTarget,
 }
 
 /**
+ * @brief InternalSessionInterface::createNewSession
+ * @param socket
+ * @return
+ */
+Session*
+InternalSessionInterface::createNewSession(Network::AbstractSocket* socket)
+{
+    return new Session(socket);
+}
+
+/**
  * @brief InternalSessionInterface::receivedData
  * @param session
  * @param isStream

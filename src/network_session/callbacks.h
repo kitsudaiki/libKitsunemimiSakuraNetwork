@@ -122,7 +122,7 @@ uint64_t processMessageTcp(void* target,
 void processConnectionTcp(void* target,
                           AbstractSocket* socket)
 {
-    Session* newSession = new Session(socket);
+    Session* newSession = SessionHandler::m_sessionInterface->createNewSession(socket);
 
     socket->setMessageCallback(newSession, &processMessageTcp);
     socket->start();
