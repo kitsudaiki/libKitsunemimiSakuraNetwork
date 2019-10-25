@@ -38,6 +38,12 @@ namespace Project
 namespace Common
 {
 
+/**
+ * @brief InternalSessionInterface::InternalSessionInterface
+ * @param sessionTarget
+ * @param dataTarget
+ * @param errorTarget
+ */
 InternalSessionInterface::InternalSessionInterface(void* sessionTarget,
                                                    void (*processSession)(void*,
                                                                           Session*),
@@ -59,6 +65,14 @@ InternalSessionInterface::InternalSessionInterface(void* sessionTarget,
     m_processData = processData;
     m_errorTarget = errorTarget;
     m_processError = processError;
+}
+
+/**
+ * @brief InternalSessionInterface::~InternalSessionInterface
+ */
+InternalSessionInterface::~InternalSessionInterface()
+{
+
 }
 
 /**

@@ -57,6 +57,7 @@ public:
                    void (*processData)(void*, Session*, const bool, const void*, const uint64_t),
                    void* errorTarget,
                    void (*processError)(void*, Session*, const uint8_t, const std::string));
+    ~SessionHandler();
 
     // session-control
     void addSession(const uint32_t id, Session* session);
@@ -66,7 +67,6 @@ public:
     // counter
     uint32_t increaseMessageIdCounter();
     uint16_t increaseSessionIdCounter();
-    uint32_t m_serverIdCounter = 0;
 
     // object-holder
     std::atomic_flag m_sessionMap_lock = ATOMIC_FLAG_INIT;

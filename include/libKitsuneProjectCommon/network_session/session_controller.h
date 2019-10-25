@@ -60,6 +60,7 @@ public:
                              const std::string certFile,
                              const std::string keyFile);
     bool closeServer(const uint32_t id);
+    void cloesAllServers();
 
     // session
     bool startUnixDomainSession(const std::string socketFile);
@@ -71,6 +72,10 @@ public:
                             const std::string keyFile);
     bool closeSession(const uint32_t id);
     Session* getSession(const uint32_t id);
+    void closeAllSession();
+
+private:
+    uint32_t m_serverIdCounter = 0;
 };
 
 } // namespace Common

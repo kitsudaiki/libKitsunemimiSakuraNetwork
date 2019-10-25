@@ -21,8 +21,10 @@
  */
 
 #include <libKitsuneProjectCommon/network_session/session_controller.h>
+
 #include <network_session/timer_thread.h>
 #include <network_session/session_handler.h>
+#include <network_session/callbacks.h>
 
 #include <libKitsuneNetwork/tcp/tcp_server.h>
 #include <libKitsuneNetwork/tcp/tcp_socket.h>
@@ -31,8 +33,7 @@
 #include <libKitsuneNetwork/tls_tcp/tls_tcp_server.h>
 #include <libKitsuneNetwork/tls_tcp/tls_tcp_socket.h>
 #include <libKitsuneNetwork/abstract_server.h>
-
-#include <network_session/callbacks.h>
+#include <libKitsuneNetwork/abstract_socket.h>
 
 #include <libKitsunePersistence/logger/logger.h>
 
@@ -46,7 +47,7 @@ namespace Common
 SessionController* SessionController::m_sessionController = nullptr;
 
 /**
- * @brief Session::Session
+ * @brief SessionController::SessionController
  */
 SessionController::SessionController(void* sessionTarget,
                                      void (*processSession)(void*,
@@ -63,9 +64,7 @@ SessionController::SessionController(void* sessionTarget,
                                                           const uint8_t,
                                                           const std::string))
 {
-    if(m_sessionController == nullptr) {
-        m_sessionController = this;
-    }
+    m_sessionController = this;
 
     if(SessionHandler::m_sessionHandler == nullptr)
     {
@@ -79,13 +78,18 @@ SessionController::SessionController(void* sessionTarget,
 }
 
 /**
- * @brief Session::~Session
+ * @brief SessionController::~SessionController
  */
 SessionController::~SessionController()
 {
-    // TODO: send finish-message
-    // TODO: delete all from timer-thread
-    // TODO: close socket
+    closeAllSession();
+    cloesAllServers();
+
+    if(SessionHandler::m_sessionHandler != nullptr)
+    {
+        delete SessionHandler::m_sessionHandler;
+        SessionHandler::m_sessionHandler = nullptr;
+    }
 }
 
 //==================================================================================================
@@ -104,11 +108,11 @@ SessionController::addUnixDomainServer(const std::string socketFile)
     server->start();
 
     SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
-    sessionHandler->m_serverIdCounter++;
+    m_serverIdCounter++;
     sessionHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
-                                     sessionHandler->m_serverIdCounter, server));
+                                     m_serverIdCounter, server));
 
-    return sessionHandler->m_serverIdCounter;
+    return m_serverIdCounter;
 }
 
 /**
@@ -125,11 +129,11 @@ SessionController::addTcpServer(const uint16_t port)
     server->start();
 
     SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
-    sessionHandler->m_serverIdCounter++;
+    m_serverIdCounter++;
     sessionHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
-                                     sessionHandler->m_serverIdCounter, server));
+                                     m_serverIdCounter, server));
 
-    return sessionHandler->m_serverIdCounter;
+    return m_serverIdCounter;
 }
 
 /**
@@ -152,11 +156,11 @@ SessionController::addTlsTcpServer(const uint16_t port,
     server->start();
 
     SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
-    sessionHandler->m_serverIdCounter++;
+    m_serverIdCounter++;
     sessionHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
-                                     sessionHandler->m_serverIdCounter, server));
+                                     m_serverIdCounter, server));
 
-    return sessionHandler->m_serverIdCounter;
+    return m_serverIdCounter;
 }
 
 /**
@@ -180,6 +184,21 @@ SessionController::closeServer(const uint32_t id)
     }
 
     return false;
+}
+
+/**
+ * @brief SessionController::cloesAllServers
+ */
+void
+SessionController::cloesAllServers()
+{
+    std::map<uint32_t, Network::AbstractServer*>::iterator it;
+    for(it = SessionHandler::m_sessionHandler->m_servers.begin();
+        it != SessionHandler::m_sessionHandler->m_servers.end();
+        it++)
+    {
+        it->second->closeServer();
+    }
 }
 
 //==================================================================================================
@@ -277,6 +296,21 @@ SessionController::getSession(const uint32_t id)
     }
 
     return nullptr;
+}
+
+/**
+ * @brief SessionController::closeAllSession
+ */
+void
+SessionController::closeAllSession()
+{
+    std::map<uint32_t, Session*>::iterator it;
+    for(it = SessionHandler::m_sessionHandler->m_sessions.begin();
+        it != SessionHandler::m_sessionHandler->m_sessions.end();
+        it++)
+    {
+        it->second->closeSession();
+    }
 }
 
 //==================================================================================================
