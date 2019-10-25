@@ -304,13 +304,17 @@ struct Data_SingleStatic_Message
     CommonMessageEnd commonEnd;
 
     Data_SingleStatic_Message(const uint32_t sessionId,
-                              const uint32_t messageId)
+                              const uint32_t messageId,
+                              const bool replyExpected)
     {
         commonHeader.type = DATA_TYPE;
         commonHeader.subType = DATA_SINGLE_STATIC_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
         commonHeader.size = sizeof(*this);
+        if(replyExpected) {
+            commonHeader.flags = 0x1;
+        }
     }
 } __attribute__((packed));
 
@@ -320,13 +324,17 @@ struct Data_SingleDynamic_Message
     uint64_t payloadSize = 0;
 
     Data_SingleDynamic_Message(const uint32_t sessionId,
-                               const uint32_t messageId)
+                               const uint32_t messageId,
+                               const bool replyExpected)
     {
         commonHeader.type = DATA_TYPE;
         commonHeader.subType = DATA_SINGLE_DYNAMIC_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
         commonHeader.size = sizeof(*this);
+        if(replyExpected) {
+            commonHeader.flags = 0x1;
+        }
     }
 } __attribute__((packed));
 
