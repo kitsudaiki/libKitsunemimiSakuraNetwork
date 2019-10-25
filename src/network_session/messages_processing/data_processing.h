@@ -55,7 +55,7 @@ send_Data_Single_Static(Session* session,
                         const void* data,
                         uint64_t size)
 {
-    LOG_DEBUG("SEND data single static");
+    if(DEBUG_MODE) LOG_DEBUG("SEND data single static");
 
     Data_SingleStatic_Message message(session->sessionId(),
                                       SessionHandler::m_sessionHandler->increaseMessageIdCounter());
@@ -74,7 +74,7 @@ send_Data_Single_Dynamic(Session* session,
                          const void* data,
                          const uint64_t size)
 {
-    LOG_DEBUG("SEND data single dynamic");
+    if(DEBUG_MODE) LOG_DEBUG("SEND data single dynamic");
 
     const uint64_t totalMessageSize = sizeof(Data_SingleDynamic_Message)
                                     + size
@@ -102,7 +102,7 @@ inline void
 send_Data_Single_Reply(Session* session,
                        const uint32_t messageId)
 {
-    LOG_DEBUG("SEND data single reply");
+    if(DEBUG_MODE) LOG_DEBUG("SEND data single reply");
 
     Data_SingleReply_Message message(session->sessionId(), messageId);
     session->socket()->sendMessage(&message, sizeof(message));
@@ -115,7 +115,7 @@ inline void
 send_Data_Multi_Init(Session* session,
                      const uint64_t requestedSize)
 {
-    LOG_DEBUG("SEND data multi init");
+    if(DEBUG_MODE) LOG_DEBUG("SEND data multi init");
 
     Data_MultiInit_Message message(session->sessionId(),
                                    SessionHandler::m_sessionHandler->increaseMessageIdCounter());
@@ -132,7 +132,7 @@ send_Data_Multi_Init_Reply(Session* session,
                            const uint32_t messageId,
                            const uint8_t status)
 {
-    LOG_DEBUG("SEND data multi init reply");
+    if(DEBUG_MODE) LOG_DEBUG("SEND data multi init reply");
 
     Data_MultiInitReply_Message message(session->sessionId(), messageId);
     message.status = status;
@@ -150,7 +150,7 @@ send_Data_Multi_Static(Session* session,
                        const void* data,
                        const uint64_t size)
 {
-    LOG_DEBUG("SEND data multi static");
+    if(DEBUG_MODE) LOG_DEBUG("SEND data multi static");
 
     Data_MultiStatic_Message message(session->sessionId(),
                                      SessionHandler::m_sessionHandler->increaseMessageIdCounter());
@@ -171,7 +171,7 @@ send_Data_Multi_Static(Session* session,
 inline void
 send_Data_Multi_Finish(Session* session)
 {
-    LOG_DEBUG("SEND data multi finish");
+    if(DEBUG_MODE) LOG_DEBUG("SEND data multi finish");
 
     Data_MultiFinish_Message message(session->sessionId(),
                                      SessionHandler::m_sessionHandler->increaseMessageIdCounter());
@@ -185,7 +185,7 @@ inline void
 process_Data_Single_Static(Session* session,
                            const Data_SingleStatic_Message* message)
 {
-    LOG_DEBUG("process data single static");
+    if(DEBUG_MODE) LOG_DEBUG("process data single static");
 
     SessionHandler::m_sessionInterface->receivedData(session,
                                                      true,
@@ -204,7 +204,7 @@ process_Data_Single_Dynamic(Session* session,
                             const Data_SingleDynamic_Message* message,
                             MessageRingBuffer* recvBuffer)
 {
-    LOG_DEBUG("process data single dynamic");
+    if(DEBUG_MODE) LOG_DEBUG("process data single dynamic");
 
     const uint64_t totalMessageSize = sizeof(Data_SingleDynamic_Message)
                                     + message->payloadSize
@@ -234,7 +234,7 @@ inline void
 process_Data_Single_Reply(Session*,
                           const Data_SingleReply_Message*)
 {
-    LOG_DEBUG("process data single reply");
+    if(DEBUG_MODE) LOG_DEBUG("process data single reply");
 }
 
 /**
@@ -244,7 +244,7 @@ inline void
 process_Data_Multi_Init(Session* session,
                         const Data_MultiInit_Message* message)
 {
-    LOG_DEBUG("process data multi init");
+    if(DEBUG_MODE) LOG_DEBUG("process data multi init");
     const bool ret = SessionHandler::m_sessionInterface->initMultiblockBuffer(session,
                                                                               message->totalSize);
     if(ret)
@@ -268,37 +268,39 @@ inline void
 process_Data_Multi_Init_Reply(Session* session,
                               const Data_MultiInitReply_Message* message)
 {
-    LOG_DEBUG("process data multi init reply");
+    if(DEBUG_MODE) LOG_DEBUG("process data multi init reply");
 
     if(message->status == Data_MultiInitReply_Message::OK)
     {
+        // counter values
         uint64_t totalSize = SessionHandler::m_sessionInterface->getTotalBufferSize(session);
+        uint64_t currentMessageSize = 0;
         uint32_t partCounter = 0;
-        uint32_t totalPartNumber = static_cast<uint32_t>(totalSize / 500) + 1;
-        uint8_t* dataPointer = SessionHandler::m_sessionInterface->getDataPointer(session);
 
-        while(partCounter < totalPartNumber)
+        // static values
+        const uint32_t totalPartNumber = static_cast<uint32_t>(totalSize / 500) + 1;
+        const uint8_t* dataPointer = SessionHandler::m_sessionInterface->getDataPointer(session);
+
+        while(totalSize != 0)
         {
-            if(partCounter == totalPartNumber - 1)
-            {
-                send_Data_Multi_Static(session,
-                                       totalPartNumber,
-                                       partCounter,
-                                       dataPointer + (500 * partCounter),
-                                       totalSize % 500);
+            // get message-size base on the rest
+            currentMessageSize = 500;
+            if(totalSize < 500) {
+                currentMessageSize = totalSize;
             }
-            else
-            {
-                send_Data_Multi_Static(session,
-                                       totalPartNumber,
-                                       partCounter,
-                                       dataPointer + (500 * partCounter),
-                                       500);
-            }
+            totalSize -= currentMessageSize;
+
+            // send single packet
+            send_Data_Multi_Static(session,
+                                   totalPartNumber,
+                                   partCounter,
+                                   dataPointer + (500 * partCounter),
+                                   currentMessageSize);
 
             partCounter++;
         }
 
+        // finish multi-block
         send_Data_Multi_Finish(session);
     }
     else
@@ -314,7 +316,7 @@ inline void
 process_Data_Multi_Static(Session* session,
                           const Data_MultiStatic_Message* message)
 {
-    LOG_DEBUG("process data multi static");
+    if(DEBUG_MODE) LOG_DEBUG("process data multi static");
     SessionHandler::m_sessionInterface->writeDataIntoBuffer(session,
                                                             message->payload,
                                                             message->payloadSize);
@@ -327,7 +329,7 @@ inline void
 process_Data_Multi_Finish(Session* session,
                           const Data_MultiFinish_Message*)
 {
-    LOG_DEBUG("process data multi finish");
+    if(DEBUG_MODE) LOG_DEBUG("process data multi finish");
 
     const uint64_t totalSize = SessionHandler::m_sessionInterface->getTotalBufferSize(session);
     const uint8_t* dataPointer = SessionHandler::m_sessionInterface->getDataPointer(session);
@@ -342,7 +344,6 @@ process_Data_Multi_Finish(Session* session,
  * @param session
  * @param header
  * @param recvBuffer
- * @param socket
  * @return
  */
 inline uint64_t
@@ -350,7 +351,7 @@ process_Data_Type(Session* session,
                   const CommonMessageHeader* header,
                   MessageRingBuffer* recvBuffer)
 {
-    LOG_DEBUG("process data-type");
+    if(DEBUG_MODE) LOG_DEBUG("process data-type");
     switch(header->subType)
     {
         case DATA_SINGLE_STATIC_SUBTYPE:
