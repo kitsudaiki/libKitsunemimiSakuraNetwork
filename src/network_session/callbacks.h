@@ -25,7 +25,9 @@
 
 #include <libKitsuneNetwork/abstract_socket.h>
 #include <libKitsuneNetwork/message_ring_buffer.h>
+
 #include <libKitsuneCommon/data_buffer.h>
+
 #include <libKitsuneProjectCommon/network_session/session_controller.h>
 
 #include <network_session/messages_processing/session_processing.h>
@@ -53,7 +55,7 @@ namespace Common
  *
  * @return number of bytes, which were taken from the buffer
  */
-uint64_t
+inline uint64_t
 processMessage(void* target,
                MessageRingBuffer* recvBuffer,
                AbstractSocket* socket)
@@ -107,68 +109,26 @@ processMessage(void* target,
 }
 
 /**
- * processMessageTcp-callback
+ * processMessage_callback
  */
-uint64_t processMessageTcp(void* target,
-                           MessageRingBuffer* recvBuffer,
+uint64_t
+processMessage_callback(void* target,
+                        MessageRingBuffer* recvBuffer,
+                        AbstractSocket* socket)
+{
+    return processMessage(target, recvBuffer, socket);
+}
+
+/**
+ * processConnection_Callback
+ */
+void
+processConnection_Callback(void*,
                            AbstractSocket* socket)
 {
-    return processMessage(target, recvBuffer, socket);
-}
-
-/**
- * processConnectionTcp-callback
- */
-void processConnectionTcp(void*,
-                          AbstractSocket* socket)
-{
     Session* newSession = SessionHandler::m_sessionInterface->createNewSession(socket);
 
-    socket->setMessageCallback(newSession, &processMessageTcp);
-    socket->start();
-}
-
-/**
- * processMessageTlsTcp-callback
- */
-uint64_t processMessageTlsTcp(void* target,
-                              MessageRingBuffer* recvBuffer,
-                              AbstractSocket* socket)
-{
-    return processMessage(target, recvBuffer, socket);
-}
-
-/**
- * processConnectionTlsTcp-callback
- */
-void processConnectionTlsTcp(void*,
-                             AbstractSocket* socket)
-{
-    Session* newSession = SessionHandler::m_sessionInterface->createNewSession(socket);
-
-    socket->setMessageCallback(newSession, &processMessageTlsTcp);
-    socket->start();
-}
-
-/**
- * processMessageUnixDomain-callback
- */
-uint64_t processMessageUnixDomain(void* target,
-                                  MessageRingBuffer* recvBuffer,
-                                  AbstractSocket* socket)
-{
-    return processMessage(target, recvBuffer, socket);
-}
-
-/**
- * processConnectionUnixDomain-callback
- */
-void processConnectionUnixDomain(void*,
-                                 AbstractSocket* socket)
-{
-    Session* newSession = SessionHandler::m_sessionInterface->createNewSession(socket);
-
-    socket->setMessageCallback(newSession, &processMessageUnixDomain);
+    socket->setMessageCallback(newSession, &processMessage_callback);
     socket->start();
 }
 
