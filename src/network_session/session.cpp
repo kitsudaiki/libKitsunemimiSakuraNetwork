@@ -1,4 +1,4 @@
-/**
+﻿/**
  *  @file       session.h
  *
  *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
@@ -53,6 +53,7 @@ namespace Common
 Session::Session(Network::AbstractSocket* socket)
 {
     m_socket = socket;
+
     initStatemachine();
 }
 
@@ -146,6 +147,7 @@ Session::isClientSide() const
  */
 bool
 Session::connectiSession(const uint32_t sessionId,
+                         const uint64_t customValue,
                          bool init)
 {
     LOG_DEBUG("CALL session connect: " + std::to_string(m_sessionId));
@@ -169,7 +171,7 @@ Session::connectiSession(const uint32_t sessionId,
 
     // init session
     if(init) {
-        send_Session_Init_Start(this);
+        send_Session_Init_Start(this, customValue);
     }
 
     return true;
@@ -195,7 +197,7 @@ Session::makeSessionReady()
     }
 
     m_sessionReady = true;
-    m_processSession(m_sessionTarget, this);
+    m_processSession(m_sessionTarget, this, m_customValue);
 
     return true;
 }

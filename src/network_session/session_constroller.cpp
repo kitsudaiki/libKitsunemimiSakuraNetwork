@@ -51,7 +51,8 @@ SessionController* SessionController::m_sessionController = nullptr;
  */
 SessionController::SessionController(void* sessionTarget,
                                      void (*processSession)(void*,
-                                                            Session*),
+                                                            Session*,
+                                                            const uint64_t),
                                      void* dataTarget,
                                      void (*processData)(void*,
                                                          Session*,
@@ -208,15 +209,11 @@ SessionController::cloesAllServers()
  * @param socketFile
  */
 bool
-SessionController::startUnixDomainSession(const std::string socketFile)
+SessionController::startUnixDomainSession(const std::string socketFile,
+                                          const uint64_t customValue)
 {
     Network::UnixDomainSocket* unixDomainSocket = new Network::UnixDomainSocket(socketFile);
-    Session* newSession = SessionHandler::m_sessionInterface->createNewSession(unixDomainSocket);
-    unixDomainSocket->setMessageCallback(newSession, &processMessage_callback);
-
-    const uint32_t newId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
-    SessionHandler::m_sessionHandler->addSession(newId, newSession);
-    return SessionHandler::m_sessionInterface->connectiSession(newSession, newId, true);
+    return startSession(unixDomainSocket, customValue);
 }
 
 /**
@@ -226,15 +223,11 @@ SessionController::startUnixDomainSession(const std::string socketFile)
  */
 bool
 SessionController::startTcpSession(const std::string address,
-                                   const uint16_t port)
+                                   const uint16_t port,
+                                   const uint64_t customValue)
 {
     Network::TcpSocket* tcpSocket = new Network::TcpSocket(address, port);
-    Session* newSession = SessionHandler::m_sessionInterface->createNewSession(tcpSocket);
-    tcpSocket->setMessageCallback(newSession, &processMessage_callback);
-
-    const uint32_t newId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
-    SessionHandler::m_sessionHandler->addSession(newId, newSession);
-    return SessionHandler::m_sessionInterface->connectiSession(newSession, newId, true);
+    return startSession(tcpSocket, customValue);
 }
 
 /**
@@ -248,18 +241,14 @@ bool
 SessionController::startTlsTcpSession(const std::string address,
                                       const uint16_t port,
                                       const std::string certFile,
-                                      const std::string keyFile)
+                                      const std::string keyFile,
+                                      const uint64_t customValue)
 {
     Network::TlsTcpSocket* tlsTcpSocket = new Network::TlsTcpSocket(address,
                                                                     port,
                                                                     certFile,
                                                                     keyFile);
-    Session* newSession = SessionHandler::m_sessionInterface->createNewSession(tlsTcpSocket);
-    tlsTcpSocket->setMessageCallback(newSession, &processMessage_callback);
-
-    const uint32_t newId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
-    SessionHandler::m_sessionHandler->addSession(newId, newSession);
-    return SessionHandler::m_sessionInterface->connectiSession(newSession, newId, true);
+    return startSession(tlsTcpSocket, customValue);
 }
 
 /**
@@ -311,6 +300,24 @@ SessionController::closeAllSession()
     {
         it->second->closeSession();
     }
+}
+
+/**
+ * @brief SessionController::startSession
+ * @param socket
+ * @param customValue
+ * @return
+ */
+bool
+SessionController::startSession(Network::AbstractSocket *socket,
+                                const uint64_t customValue)
+{
+    Session* newSession = SessionHandler::m_sessionInterface->createNewSession(socket);
+    socket->setMessageCallback(newSession, &processMessage_callback);
+
+    const uint32_t newId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
+    SessionHandler::m_sessionHandler->addSession(newId, newSession);
+    return SessionHandler::m_sessionInterface->connectiSession(newSession, newId, customValue, true);
 }
 
 //==================================================================================================

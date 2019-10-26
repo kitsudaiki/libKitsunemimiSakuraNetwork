@@ -46,7 +46,8 @@ namespace Common
  */
 InternalSessionInterface::InternalSessionInterface(void* sessionTarget,
                                                    void (*processSession)(void*,
-                                                                          Session*),
+                                                                          Session*,
+                                                                          const uint64_t),
                                                    void* dataTarget,
                                                    void (*processData)(void*,
                                                                        Session*,
@@ -243,6 +244,7 @@ InternalSessionInterface::sendHeartbeat(Session *session)
 bool
 InternalSessionInterface::connectiSession(Session* session,
                                           const uint32_t sessionId,
+                                          const uint64_t customValue,
                                           const bool init)
 {
     session->m_sessionTarget = m_sessionTarget;
@@ -252,7 +254,7 @@ InternalSessionInterface::connectiSession(Session* session,
     session->m_errorTarget = m_errorTarget;
     session->m_processError = m_processError;
 
-    return session->connectiSession(sessionId, init);
+    return session->connectiSession(sessionId, customValue, init);
 }
 
 /**
@@ -263,9 +265,11 @@ InternalSessionInterface::connectiSession(Session* session,
  */
 bool
 InternalSessionInterface::makeSessionReady(Session* session,
-                                           const uint32_t sessionId)
+                                           const uint32_t sessionId,
+                                           const uint64_t customValue)
 {
     session->m_sessionId = sessionId;
+    session->m_customValue = customValue;
     return session->makeSessionReady();
 }
 

@@ -48,7 +48,7 @@ class InternalSessionInterface
 {
 public:
     InternalSessionInterface(void* sessionTarget,
-                             void (*processSession)(void*, Session*),
+                             void (*processSession)(void*, Session*, const uint64_t),
                              void* dataTarget,
                              void (*processData)(void*, Session*, const bool,
                                                  const void*, const uint64_t),
@@ -80,9 +80,11 @@ public:
     Session* createNewSession(Network::AbstractSocket* socket);
     bool connectiSession(Session* session,
                          const uint32_t sessionId,
+                         const uint64_t customValue,
                          const bool init = false);
     bool makeSessionReady(Session* session,
-                          const uint32_t sessionId);
+                          const uint32_t sessionId,
+                          const uint64_t customValue);
 
     bool endSession(Session* session,
                     const bool init = false,
@@ -92,7 +94,7 @@ public:
 private:
     // callbacks
     void* m_sessionTarget = nullptr;
-    void (*m_processSession)(void*, Session*);
+    void (*m_processSession)(void*, Session*, const uint64_t);
     void* m_dataTarget = nullptr;
     void (*m_processData)(void*, Session*, const bool, const void*, const uint64_t);
     void* m_errorTarget = nullptr;
