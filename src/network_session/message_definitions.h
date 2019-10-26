@@ -126,6 +126,7 @@ struct Session_Init_Reply_Message
     CommonMessageHeader commonHeader;
     uint32_t clientSessionId = 0;
     uint32_t completeSessionId = 0;
+    uint8_t padding[4];
     CommonMessageEnd commonEnd;
 
     Session_Init_Reply_Message(const uint32_t sessionId,
@@ -187,6 +188,7 @@ struct Session_Close_Reply_Message
 struct Heartbeat_Start_Message
 {
     CommonMessageHeader commonHeader;
+    uint8_t padding[4];
     CommonMessageEnd commonEnd;
 
     Heartbeat_Start_Message(const uint32_t sessionId,
@@ -204,6 +206,7 @@ struct Heartbeat_Start_Message
 struct Heartbeat_Reply_Message
 {
     CommonMessageHeader commonHeader;
+    uint8_t padding[4];
     CommonMessageEnd commonEnd;
 
     Heartbeat_Reply_Message(const uint32_t sessionId,
@@ -224,7 +227,8 @@ struct Error_FalseVersion_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t messageSize = 0;
-    char message[500];
+    char message[1000];
+    uint8_t padding[4];
     CommonMessageEnd commonEnd;
 
     Error_FalseVersion_Message(const uint32_t sessionId,
@@ -238,8 +242,8 @@ struct Error_FalseVersion_Message
         commonHeader.size = sizeof(*this);
 
         messageSize = errorMessage.size();
-        if(messageSize > 499) {
-            messageSize = 499;
+        if(messageSize > 999) {
+            messageSize = 999;
         }
         strncpy(message, errorMessage.c_str(), messageSize);
     }
@@ -249,7 +253,8 @@ struct Error_UnknownSession_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t messageSize = 0;
-    char message[500];
+    char message[1000];
+    uint8_t padding[4];
     CommonMessageEnd commonEnd;
 
     Error_UnknownSession_Message(const uint32_t sessionId,
@@ -263,8 +268,8 @@ struct Error_UnknownSession_Message
         commonHeader.size = sizeof(*this);
 
         messageSize = errorMessage.size();
-        if(messageSize > 499) {
-            messageSize = 499;
+        if(messageSize > 999) {
+            messageSize = 999;
         }
         strncpy(message, errorMessage.c_str(), messageSize);
     }
@@ -274,7 +279,8 @@ struct Error_InvalidMessage_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t messageSize = 0;
-    char message[500];
+    char message[1000];
+    uint8_t padding[4];
     CommonMessageEnd commonEnd;
 
     Error_InvalidMessage_Message(const uint32_t sessionId,
@@ -288,8 +294,8 @@ struct Error_InvalidMessage_Message
         commonHeader.size = sizeof(*this);
 
         messageSize = errorMessage.size();
-        if(messageSize > 499) {
-            messageSize = 499;
+        if(messageSize > 999) {
+            messageSize = 999;
         }
         strncpy(message, errorMessage.c_str(), messageSize);
     }
@@ -301,7 +307,8 @@ struct Data_SingleStatic_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t payloadSize = 0;
-    uint8_t payload[500];
+    uint8_t payload[1000];
+    uint8_t padding[4];
     CommonMessageEnd commonEnd;
 
     Data_SingleStatic_Message(const uint32_t sessionId,
@@ -319,12 +326,12 @@ struct Data_SingleStatic_Message
     }
 } __attribute__((packed));
 
-struct Data_SingleDynamic_Message
+struct Data_SingleDynamic_Header
 {
     CommonMessageHeader commonHeader;
     uint64_t payloadSize = 0;
 
-    Data_SingleDynamic_Message(const uint32_t sessionId,
+    Data_SingleDynamic_Header(const uint32_t sessionId,
                                const uint32_t messageId,
                                const bool replyExpected)
     {
@@ -342,6 +349,7 @@ struct Data_SingleDynamic_Message
 struct Data_SingleReply_Message
 {
     CommonMessageHeader commonHeader;
+    uint8_t padding[4];
     CommonMessageEnd commonEnd;
 
     Data_SingleReply_Message(const uint32_t sessionId,
@@ -361,6 +369,7 @@ struct Data_MultiInit_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t totalSize = 0;
+    uint8_t padding[4];
     CommonMessageEnd commonEnd;
 
     Data_MultiInit_Message(const uint32_t sessionId,
@@ -385,6 +394,7 @@ struct Data_MultiInitReply_Message
 
     CommonMessageHeader commonHeader;
     uint8_t status = UNDEFINED;
+    uint8_t padding[3];
     CommonMessageEnd commonEnd;
 
     Data_MultiInitReply_Message(const uint32_t sessionId,
@@ -423,6 +433,7 @@ struct Data_MultiStatic_Message
 struct Data_MultiFinish_Message
 {
     CommonMessageHeader commonHeader;
+    uint8_t padding[4];
     CommonMessageEnd commonEnd;
 
     Data_MultiFinish_Message(const uint32_t sessionId,

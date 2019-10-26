@@ -79,27 +79,30 @@ send_Data_Single_Static(Session* session,
 inline void
 send_Data_Single_Dynamic(Session* session,
                          const void* data,
-                         const uint64_t size,
+                         const uint64_t dataSize,
                          const bool replyExpected)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("SEND data single dynamic");
     }
 
-    const uint64_t totalMessageSize = sizeof(Data_SingleDynamic_Message)
-                                    + size
-                                    + sizeof(CommonMessageEnd);
+    uint64_t totalMessageSize = sizeof(Data_SingleDynamic_Header)
+                                + dataSize
+                                + sizeof(CommonMessageEnd);
+    totalMessageSize += totalMessageSize % 8;
 
     uint8_t completeMessage[totalMessageSize];
-    Data_SingleDynamic_Message header(session->sessionId(),
-                                      session->increaseMessageIdCounter(),
-                                      replyExpected);
-    header.payloadSize = size;
+    Data_SingleDynamic_Header header(session->sessionId(),
+                                     session->increaseMessageIdCounter(),
+                                     replyExpected);
+
+    header.commonHeader.size = static_cast<uint32_t>(totalMessageSize);
+    header.payloadSize = dataSize;
     CommonMessageEnd end;
 
-    memcpy(&completeMessage[0], &header, sizeof(Data_SingleDynamic_Message));
-    memcpy(&completeMessage[sizeof(Data_SingleDynamic_Message)], data, size);
-    memcpy(&completeMessage[sizeof(Data_SingleDynamic_Message) + size],
+    memcpy(&completeMessage[0], &header, sizeof(Data_SingleDynamic_Header));
+    memcpy(&completeMessage[sizeof(Data_SingleDynamic_Header)], data, dataSize);
+    memcpy(&completeMessage[totalMessageSize - sizeof(CommonMessageEnd)],
            &end,
            sizeof(CommonMessageEnd));
 
@@ -242,23 +245,19 @@ process_Data_Single_Static(Session* session,
  */
 inline uint64_t
 process_Data_Single_Dynamic(Session* session,
-                            const Data_SingleDynamic_Message* message,
+                            const Data_SingleDynamic_Header* message,
                             MessageRingBuffer* recvBuffer)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("process data single dynamic");
     }
 
-    const uint64_t totalMessageSize = sizeof(Data_SingleDynamic_Message)
-                                    + message->payloadSize
-                                    + sizeof(CommonMessageEnd);
-
-    const uint8_t* completeMessage = getDataPointer(*recvBuffer, totalMessageSize);
+    const uint8_t* completeMessage = getDataPointer(*recvBuffer, message->commonHeader.size);
     if(completeMessage == nullptr) {
         return 0;
     }
 
-    const void* payload = completeMessage + sizeof(Data_SingleDynamic_Message);
+    const void* payload = completeMessage + sizeof(Data_SingleDynamic_Header);
     SessionHandler::m_sessionInterface->receivedData(session,
                                                      true,
                                                      payload,
@@ -267,7 +266,7 @@ process_Data_Single_Dynamic(Session* session,
     send_Data_Single_Reply(session,
                            message->commonHeader.messageId);
 
-    return totalMessageSize;
+    return message->commonHeader.size;
 }
 
 /**
@@ -426,8 +425,8 @@ process_Data_Type(Session* session,
             }
         case DATA_SINGLE_DYNAMIC_SUBTYPE:
             {
-                const Data_SingleDynamic_Message* messageHeader =
-                        getObjectFromBuffer<Data_SingleDynamic_Message>(recvBuffer);
+                const Data_SingleDynamic_Header* messageHeader =
+                        getObjectFromBuffer<Data_SingleDynamic_Header>(recvBuffer);
                 if(messageHeader == nullptr) {
                     break;
                 }

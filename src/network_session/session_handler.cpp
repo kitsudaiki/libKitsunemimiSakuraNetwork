@@ -67,6 +67,24 @@ SessionHandler::SessionHandler(void* sessionTarget,
         m_timerThread = new TimerThread();
         m_timerThread->start();
     }
+
+    // check if messages have the size of a multiple of 8
+    assert(sizeof(Session_Init_Start_Message) % 8 == 0);
+    assert(sizeof(Session_Init_Reply_Message) % 8 == 0);
+    assert(sizeof(Session_Close_Start_Message) % 8 == 0);
+    assert(sizeof(Session_Close_Reply_Message) % 8 == 0);
+    assert(sizeof(Heartbeat_Start_Message) % 8 == 0);
+    assert(sizeof(Heartbeat_Reply_Message) % 8 == 0);
+    assert(sizeof(Error_FalseVersion_Message) % 8 == 0);
+    assert(sizeof(Error_UnknownSession_Message) % 8 == 0);
+    assert(sizeof(Error_InvalidMessage_Message) % 8 == 0);
+    assert(sizeof(Data_SingleStatic_Message) % 8 == 0);
+    assert(sizeof(Data_SingleDynamic_Header) % 8 == 0);
+    assert(sizeof(Data_SingleReply_Message) % 8 == 0);
+    assert(sizeof(Data_MultiInit_Message) % 8 == 0);
+    assert(sizeof(Data_MultiInitReply_Message) % 8 == 0);
+    assert(sizeof(Data_MultiStatic_Message) % 8 == 0);
+    assert(sizeof(Data_MultiFinish_Message) % 8 == 0);
 }
 
 /**
