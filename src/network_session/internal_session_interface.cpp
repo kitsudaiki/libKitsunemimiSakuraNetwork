@@ -28,8 +28,8 @@
 #include <network_session/session_handler.h>
 
 #include <libKitsuneNetwork/abstract_socket.h>
-
 #include <libKitsuneCommon/data_buffer.h>
+#include <libKitsunePersistence/logger/logger.h>
 
 namespace Kitsune
 {
@@ -117,6 +117,8 @@ InternalSessionInterface::receivedError(Session* session,
                                         const uint8_t errorCode,
                                         const std::string &message)
 {
+    LOG_ERROR("ERROR in networking: " + message);
+
     session->m_processError(session->m_errorTarget,
                             session,
                             errorCode,
@@ -130,20 +132,21 @@ InternalSessionInterface::receivedError(Session* session,
  * @param size
  * @return
  */
-bool
+void
 InternalSessionInterface::sendMessage(Session* session,
+                                      const CommonMessageHeader &header,
                                       const void* data,
                                       const uint64_t size)
 {
-    const CommonMessageHeader* header = static_cast<const CommonMessageHeader*>(data);
-
-    if(header->flags == 0x1) {
-        SessionHandler::m_timerThread->addMessage(header->type,
-                                                  header->sessionId,
-                                                  header->messageId);
+    if(header.flags == 0x1)
+    {
+        SessionHandler::m_timerThread->addMessage(header.type,
+                                                  header.sessionId,
+                                                  header.messageId,
+                                                  session);
     }
 
-    return session->m_socket->sendMessage(data, size);
+    session->m_socket->sendMessage(data, size);
 }
 
 /**

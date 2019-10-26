@@ -67,7 +67,10 @@ send_Data_Single_Static(Session* session,
     memcpy(message.payload, data, size);
     message.payloadSize = size;
 
-    session->socket()->sendMessage(&message, sizeof(message));
+    SessionHandler::m_sessionInterface->sendMessage(session,
+                                                    message.commonHeader,
+                                                    &message,
+                                                    sizeof(message));
 }
 
 /**
@@ -100,7 +103,10 @@ send_Data_Single_Dynamic(Session* session,
            &end,
            sizeof(CommonMessageEnd));
 
-    session->socket()->sendMessage(completeMessage, totalMessageSize);
+    SessionHandler::m_sessionInterface->sendMessage(session,
+                                                    header.commonHeader,
+                                                    &completeMessage,
+                                                    sizeof(completeMessage));
 }
 
 /**
@@ -115,7 +121,10 @@ send_Data_Single_Reply(Session* session,
     }
 
     Data_SingleReply_Message message(session->sessionId(), messageId);
-    session->socket()->sendMessage(&message, sizeof(message));
+    SessionHandler::m_sessionInterface->sendMessage(session,
+                                                    message.commonHeader,
+                                                    &message,
+                                                    sizeof(message));
 }
 
 /**
@@ -133,7 +142,10 @@ send_Data_Multi_Init(Session* session,
                                    session->increaseMessageIdCounter());
     message.totalSize = requestedSize;
 
-    session->socket()->sendMessage(&message, sizeof(message));
+    SessionHandler::m_sessionInterface->sendMessage(session,
+                                                    message.commonHeader,
+                                                    &message,
+                                                    sizeof(message));
 }
 
 /**
@@ -151,7 +163,10 @@ send_Data_Multi_Init_Reply(Session* session,
     Data_MultiInitReply_Message message(session->sessionId(), messageId);
     message.status = status;
 
-    session->socket()->sendMessage(&message, sizeof(message));
+    SessionHandler::m_sessionInterface->sendMessage(session,
+                                                    message.commonHeader,
+                                                    &message,
+                                                    sizeof(message));
 }
 
 /**
@@ -177,7 +192,10 @@ send_Data_Multi_Static(Session* session,
     memcpy(message.payload, data, size);
     message.payloadSize = size;
 
-    session->socket()->sendMessage(&message, sizeof(message));
+    SessionHandler::m_sessionInterface->sendMessage(session,
+                                                    message.commonHeader,
+                                                    &message,
+                                                    sizeof(message));
 }
 
 /**
@@ -193,7 +211,10 @@ send_Data_Multi_Finish(Session* session)
 
     Data_MultiFinish_Message message(session->sessionId(),
                                      session->increaseMessageIdCounter());
-    session->socket()->sendMessage(&message, sizeof(message));
+    SessionHandler::m_sessionInterface->sendMessage(session,
+                                                    message.commonHeader,
+                                                    &message,
+                                                    sizeof(message));
 }
 
 /**
@@ -334,7 +355,9 @@ process_Data_Multi_Init_Reply(Session* session,
     }
     else
     {
-        // TODO: error-call
+        SessionHandler::m_sessionInterface->receivedError(session,
+                                                          Session::errorCodes::MULTIBLOCK_FAILED,
+                                                          "unable not send multi-block-Message");
     }
 }
 

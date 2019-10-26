@@ -228,7 +228,7 @@ struct Error_FalseVersion_Message
 
     Error_FalseVersion_Message(const uint32_t sessionId,
                                const uint32_t messageId,
-                               const std::string errorMessage)
+                               const std::string &errorMessage)
     {
         commonHeader.type = ERROR_TYPE;
         commonHeader.subType = ERROR_FALSE_VERSION_SUBTYPE;
@@ -253,7 +253,7 @@ struct Error_UnknownSession_Message
 
     Error_UnknownSession_Message(const uint32_t sessionId,
                                  const uint32_t messageId,
-                                 const std::string errorMessage)
+                                 const std::string &errorMessage)
     {
         commonHeader.type = ERROR_TYPE;
         commonHeader.subType = ERROR_UNKNOWN_SESSION_SUBTYPE;
@@ -278,7 +278,7 @@ struct Error_InvalidMessage_Message
 
     Error_InvalidMessage_Message(const uint32_t sessionId,
                                  const uint32_t messageId,
-                                 const std::string errorMessage)
+                                 const std::string &errorMessage)
     {
         commonHeader.type = ERROR_TYPE;
         commonHeader.subType = ERROR_INVALID_MESSAGE_SUBTYPE;
