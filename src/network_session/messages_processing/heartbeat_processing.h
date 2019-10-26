@@ -114,13 +114,12 @@ process_Heartbeat_Reply(Session*,
  * @brief process_Heartbeat_Type
  * @param header
  * @param recvBuffer
- * @param socket
  * @return
  */
 inline uint64_t
 process_Heartbeat_Type(Session* session,
                        const CommonMessageHeader* header,
-                       MessageRingBuffer *recvBuffer)
+                       MessageRingBuffer* recvBuffer)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("process heartbeat-type");
@@ -132,11 +131,9 @@ process_Heartbeat_Type(Session* session,
             {
                 const Heartbeat_Start_Message* message =
                         getObjectFromBuffer<Heartbeat_Start_Message>(recvBuffer);
-
                 if(message == nullptr) {
                     break;
                 }
-
                 process_Heartbeat_Start(session, message);
                 return sizeof(*message);
             }
@@ -144,11 +141,9 @@ process_Heartbeat_Type(Session* session,
             {
                 const Heartbeat_Reply_Message* message =
                         getObjectFromBuffer<Heartbeat_Reply_Message>(recvBuffer);
-
                 if(message == nullptr) {
                     break;
                 }
-
                 process_Heartbeat_Reply(session, message);
                 return sizeof(*message);
             }

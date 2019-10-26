@@ -193,7 +193,6 @@ process_Session_Close_Reply(Session* session,
     SessionHandler::m_sessionInterface->disconnectSession(session);
 }
 
-
 /**
  * @brief process_Session_Init
  * @param recvBuffer

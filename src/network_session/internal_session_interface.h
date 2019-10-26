@@ -58,7 +58,7 @@ public:
     // callback-forwarding
     void receivedData(Session* session, const bool isStream,
                       const void* data, const uint64_t dataSize);
-    void receivedError(Session* session, const uint8_t errorCode, const std::string message);
+    void receivedError(Session* session, const uint8_t errorCode, const std::string &message);
 
     // send messages
     bool sendMessage(Session* session, const void* data, const uint64_t size);

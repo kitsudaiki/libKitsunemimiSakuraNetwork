@@ -115,7 +115,7 @@ InternalSessionInterface::receivedData(Session* session,
 void
 InternalSessionInterface::receivedError(Session* session,
                                         const uint8_t errorCode,
-                                        const std::string message)
+                                        const std::string &message)
 {
     session->m_processError(session->m_errorTarget,
                             session,
