@@ -169,7 +169,7 @@ Session::connectiSession(const uint32_t sessionId,
 
     // init session
     if(init) {
-        send_Session_Init_Start(m_sessionId, m_socket);
+        send_Session_Init_Start(this, m_socket);
     }
 
     return true;
@@ -225,7 +225,7 @@ Session::endSession(const bool init,
     m_sessionReady = true;;
 
     if(init) {
-        send_Session_Close_Start(m_sessionId, replyExpected, m_socket);
+        send_Session_Close_Start(this, replyExpected, m_socket);
     }
 
     return true;
@@ -266,7 +266,7 @@ Session::sendHeartbeat()
         return false;
     }
 
-    send_Heartbeat_Start(m_sessionId, m_socket);
+    send_Heartbeat_Start(this, m_socket);
 
     return true;
 }
@@ -302,6 +302,23 @@ Session::initStatemachine()
     assert(m_statemachine.addTransition(SESSION_READY,     STOP_SESSION,       SESSION_NOT_READY));
     assert(m_statemachine.addTransition(NORMAL,            START_DATATRANSFER, IN_DATATRANSFER));
     assert(m_statemachine.addTransition(IN_DATATRANSFER,   STOP_DATATRANSFER,  NORMAL));
+}
+
+
+/**
+ * @brief SessionHandler::increaseMessageIdCounter
+ * @return
+ */
+uint32_t
+Session::increaseMessageIdCounter()
+{
+    uint32_t tempId = 0;
+    while (m_messageIdCounter_lock.test_and_set(std::memory_order_acquire))  // acquire lock
+                 ; // spin
+    m_messageIdCounter++;
+    tempId = m_messageIdCounter;
+    m_messageIdCounter_lock.clear(std::memory_order_release);
+    return tempId;
 }
 
 } // namespace Common

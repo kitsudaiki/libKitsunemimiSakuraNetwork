@@ -66,7 +66,7 @@ send_ErrorMessage(Session* session,
         {
             Error_FalseVersion_Message errorMessage(
                     session->sessionId(),
-                    SessionHandler::m_sessionHandler->increaseMessageIdCounter(),
+                    session->increaseMessageIdCounter(),
                     message);
             SessionHandler::m_sessionInterface->sendMessage(session, &message, sizeof(message));
             break;
@@ -76,7 +76,7 @@ send_ErrorMessage(Session* session,
         {
             Error_UnknownSession_Message errorMessage(
                     session->sessionId(),
-                    SessionHandler::m_sessionHandler->increaseMessageIdCounter(),
+                    session->increaseMessageIdCounter(),
                     message);
             SessionHandler::m_sessionInterface->sendMessage(session, &message, sizeof(message));
             break;
@@ -86,7 +86,7 @@ send_ErrorMessage(Session* session,
         {
             Error_InvalidMessage_Message errorMessage(
                     session->sessionId(),
-                    SessionHandler::m_sessionHandler->increaseMessageIdCounter(),
+                    session->increaseMessageIdCounter(),
                     message);
             SessionHandler::m_sessionInterface->sendMessage(session, &message, sizeof(message));
             break;

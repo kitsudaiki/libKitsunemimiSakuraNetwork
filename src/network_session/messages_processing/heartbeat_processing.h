@@ -52,15 +52,15 @@ namespace Common
  * @param socket
  */
 inline void
-send_Heartbeat_Start(const uint32_t sessionId,
+send_Heartbeat_Start(Session* session,
                      Network::AbstractSocket* socket)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("SEND heartbeat start");
     }
 
-    Heartbeat_Start_Message message(sessionId,
-                                    SessionHandler::m_sessionHandler->increaseMessageIdCounter());
+    Heartbeat_Start_Message message(session->sessionId(),
+                                    session->increaseMessageIdCounter());
     socket->sendMessage(&message, sizeof(message));
 }
 

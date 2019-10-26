@@ -51,17 +51,14 @@ namespace Common
  * @param socket
  */
 inline void
-send_Session_Init_Start(const uint32_t initialId,
+send_Session_Init_Start(Session* session,
                         Network::AbstractSocket* socket)
 {
     LOG_DEBUG("SEND session init start");
 
-    // create message
-    Session_Init_Start_Message message(initialId,
-                                       SessionHandler::m_sessionHandler->increaseMessageIdCounter());
-    message.clientSessionId = initialId;
+    Session_Init_Start_Message message(session->sessionId(),
+                                       session->increaseMessageIdCounter());
 
-    // send
     socket->sendMessage(&message, sizeof(message));
 }
 
@@ -83,7 +80,6 @@ send_Session_Init_Reply(const uint32_t initialSessionId,
     message.completeSessionId = completeSessionId;
     message.clientSessionId = clientSessionId;
 
-    // send
     socket->sendMessage(&message, sizeof(message));
 }
 
@@ -94,18 +90,16 @@ send_Session_Init_Reply(const uint32_t initialSessionId,
  * @param socket
  */
 inline void
-send_Session_Close_Start(const uint32_t sessionId,
+send_Session_Close_Start(Session* session,
                          bool replyExpected,
                          Network::AbstractSocket* socket)
 {
     LOG_DEBUG("SEND session close start");
 
-    Session_Close_Start_Message message(sessionId,
-                                        SessionHandler::m_sessionHandler->increaseMessageIdCounter(),
+    Session_Close_Start_Message message(session->sessionId(),
+                                        session->increaseMessageIdCounter(),
                                         replyExpected);
-    message.sessionId = sessionId;
 
-    // send
     socket->sendMessage(&message, sizeof(message));
 }
 
@@ -124,7 +118,6 @@ send_Session_Close_Reply(const uint32_t sessionId,
     Session_Close_Reply_Message message(sessionId, messageId);
     message.sessionId = sessionId;
 
-    // send
     socket->sendMessage(&message, sizeof(message));
 }
 
