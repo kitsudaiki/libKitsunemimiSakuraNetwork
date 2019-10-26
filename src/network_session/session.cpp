@@ -131,13 +131,13 @@ Session::sessionId() const
 }
 
 /**
- * @brief Session::socket
+ * @brief Session::isClientSide
  * @return
  */
-Network::AbstractSocket*
-Session::socket() const
+bool
+Session::isClientSide() const
 {
-    return m_socket;
+    return m_socket->isClientSide();
 }
 
 /**
@@ -169,7 +169,7 @@ Session::connectiSession(const uint32_t sessionId,
 
     // init session
     if(init) {
-        send_Session_Init_Start(this, m_socket);
+        send_Session_Init_Start(this);
     }
 
     return true;

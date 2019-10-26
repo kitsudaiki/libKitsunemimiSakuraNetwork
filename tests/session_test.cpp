@@ -80,7 +80,7 @@ void sessionCallback(void* target,
     const uint32_t id = session->sessionId();
     testClass->compare(id, (uint32_t)131072);
 
-    if(session->socket()->isClientSide())
+    if(session->isClientSide())
     {
         bool ret = false;
 

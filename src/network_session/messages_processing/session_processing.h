@@ -51,15 +51,17 @@ namespace Common
  * @param socket
  */
 inline void
-send_Session_Init_Start(Session* session,
-                        Network::AbstractSocket* socket)
+send_Session_Init_Start(Session* session)
 {
     LOG_DEBUG("SEND session init start");
 
     Session_Init_Start_Message message(session->sessionId(),
                                        session->increaseMessageIdCounter());
 
-    socket->sendMessage(&message, sizeof(message));
+    SessionHandler::m_sessionInterface->sendMessage(session,
+                                                    message.commonHeader,
+                                                    &message,
+                                                    sizeof(message));
 }
 
 /**
@@ -80,7 +82,10 @@ send_Session_Init_Reply(Session* session,
     message.completeSessionId = completeSessionId;
     message.clientSessionId = clientSessionId;
 
-    session->socket()->sendMessage(&message, sizeof(message));
+    SessionHandler::m_sessionInterface->sendMessage(session,
+                                                    message.commonHeader,
+                                                    &message,
+                                                    sizeof(message));
 }
 
 /**
@@ -99,7 +104,10 @@ send_Session_Close_Start(Session* session,
                                         session->increaseMessageIdCounter(),
                                         replyExpected);
 
-    session->socket()->sendMessage(&message, sizeof(message));
+    SessionHandler::m_sessionInterface->sendMessage(session,
+                                                    message.commonHeader,
+                                                    &message,
+                                                    sizeof(message));
 }
 
 /**
@@ -116,7 +124,10 @@ send_Session_Close_Reply(Session* session,
     Session_Close_Reply_Message message(session->sessionId(),
                                         messageId);
 
-    session->socket()->sendMessage(&message, sizeof(message));
+    SessionHandler::m_sessionInterface->sendMessage(session,
+                                                    message.commonHeader,
+                                                    &message,
+                                                    sizeof(message));
 }
 
 /**

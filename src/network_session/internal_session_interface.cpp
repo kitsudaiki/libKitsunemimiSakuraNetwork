@@ -130,20 +130,20 @@ InternalSessionInterface::receivedError(Session* session,
  * @param size
  * @return
  */
-bool
+void
 InternalSessionInterface::sendMessage(Session* session,
+                                      const CommonMessageHeader &header,
                                       const void* data,
                                       const uint64_t size)
 {
-    const CommonMessageHeader* header = static_cast<const CommonMessageHeader*>(data);
-
-    if(header->flags == 0x1) {
-        SessionHandler::m_timerThread->addMessage(header->type,
-                                                  header->sessionId,
-                                                  header->messageId);
+    if(header.flags == 0x1)
+    {
+        SessionHandler::m_timerThread->addMessage(header.type,
+                                                  header.sessionId,
+                                                  header.messageId);
     }
 
-    return session->m_socket->sendMessage(data, size);
+    session->m_socket->sendMessage(data, size);
 }
 
 /**

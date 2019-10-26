@@ -61,7 +61,10 @@ send_Heartbeat_Start(Session* session)
     Heartbeat_Start_Message message(session->sessionId(),
                                     session->increaseMessageIdCounter());
 
-    session->socket()->sendMessage(&message, sizeof(message));
+    SessionHandler::m_sessionInterface->sendMessage(session,
+                                                    message.commonHeader,
+                                                    &message,
+                                                    sizeof(message));
 }
 
 /**
@@ -80,7 +83,10 @@ send_Heartbeat_Reply(Session* session,
     Heartbeat_Reply_Message message(session->sessionId(),
                                     messageId);
 
-    session->socket()->sendMessage(&message, sizeof(message));
+    SessionHandler::m_sessionInterface->sendMessage(session,
+                                                    message.commonHeader,
+                                                    &message,
+                                                    sizeof(message));
 }
 
 /**

@@ -67,6 +67,7 @@ send_ErrorMessage(Session* session,
                     session->increaseMessageIdCounter(),
                     message);
             SessionHandler::m_sessionInterface->sendMessage(session,
+                                                            errorMessage.commonHeader,
                                                             &errorMessage,
                                                             sizeof(errorMessage));
             break;
@@ -79,6 +80,7 @@ send_ErrorMessage(Session* session,
                     session->increaseMessageIdCounter(),
                     message);
             SessionHandler::m_sessionInterface->sendMessage(session,
+                                                            errorMessage.commonHeader,
                                                             &errorMessage,
                                                             sizeof(errorMessage));
             break;
@@ -91,6 +93,7 @@ send_ErrorMessage(Session* session,
                     session->increaseMessageIdCounter(),
                     message);
             SessionHandler::m_sessionInterface->sendMessage(session,
+                                                            errorMessage.commonHeader,
                                                             &errorMessage,
                                                             sizeof(errorMessage));
             break;

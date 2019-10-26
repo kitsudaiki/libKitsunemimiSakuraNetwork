@@ -58,7 +58,7 @@ public:
     bool closeSession(const bool replyExpected = false);
 
     uint32_t sessionId() const;
-    Network::AbstractSocket* socket() const;
+    bool isClientSide() const;
 
     enum errorCodes
     {

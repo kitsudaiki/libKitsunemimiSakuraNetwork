@@ -41,6 +41,8 @@ namespace Project
 namespace Common
 {
 class Session;
+struct CommonMessageHeader;
+using Kitsune::Project::Common::CommonMessageHeader;
 
 class InternalSessionInterface
 {
@@ -61,7 +63,10 @@ public:
     void receivedError(Session* session, const uint8_t errorCode, const std::string &message);
 
     // send messages
-    bool sendMessage(Session* session, const void* data, const uint64_t size);
+    void sendMessage(Session* session,
+                     const CommonMessageHeader &header,
+                     const void* data,
+                     const uint64_t size);
     void sendHeartbeat(Session* session);
 
     // multi-block data operations
