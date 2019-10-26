@@ -54,7 +54,7 @@ namespace Common
 inline void
 send_ErrorMessage(Session* session,
                   const uint8_t errorCode,
-                  const std::string message)
+                  const std::string &message)
 {
     LOG_DEBUG("SEND error message");
 
@@ -66,7 +66,9 @@ send_ErrorMessage(Session* session,
                     session->sessionId(),
                     session->increaseMessageIdCounter(),
                     message);
-            SessionHandler::m_sessionInterface->sendMessage(session, &message, sizeof(message));
+            SessionHandler::m_sessionInterface->sendMessage(session,
+                                                            &errorMessage,
+                                                            sizeof(errorMessage));
             break;
         }
 
@@ -76,7 +78,9 @@ send_ErrorMessage(Session* session,
                     session->sessionId(),
                     session->increaseMessageIdCounter(),
                     message);
-            SessionHandler::m_sessionInterface->sendMessage(session, &message, sizeof(message));
+            SessionHandler::m_sessionInterface->sendMessage(session,
+                                                            &errorMessage,
+                                                            sizeof(errorMessage));
             break;
         }
 
@@ -86,7 +90,9 @@ send_ErrorMessage(Session* session,
                     session->sessionId(),
                     session->increaseMessageIdCounter(),
                     message);
-            SessionHandler::m_sessionInterface->sendMessage(session, &message, sizeof(message));
+            SessionHandler::m_sessionInterface->sendMessage(session,
+                                                            &errorMessage,
+                                                            sizeof(errorMessage));
             break;
         }
 
