@@ -106,6 +106,7 @@ struct Session_Init_Start_Message
 {
     CommonMessageHeader commonHeader;
     uint32_t clientSessionId = 0;
+    uint64_t customValue = 0;
     CommonMessageEnd commonEnd;
 
     Session_Init_Start_Message(const uint32_t sessionId,

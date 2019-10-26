@@ -51,12 +51,14 @@ namespace Common
  * @param socket
  */
 inline void
-send_Session_Init_Start(Session* session)
+send_Session_Init_Start(Session* session,
+                        const  uint64_t customValue)
 {
     LOG_DEBUG("SEND session init start");
 
     Session_Init_Start_Message message(session->sessionId(),
                                        session->increaseMessageIdCounter());
+    message.customValue = customValue;
 
     SessionHandler::m_sessionInterface->sendMessage(session,
                                                     message.commonHeader,
@@ -142,11 +144,12 @@ process_Session_Init_Start(Session* session,
     const uint32_t clientSessionId = message->clientSessionId;
     const uint16_t serverSessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
     const uint32_t completeSessionId = clientSessionId + (serverSessionId * 0x10000);
+    const uint64_t customValue = message->customValue;
 
     // create new session
     SessionHandler::m_sessionHandler->addSession(completeSessionId, session);
     SessionHandler::m_sessionInterface->connectiSession(session, completeSessionId, false);
-    SessionHandler::m_sessionInterface->makeSessionReady(session, completeSessionId);
+    SessionHandler::m_sessionInterface->makeSessionReady(session, completeSessionId, customValue);
 
     // confirm id
     send_Session_Init_Reply(session,
@@ -169,7 +172,7 @@ process_Session_Init_Reply(Session* session,
     const uint32_t completeSessionId = message->completeSessionId;
     const uint32_t initialId = message->clientSessionId;
 
-    SessionHandler::m_sessionInterface->makeSessionReady(session,completeSessionId);
+    SessionHandler::m_sessionInterface->makeSessionReady(session, completeSessionId, 0);
     SessionHandler::m_sessionHandler->removeSession(initialId);
     SessionHandler::m_sessionHandler->addSession(completeSessionId, session);
 }

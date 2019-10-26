@@ -72,13 +72,18 @@ void errorCallback(void*,
 }
 
 void sessionCallback(void* target,
-                     Kitsune::Project::Common::Session* session)
+                     Kitsune::Project::Common::Session* session,
+                     const uint64_t customValue)
 {
 
     Session_Test* testClass = static_cast<Session_Test*>(target);
 
     const uint32_t id = session->sessionId();
     testClass->compare(id, (uint32_t)131072);
+
+    if(session->isClientSide() == false) {
+        testClass->compare(customValue,  (uint64_t)42);
+    }
 
     if(session->isClientSide())
     {
@@ -149,7 +154,7 @@ Session_Test::runTest()
                                                             this, &errorCallback);
 
     UNITTEST(m_controller->addTcpServer(1234), 1);
-    UNITTEST(m_controller->startTcpSession("127.0.0.1", 1234), 1);
+    UNITTEST(m_controller->startTcpSession("127.0.0.1", 1234, 42), 1);
 
     sleep(2);
 

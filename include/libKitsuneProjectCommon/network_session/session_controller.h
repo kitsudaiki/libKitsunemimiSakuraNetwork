@@ -44,7 +44,7 @@ class SessionController
 {
 public:
     SessionController(void* sessionTarget,
-                      void (*processSession)(void*, Session*),
+                      void (*processSession)(void*, Session*, const uint64_t),
                       void* dataTarget,
                       void (*processData)(void*, Session*, const bool, const void*, const uint64_t),
                       void* errorTarget,
@@ -63,19 +63,25 @@ public:
     void cloesAllServers();
 
     // session
-    bool startUnixDomainSession(const std::string socketFile);
+    bool startUnixDomainSession(const std::string socketFile,
+                                const uint64_t customValue = 0);
     bool startTcpSession(const std::string address,
-                         const uint16_t port);
+                         const uint16_t port,
+                         const uint64_t customValue = 0);
     bool startTlsTcpSession(const std::string address,
                             const uint16_t port,
                             const std::string certFile,
-                            const std::string keyFile);
+                            const std::string keyFile,
+                            const uint64_t customValue = 0);
     bool closeSession(const uint32_t id);
     Session* getSession(const uint32_t id);
     void closeAllSession();
 
 private:
     uint32_t m_serverIdCounter = 0;
+
+    bool startSession(Network::AbstractSocket* socket,
+                      const uint64_t customValue);
 };
 
 } // namespace Common

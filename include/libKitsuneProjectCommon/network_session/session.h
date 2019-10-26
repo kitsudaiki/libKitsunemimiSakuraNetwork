@@ -82,9 +82,11 @@ private:
     Network::AbstractSocket* m_socket = nullptr;
     uint32_t m_sessionId = 0;
     bool m_sessionReady = true;
+    uint64_t m_customValue = 0;
 
     // internal methods triggered by the InternalSessionInterface
     bool connectiSession(const uint32_t sessionId,
+                         const uint64_t customValue,
                          const bool init = false);
     bool makeSessionReady();
 
@@ -97,7 +99,7 @@ private:
 
     // callbacks
     void* m_sessionTarget = nullptr;
-    void (*m_processSession)(void*, Session*);
+    void (*m_processSession)(void*, Session*, const uint64_t);
     void* m_dataTarget = nullptr;
     void (*m_processData)(void*, Session*, const bool, const void*, const uint64_t);
     void* m_errorTarget = nullptr;
