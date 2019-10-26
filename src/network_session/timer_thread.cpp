@@ -21,10 +21,13 @@
  */
 
 #include <network_session/timer_thread.h>
-#include <libKitsuneNetwork/abstract_socket.h>
-#include <libKitsuneProjectCommon/network_session/session.h>
-#include <libKitsunePersistence/logger/logger.h>
 #include <network_session/session_handler.h>
+#include <network_session/internal_session_interface.h>
+
+#include <libKitsuneProjectCommon/network_session/session.h>
+
+#include <libKitsuneNetwork/abstract_socket.h>
+#include <libKitsunePersistence/logger/logger.h>
 
 namespace Kitsune
 {
@@ -49,9 +52,10 @@ TimerThread::TimerThread()
 void
 TimerThread::addMessage(const uint8_t messageType,
                         const uint32_t sessionId,
-                        const uint64_t messageId)
+                        const uint64_t messageId,
+                        Session* session)
 {
-    addMessage(messageType, (messageId << 32) + sessionId);
+    addMessage(messageType, (messageId << 32) + sessionId, session);
 }
 
 /**
@@ -60,11 +64,13 @@ TimerThread::addMessage(const uint8_t messageType,
  */
 void
 TimerThread::addMessage(const uint8_t messageType,
-                        const uint64_t messageId)
+                        const uint64_t messageId,
+                        Session* session)
 {
     MessageTime messageTime;
     messageTime.messageId = messageId;
     messageTime.messageType = messageType;
+    messageTime.session = session;
 
     mutexLock();
     m_messageList.push_back(messageTime);
@@ -183,9 +189,14 @@ TimerThread::run()
             {
                 if(removeMessageFromList(temp->messageId))
                 {
-                    // TODO: send error
-                    LOG_ERROR("TIMEOUT of message: " + std::to_string(temp->messageId)
-                              + " with type: " + std::to_string(temp->messageType));
+                    const std::string err = "TIMEOUT of message: " + std::to_string(temp->messageId)
+                                            + " with type: " + std::to_string(temp->messageType);
+
+                    SessionHandler::m_sessionInterface->receivedError(
+                                temp->session,
+                                Session::errorCodes::MESSAGE_TIMEOUT,
+                                err);
+
                     i--;
                 }
             }

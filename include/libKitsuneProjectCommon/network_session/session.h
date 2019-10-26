@@ -67,6 +67,7 @@ public:
         UNKNOWN_SESSION = 2,
         INVALID_MESSAGE_SIZE = 3,
         MESSAGE_TIMEOUT = 4,
+        MULTIBLOCK_FAILED = 5,
     };
 
     uint32_t increaseMessageIdCounter();

@@ -43,9 +43,11 @@ public:
 
     void addMessage(const uint8_t messageType,
                     const uint32_t sessionId,
-                    const uint64_t messageId);
+                    const uint64_t messageId,
+                    Session* session);
     void addMessage(const uint8_t messageType,
-                    const uint64_t messageId);
+                    const uint64_t messageId,
+                    Session* session);
 
     bool removeMessage(const uint32_t sessionId,
                        const uint64_t messageId);
@@ -62,6 +64,7 @@ private:
         uint64_t messageId = 0;
         float timer = 0;
         uint8_t messageType = 0;
+        Session* session = nullptr;
     };
 
     float m_timeoutValue = 2.0f;

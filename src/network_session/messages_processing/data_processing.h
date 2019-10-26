@@ -355,7 +355,9 @@ process_Data_Multi_Init_Reply(Session* session,
     }
     else
     {
-        // TODO: error-call
+        SessionHandler::m_sessionInterface->receivedError(session,
+                                                          Session::errorCodes::MULTIBLOCK_FAILED,
+                                                          "unable not send multi-block-Message");
     }
 }
 
