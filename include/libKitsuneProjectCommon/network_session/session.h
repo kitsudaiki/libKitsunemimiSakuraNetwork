@@ -25,6 +25,8 @@
 
 #include <iostream>
 #include <assert.h>
+#include <atomic>
+
 #include <libKitsuneCommon/statemachine.h>
 #include <libKitsuneCommon/data_buffer.h>
 
@@ -67,6 +69,8 @@ public:
         MESSAGE_TIMEOUT = 4,
     };
 
+    uint32_t increaseMessageIdCounter();
+
 private:
     friend InternalSessionInterface;
 
@@ -97,6 +101,10 @@ private:
     void (*m_processData)(void*, Session*, const bool, const void*, const uint64_t);
     void* m_errorTarget = nullptr;
     void (*m_processError)(void*, Session*, const uint8_t, const std::string);
+
+    // counter
+    std::atomic_flag m_messageIdCounter_lock = ATOMIC_FLAG_INIT;
+    uint32_t m_messageIdCounter = 0;
 };
 
 } // namespace Common

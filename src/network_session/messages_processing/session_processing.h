@@ -51,17 +51,14 @@ namespace Common
  * @param socket
  */
 inline void
-send_Session_Init_Start(const uint32_t initialId,
+send_Session_Init_Start(Session* session,
                         Network::AbstractSocket* socket)
 {
     LOG_DEBUG("SEND session init start");
 
-    // create message
-    Session_Init_Start_Message message(initialId,
-                                       SessionHandler::m_sessionHandler->increaseMessageIdCounter());
-    message.clientSessionId = initialId;
+    Session_Init_Start_Message message(session->sessionId(),
+                                       session->increaseMessageIdCounter());
 
-    // send
     socket->sendMessage(&message, sizeof(message));
 }
 
@@ -71,11 +68,11 @@ send_Session_Init_Start(const uint32_t initialId,
  * @param socket
  */
 inline void
-send_Session_Init_Reply(const uint32_t initialSessionId,
+send_Session_Init_Reply(Session* session,
+                        const uint32_t initialSessionId,
                         const uint32_t messageId,
                         const uint32_t completeSessionId,
-                        const uint32_t clientSessionId,
-                        Network::AbstractSocket* socket)
+                        const uint32_t clientSessionId)
 {
     LOG_DEBUG("SEND session init reply");
 
@@ -83,8 +80,7 @@ send_Session_Init_Reply(const uint32_t initialSessionId,
     message.completeSessionId = completeSessionId;
     message.clientSessionId = clientSessionId;
 
-    // send
-    socket->sendMessage(&message, sizeof(message));
+    session->socket()->sendMessage(&message, sizeof(message));
 }
 
 /**
@@ -94,19 +90,16 @@ send_Session_Init_Reply(const uint32_t initialSessionId,
  * @param socket
  */
 inline void
-send_Session_Close_Start(const uint32_t sessionId,
-                         bool replyExpected,
-                         Network::AbstractSocket* socket)
+send_Session_Close_Start(Session* session,
+                         bool replyExpected)
 {
     LOG_DEBUG("SEND session close start");
 
-    Session_Close_Start_Message message(sessionId,
-                                        SessionHandler::m_sessionHandler->increaseMessageIdCounter(),
+    Session_Close_Start_Message message(session->sessionId(),
+                                        session->increaseMessageIdCounter(),
                                         replyExpected);
-    message.sessionId = sessionId;
 
-    // send
-    socket->sendMessage(&message, sizeof(message));
+    session->socket()->sendMessage(&message, sizeof(message));
 }
 
 /**
@@ -115,17 +108,15 @@ send_Session_Close_Start(const uint32_t sessionId,
  * @param socket
  */
 inline void
-send_Session_Close_Reply(const uint32_t sessionId,
-                         const uint32_t messageId,
-                         Network::AbstractSocket* socket)
+send_Session_Close_Reply(Session* session,
+                         const uint32_t messageId)
 {
     LOG_DEBUG("SEND session close reply");
 
-    Session_Close_Reply_Message message(sessionId, messageId);
-    message.sessionId = sessionId;
+    Session_Close_Reply_Message message(session->sessionId(),
+                                        messageId);
 
-    // send
-    socket->sendMessage(&message, sizeof(message));
+    session->socket()->sendMessage(&message, sizeof(message));
 }
 
 /**
@@ -133,8 +124,7 @@ send_Session_Close_Reply(const uint32_t sessionId,
  */
 inline void
 process_Session_Init_Start(Session* session,
-                           const Session_Init_Start_Message* message,
-                           AbstractSocket* socket)
+                           const Session_Init_Start_Message* message)
 {
     LOG_DEBUG("process session init start");
 
@@ -148,11 +138,11 @@ process_Session_Init_Start(Session* session,
     SessionHandler::m_sessionInterface->makeSessionReady(session, completeSessionId);
 
     // confirm id
-    send_Session_Init_Reply(clientSessionId,
+    send_Session_Init_Reply(session,
+                            clientSessionId,
                             message->commonHeader.messageId,
                             completeSessionId,
-                            clientSessionId,
-                            socket);
+                            clientSessionId);
 }
 
 /**
@@ -160,8 +150,7 @@ process_Session_Init_Start(Session* session,
  */
 inline void
 process_Session_Init_Reply(Session* session,
-                           const Session_Init_Reply_Message* message,
-                           AbstractSocket*)
+                           const Session_Init_Reply_Message* message)
 {
     LOG_DEBUG("process session init reply");
 
@@ -179,14 +168,12 @@ process_Session_Init_Reply(Session* session,
  */
 inline void
 process_Session_Close_Start(Session* session,
-                            const Session_Close_Start_Message* message,
-                            AbstractSocket* socket)
+                            const Session_Close_Start_Message* message)
 {
     LOG_DEBUG("process session close start");
 
-    send_Session_Close_Reply(message->sessionId,
-                             message->commonHeader.messageId,
-                             socket);
+    send_Session_Close_Reply(session,
+                             message->commonHeader.messageId);
 
     SessionHandler::m_sessionHandler->removeSession(message->sessionId);
     SessionHandler::m_sessionInterface->endSession(session);
@@ -198,8 +185,7 @@ process_Session_Close_Start(Session* session,
  */
 inline void
 process_Session_Close_Reply(Session* session,
-                            const Session_Close_Reply_Message* message,
-                            AbstractSocket*)
+                            const Session_Close_Reply_Message* message)
 {
     LOG_DEBUG("process session close reply");
 
@@ -217,8 +203,7 @@ process_Session_Close_Reply(Session* session,
 inline uint64_t
 process_Session_Type(Session* session,
                      const CommonMessageHeader* header,
-                     MessageRingBuffer *recvBuffer,
-                     AbstractSocket* socket)
+                     MessageRingBuffer *recvBuffer)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("process session-type");
@@ -233,7 +218,7 @@ process_Session_Type(Session* session,
                 if(message == nullptr) {
                     break;
                 }
-                process_Session_Init_Start(session, message, socket);
+                process_Session_Init_Start(session, message);
                 return sizeof(*message);
             }
         case SESSION_INIT_REPLY_SUBTYPE:
@@ -243,7 +228,7 @@ process_Session_Type(Session* session,
                 if(message == nullptr) {
                     break;
                 }
-                process_Session_Init_Reply(session, message, socket);
+                process_Session_Init_Reply(session, message);
                 return sizeof(*message);
             }
         case SESSION_CLOSE_START_SUBTYPE:
@@ -253,7 +238,7 @@ process_Session_Type(Session* session,
                 if(message == nullptr) {
                     break;
                 }
-                process_Session_Close_Start(session, message, socket);
+                process_Session_Close_Start(session, message);
                 return sizeof(*message);
             }
         case SESSION_CLOSE_REPLY_SUBTYPE:
@@ -263,7 +248,7 @@ process_Session_Type(Session* session,
                 if(message == nullptr) {
                     break;
                 }
-                process_Session_Close_Reply(session, message, socket);
+                process_Session_Close_Reply(session, message);
                 return sizeof(*message);
             }
         default:

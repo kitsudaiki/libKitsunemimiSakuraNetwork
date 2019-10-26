@@ -65,7 +65,6 @@ public:
     void sendHeartBeats();
 
     // counter
-    uint32_t increaseMessageIdCounter();
     uint16_t increaseSessionIdCounter();
 
     // object-holder
@@ -75,8 +74,6 @@ public:
 
 private:
     // counter
-    std::atomic_flag m_messageIdCounter_lock = ATOMIC_FLAG_INIT;
-    uint32_t m_messageIdCounter = 0;
     std::atomic_flag m_sessionIdCounter_lock = ATOMIC_FLAG_INIT;
     uint16_t m_sessionIdCounter = 0;
 };

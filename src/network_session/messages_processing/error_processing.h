@@ -36,9 +36,7 @@
 #include <libKitsunePersistence/logger/logger.h>
 
 using Kitsune::Network::MessageRingBuffer;
-using Kitsune::Network::AbstractSocket;
 using Kitsune::Network::getObjectFromBuffer;
-using Kitsune::Network::AbstractSocket;
 
 namespace Kitsune
 {
@@ -66,7 +64,7 @@ send_ErrorMessage(Session* session,
         {
             Error_FalseVersion_Message errorMessage(
                     session->sessionId(),
-                    SessionHandler::m_sessionHandler->increaseMessageIdCounter(),
+                    session->increaseMessageIdCounter(),
                     message);
             SessionHandler::m_sessionInterface->sendMessage(session, &message, sizeof(message));
             break;
@@ -76,7 +74,7 @@ send_ErrorMessage(Session* session,
         {
             Error_UnknownSession_Message errorMessage(
                     session->sessionId(),
-                    SessionHandler::m_sessionHandler->increaseMessageIdCounter(),
+                    session->increaseMessageIdCounter(),
                     message);
             SessionHandler::m_sessionInterface->sendMessage(session, &message, sizeof(message));
             break;
@@ -86,7 +84,7 @@ send_ErrorMessage(Session* session,
         {
             Error_InvalidMessage_Message errorMessage(
                     session->sessionId(),
-                    SessionHandler::m_sessionHandler->increaseMessageIdCounter(),
+                    session->increaseMessageIdCounter(),
                     message);
             SessionHandler::m_sessionInterface->sendMessage(session, &message, sizeof(message));
             break;
@@ -102,14 +100,12 @@ send_ErrorMessage(Session* session,
  * @param session
  * @param header
  * @param recvBuffer
- * @param socket
  * @return
  */
 inline uint64_t
 process_Error_Type(Session* session,
                    const CommonMessageHeader* header,
-                   MessageRingBuffer* recvBuffer,
-                   AbstractSocket*)
+                   MessageRingBuffer* recvBuffer)
 {
     LOG_DEBUG("process error message");
 

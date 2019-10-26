@@ -61,7 +61,7 @@ send_Data_Single_Static(Session* session,
     }
 
     Data_SingleStatic_Message message(session->sessionId(),
-                                      SessionHandler::m_sessionHandler->increaseMessageIdCounter(),
+                                      session->increaseMessageIdCounter(),
                                       replyExpected);
 
     memcpy(message.payload, data, size);
@@ -89,7 +89,7 @@ send_Data_Single_Dynamic(Session* session,
 
     uint8_t completeMessage[totalMessageSize];
     Data_SingleDynamic_Message header(session->sessionId(),
-                                      SessionHandler::m_sessionHandler->increaseMessageIdCounter(),
+                                      session->increaseMessageIdCounter(),
                                       replyExpected);
     header.payloadSize = size;
     CommonMessageEnd end;
@@ -130,7 +130,7 @@ send_Data_Multi_Init(Session* session,
     }
 
     Data_MultiInit_Message message(session->sessionId(),
-                                   SessionHandler::m_sessionHandler->increaseMessageIdCounter());
+                                   session->increaseMessageIdCounter());
     message.totalSize = requestedSize;
 
     session->socket()->sendMessage(&message, sizeof(message));
@@ -169,7 +169,7 @@ send_Data_Multi_Static(Session* session,
     }
 
     Data_MultiStatic_Message message(session->sessionId(),
-                                     SessionHandler::m_sessionHandler->increaseMessageIdCounter());
+                                     session->increaseMessageIdCounter());
 
     message.totalPartNumber = totalPartNumber;
     message.partId = partId;
@@ -192,7 +192,7 @@ send_Data_Multi_Finish(Session* session)
     }
 
     Data_MultiFinish_Message message(session->sessionId(),
-                                     SessionHandler::m_sessionHandler->increaseMessageIdCounter());
+                                     session->increaseMessageIdCounter());
     session->socket()->sendMessage(&message, sizeof(message));
 }
 

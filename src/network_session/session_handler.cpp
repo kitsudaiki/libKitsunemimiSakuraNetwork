@@ -134,22 +134,6 @@ SessionHandler::removeSession(const uint32_t id)
 }
 
 /**
- * @brief SessionHandler::increaseMessageIdCounter
- * @return
- */
-uint32_t
-SessionHandler::increaseMessageIdCounter()
-{
-    uint32_t tempId = 0;
-    while (m_messageIdCounter_lock.test_and_set(std::memory_order_acquire))  // acquire lock
-                 ; // spin
-    m_messageIdCounter++;
-    tempId = m_messageIdCounter;
-    m_messageIdCounter_lock.clear(std::memory_order_release);
-    return tempId;
-}
-
-/**
  * @brief SessionHandler::increaseSessionIdCounter
  * @return
  */

@@ -78,7 +78,7 @@ void sessionCallback(void* target,
     Session_Test* testClass = static_cast<Session_Test*>(target);
 
     const uint32_t id = session->sessionId();
-    testClass->compare(id, (uint32_t)131073);
+    testClass->compare(id, (uint32_t)131072);
 
     if(session->socket()->isClientSide())
     {
@@ -153,8 +153,8 @@ Session_Test::runTest()
 
     sleep(2);
 
-    UNITTEST(m_controller->getSession(131073)->closeSession(), true);
-    UNITTEST(m_controller->getSession(131073)->closeSession(), false);
+    UNITTEST(m_controller->getSession(131072)->closeSession(), true);
+    UNITTEST(m_controller->getSession(131072)->closeSession(), false);
 
     delete m_controller;
 
