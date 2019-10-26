@@ -225,7 +225,7 @@ Session::endSession(const bool init,
     m_sessionReady = true;;
 
     if(init) {
-        send_Session_Close_Start(this, replyExpected, m_socket);
+        send_Session_Close_Start(this, replyExpected);
     }
 
     return true;
@@ -266,7 +266,7 @@ Session::sendHeartbeat()
         return false;
     }
 
-    send_Heartbeat_Start(this, m_socket);
+    send_Heartbeat_Start(this);
 
     return true;
 }

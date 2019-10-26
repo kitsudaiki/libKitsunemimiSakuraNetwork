@@ -36,9 +36,7 @@
 #include <libKitsunePersistence/logger/logger.h>
 
 using Kitsune::Network::MessageRingBuffer;
-using Kitsune::Network::AbstractSocket;
 using Kitsune::Network::getObjectFromBuffer;
-using Kitsune::Network::AbstractSocket;
 
 namespace Kitsune
 {
@@ -102,14 +100,12 @@ send_ErrorMessage(Session* session,
  * @param session
  * @param header
  * @param recvBuffer
- * @param socket
  * @return
  */
 inline uint64_t
 process_Error_Type(Session* session,
                    const CommonMessageHeader* header,
-                   MessageRingBuffer* recvBuffer,
-                   AbstractSocket*)
+                   MessageRingBuffer* recvBuffer)
 {
     LOG_DEBUG("process error message");
 

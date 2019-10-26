@@ -52,8 +52,7 @@ namespace Common
  * @param socket
  */
 inline void
-send_Heartbeat_Start(Session* session,
-                     Network::AbstractSocket* socket)
+send_Heartbeat_Start(Session* session)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("SEND heartbeat start");
@@ -61,7 +60,8 @@ send_Heartbeat_Start(Session* session,
 
     Heartbeat_Start_Message message(session->sessionId(),
                                     session->increaseMessageIdCounter());
-    socket->sendMessage(&message, sizeof(message));
+
+    session->socket()->sendMessage(&message, sizeof(message));
 }
 
 /**
@@ -70,33 +70,32 @@ send_Heartbeat_Start(Session* session,
  * @param socket
  */
 inline void
-send_Heartbeat_Reply(const uint32_t sessionId,
-                     const uint32_t messageId,
-                     Network::AbstractSocket* socket)
+send_Heartbeat_Reply(Session* session,
+                     const uint32_t messageId)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("SEND heartbeat reply");
     }
 
-    Heartbeat_Reply_Message message(sessionId, messageId);
-    socket->sendMessage(&message, sizeof(message));
+    Heartbeat_Reply_Message message(session->sessionId(),
+                                    messageId);
+
+    session->socket()->sendMessage(&message, sizeof(message));
 }
 
 /**
  * @brief process_Heartbeat_Start
  */
 inline void
-process_Heartbeat_Start(Session*,
-                        const Heartbeat_Start_Message* message,
-                        AbstractSocket* socket)
+process_Heartbeat_Start(Session* session,
+                        const Heartbeat_Start_Message* message)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("process heartbeat start");
     }
 
-    send_Heartbeat_Reply(message->commonHeader.sessionId,
-                         message->commonHeader.messageId,
-                         socket);
+    send_Heartbeat_Reply(session,
+                         message->commonHeader.messageId);
 }
 
 /**
@@ -104,8 +103,7 @@ process_Heartbeat_Start(Session*,
  */
 inline void
 process_Heartbeat_Reply(Session*,
-                        const Heartbeat_Reply_Message*,
-                        AbstractSocket*)
+                        const Heartbeat_Reply_Message*)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("process heartbeat reply");
@@ -122,8 +120,7 @@ process_Heartbeat_Reply(Session*,
 inline uint64_t
 process_Heartbeat_Type(Session* session,
                        const CommonMessageHeader* header,
-                       MessageRingBuffer *recvBuffer,
-                       AbstractSocket* socket)
+                       MessageRingBuffer *recvBuffer)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("process heartbeat-type");
@@ -135,20 +132,24 @@ process_Heartbeat_Type(Session* session,
             {
                 const Heartbeat_Start_Message* message =
                         getObjectFromBuffer<Heartbeat_Start_Message>(recvBuffer);
+
                 if(message == nullptr) {
                     break;
                 }
-                process_Heartbeat_Start(session, message, socket);
+
+                process_Heartbeat_Start(session, message);
                 return sizeof(*message);
             }
         case HEARTBEAT_REPLY_SUBTYPE:
             {
                 const Heartbeat_Reply_Message* message =
                         getObjectFromBuffer<Heartbeat_Reply_Message>(recvBuffer);
+
                 if(message == nullptr) {
                     break;
                 }
-                process_Heartbeat_Reply(session, message, socket);
+
+                process_Heartbeat_Reply(session, message);
                 return sizeof(*message);
             }
         default:

@@ -51,14 +51,12 @@ namespace Common
  *
  * @param target void-pointer to the session, which had received the message
  * @param recvBuffer data-buffer with the incoming data
- * @param socket socket, which had received the data
  *
  * @return number of bytes, which were taken from the buffer
  */
 inline uint64_t
 processMessage(void* target,
-               MessageRingBuffer* recvBuffer,
-               AbstractSocket* socket)
+               MessageRingBuffer* recvBuffer)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("process message");
@@ -98,11 +96,11 @@ processMessage(void* target,
         case DATA_TYPE:
             return process_Data_Type(session, header, recvBuffer);
         case SESSION_TYPE:
-            return process_Session_Type(session, header, recvBuffer, socket);
+            return process_Session_Type(session, header, recvBuffer);
         case HEARTBEAT_TYPE:
-            return process_Heartbeat_Type(session, header, recvBuffer, socket);
+            return process_Heartbeat_Type(session, header, recvBuffer);
         case ERROR_TYPE:
-            return process_Error_Type(session, header, recvBuffer, socket);
+            return process_Error_Type(session, header, recvBuffer);
         default:
             break;
     }
@@ -116,9 +114,9 @@ processMessage(void* target,
 uint64_t
 processMessage_callback(void* target,
                         MessageRingBuffer* recvBuffer,
-                        AbstractSocket* socket)
+                        AbstractSocket*)
 {
-    return processMessage(target, recvBuffer, socket);
+    return processMessage(target, recvBuffer);
 }
 
 /**
