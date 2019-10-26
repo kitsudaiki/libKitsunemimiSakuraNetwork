@@ -326,12 +326,12 @@ struct Data_SingleStatic_Message
     }
 } __attribute__((packed));
 
-struct Data_SingleDynamic_Message
+struct Data_SingleDynamic_Header
 {
     CommonMessageHeader commonHeader;
     uint64_t payloadSize = 0;
 
-    Data_SingleDynamic_Message(const uint32_t sessionId,
+    Data_SingleDynamic_Header(const uint32_t sessionId,
                                const uint32_t messageId,
                                const bool replyExpected)
     {
