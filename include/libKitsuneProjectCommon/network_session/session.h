@@ -94,6 +94,9 @@ private:
                     const bool replyExpected = false);
     bool disconnectSession();
 
+    bool lockForMultiblockMessage();
+    bool unlockFromMultiblockMessage();
+
     bool sendHeartbeat();
     void initStatemachine();
 

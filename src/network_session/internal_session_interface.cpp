@@ -160,11 +160,15 @@ bool
 InternalSessionInterface::initMultiblockBuffer(Session* session,
                                                const uint64_t size)
 {
-    const uint32_t numberOfBlocks = static_cast<uint32_t>(size / 4096) + 1;
-    session->m_multiBlockBuffer = new Kitsune::Common::DataBuffer(numberOfBlocks);
+    if(session->lockForMultiblockMessage())
+    {
+        const uint32_t numberOfBlocks = static_cast<uint32_t>(size / 4096) + 1;
+        session->m_multiBlockBuffer = new Kitsune::Common::DataBuffer(numberOfBlocks);
 
-    // TODO: check if allocation was successful
-    return true;
+        // TODO: check if allocation was successful
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -185,12 +189,23 @@ InternalSessionInterface::writeDataIntoBuffer(Session* session,
 }
 
 /**
+ * @brief InternalSessionInterface::finishMultiblockBuffer
+ * @param session
+ * @return
+ */
+bool
+InternalSessionInterface::finishMultiblockBuffer(Session *session)
+{
+    return session->unlockFromMultiblockMessage();
+}
+
+/**
  * @brief InternalSessionInterface::getTotalBufferSize
  * @param session
  * @return
  */
 uint64_t
-InternalSessionInterface::getTotalBufferSize(Session* session)
+InternalSessionInterface::getUsedBufferSize(Session* session)
 {
     return session->m_multiBlockBuffer->bufferPosition;
 }

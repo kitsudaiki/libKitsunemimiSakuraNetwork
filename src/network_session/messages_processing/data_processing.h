@@ -95,7 +95,6 @@ send_Data_Single_Dynamic(Session* session,
     Data_SingleDynamic_Header header(session->sessionId(),
                                      session->increaseMessageIdCounter(),
                                      replyExpected);
-
     header.commonHeader.size = static_cast<uint32_t>(totalMessageSize);
     header.payloadSize = dataSize;
     CommonMessageEnd end;
@@ -235,9 +234,7 @@ process_Data_Single_Static(Session* session,
                                                      true,
                                                      static_cast<const void*>(message->payload),
                                                      message->payloadSize);
-
-    send_Data_Single_Reply(session,
-                           message->commonHeader.messageId);
+    send_Data_Single_Reply(session, message->commonHeader.messageId);
 }
 
 /**
@@ -262,9 +259,7 @@ process_Data_Single_Dynamic(Session* session,
                                                      true,
                                                      payload,
                                                      message->payloadSize);
-
-    send_Data_Single_Reply(session,
-                           message->commonHeader.messageId);
+    send_Data_Single_Reply(session, message->commonHeader.messageId);
 
     return message->commonHeader.size;
 }
@@ -322,7 +317,7 @@ process_Data_Multi_Init_Reply(Session* session,
     if(message->status == Data_MultiInitReply_Message::OK)
     {
         // counter values
-        uint64_t totalSize = SessionHandler::m_sessionInterface->getTotalBufferSize(session);
+        uint64_t totalSize = SessionHandler::m_sessionInterface->getUsedBufferSize(session);
         uint64_t currentMessageSize = 0;
         uint32_t partCounter = 0;
 
@@ -358,6 +353,8 @@ process_Data_Multi_Init_Reply(Session* session,
                                                           Session::errorCodes::MULTIBLOCK_FAILED,
                                                           "unable not send multi-block-Message");
     }
+
+    SessionHandler::m_sessionInterface->finishMultiblockBuffer(session);
 }
 
 /**
@@ -387,12 +384,14 @@ process_Data_Multi_Finish(Session* session,
         LOG_DEBUG("process data multi finish");
     }
 
-    const uint64_t totalSize = SessionHandler::m_sessionInterface->getTotalBufferSize(session);
+    const uint64_t totalSize = SessionHandler::m_sessionInterface->getUsedBufferSize(session);
     const uint8_t* dataPointer = SessionHandler::m_sessionInterface->getDataPointer(session);
     SessionHandler::m_sessionInterface->receivedData(session,
                                                      false,
                                                      dataPointer,
                                                      totalSize);
+
+    SessionHandler::m_sessionInterface->finishMultiblockBuffer(session);
 }
 
 /**

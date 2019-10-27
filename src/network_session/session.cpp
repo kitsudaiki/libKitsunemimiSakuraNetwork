@@ -103,12 +103,14 @@ Session::sendStandaloneData(const void* data,
         return false;
     }
 
-    SessionHandler::m_sessionInterface->initMultiblockBuffer(this, size);
-    SessionHandler::m_sessionInterface->writeDataIntoBuffer(this, data, size);
+    if(SessionHandler::m_sessionInterface->initMultiblockBuffer(this, size))
+    {
+        SessionHandler::m_sessionInterface->writeDataIntoBuffer(this, data, size);
+        send_Data_Multi_Init(this, size);
+        return true;
+    }
 
-    send_Data_Multi_Init(this, size);
-
-    return true;
+    return false;
 }
 
 /**
@@ -271,6 +273,26 @@ Session::sendHeartbeat()
     send_Heartbeat_Start(this);
 
     return true;
+}
+
+/**
+ * @brief Session::lockForMultiblockMessage
+ * @return
+ */
+bool
+Session::lockForMultiblockMessage()
+{
+    return m_statemachine.goToNextState(START_DATATRANSFER, NORMAL);
+}
+
+/**
+ * @brief Session::unlockFromMultiblockMessage
+ * @return
+ */
+bool
+Session::unlockFromMultiblockMessage()
+{
+    return m_statemachine.goToNextState(STOP_DATATRANSFER, IN_DATATRANSFER);
 }
 
 /**
