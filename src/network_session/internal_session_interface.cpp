@@ -160,11 +160,15 @@ bool
 InternalSessionInterface::initMultiblockBuffer(Session* session,
                                                const uint64_t size)
 {
-    const uint32_t numberOfBlocks = static_cast<uint32_t>(size / 4096) + 1;
-    session->m_multiBlockBuffer = new Kitsune::Common::DataBuffer(numberOfBlocks);
+    if(session->lockForMultiblockMessage())
+    {
+        const uint32_t numberOfBlocks = static_cast<uint32_t>(size / 4096) + 1;
+        session->m_multiBlockBuffer = new Kitsune::Common::DataBuffer(numberOfBlocks);
 
-    // TODO: check if allocation was successful
-    return true;
+        // TODO: check if allocation was successful
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -179,9 +183,42 @@ InternalSessionInterface::writeDataIntoBuffer(Session* session,
                                               const void* data,
                                               const uint64_t size)
 {
+    if(session->m_inMultiMessage == false) {
+        return false;
+    }
     return Kitsune::Common::addDataToBuffer(session->m_multiBlockBuffer,
                                             data,
                                             size);
+}
+
+/**
+ * @brief InternalSessionInterface::finishMultiblockBuffer
+ * @param session
+ * @return
+ */
+bool
+InternalSessionInterface::finishMultiblockBuffer(Session *session)
+{
+    session->unlockFromMultiblockMessage();
+
+    if(session->m_multiBlockBuffer != nullptr)
+    {
+        delete session->m_multiBlockBuffer;
+        session->m_multiBlockBuffer = nullptr;
+    }
+
+    return true;
+}
+
+/**
+ * @brief InternalSessionInterface::isInMultiblock
+ * @param session
+ * @return
+ */
+bool
+InternalSessionInterface::isInMultiblock(Session *session)
+{
+    return session->m_inMultiMessage;
 }
 
 /**
@@ -190,7 +227,7 @@ InternalSessionInterface::writeDataIntoBuffer(Session* session,
  * @return
  */
 uint64_t
-InternalSessionInterface::getTotalBufferSize(Session* session)
+InternalSessionInterface::getUsedBufferSize(Session* session)
 {
     return session->m_multiBlockBuffer->bufferPosition;
 }
@@ -204,24 +241,6 @@ uint8_t*
 InternalSessionInterface::getDataPointer(Session *session)
 {
     return session->m_multiBlockBuffer->getBlock(0);
-}
-
-/**
- * @brief InternalSessionInterface::deleteBuffer
- * @param session
- * @return
- */
-bool
-InternalSessionInterface::deleteBuffer(Session* session)
-{
-    if(session->m_multiBlockBuffer != nullptr)
-    {
-        delete session->m_multiBlockBuffer;
-        session->m_multiBlockBuffer = nullptr;
-        return true;
-    }
-
-    return false;
 }
 
 /**

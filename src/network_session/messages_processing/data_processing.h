@@ -95,7 +95,6 @@ send_Data_Single_Dynamic(Session* session,
     Data_SingleDynamic_Header header(session->sessionId(),
                                      session->increaseMessageIdCounter(),
                                      replyExpected);
-
     header.commonHeader.size = static_cast<uint32_t>(totalMessageSize);
     header.payloadSize = dataSize;
     CommonMessageEnd end;
@@ -221,6 +220,21 @@ send_Data_Multi_Finish(Session* session)
 }
 
 /**
+ * @brief send_Data_Multi_Abort
+ * @param session
+ */
+inline void
+send_Data_Multi_Abort(Session* session)
+{
+    if(DEBUG_MODE) {
+        LOG_DEBUG("SEND data multi abort");
+    }
+
+    Data_MultiAbort_Message message(session->sessionId(),
+                                    session->increaseMessageIdCounter());
+}
+
+/**
  * @brief process_Data_Single_Static
  */
 inline void
@@ -235,9 +249,7 @@ process_Data_Single_Static(Session* session,
                                                      true,
                                                      static_cast<const void*>(message->payload),
                                                      message->payloadSize);
-
-    send_Data_Single_Reply(session,
-                           message->commonHeader.messageId);
+    send_Data_Single_Reply(session, message->commonHeader.messageId);
 }
 
 /**
@@ -262,9 +274,7 @@ process_Data_Single_Dynamic(Session* session,
                                                      true,
                                                      payload,
                                                      message->payloadSize);
-
-    send_Data_Single_Reply(session,
-                           message->commonHeader.messageId);
+    send_Data_Single_Reply(session, message->commonHeader.messageId);
 
     return message->commonHeader.size;
 }
@@ -322,7 +332,7 @@ process_Data_Multi_Init_Reply(Session* session,
     if(message->status == Data_MultiInitReply_Message::OK)
     {
         // counter values
-        uint64_t totalSize = SessionHandler::m_sessionInterface->getTotalBufferSize(session);
+        uint64_t totalSize = SessionHandler::m_sessionInterface->getUsedBufferSize(session);
         uint64_t currentMessageSize = 0;
         uint32_t partCounter = 0;
 
@@ -330,7 +340,8 @@ process_Data_Multi_Init_Reply(Session* session,
         const uint32_t totalPartNumber = static_cast<uint32_t>(totalSize / 500) + 1;
         const uint8_t* dataPointer = SessionHandler::m_sessionInterface->getDataPointer(session);
 
-        while(totalSize != 0)
+        while(totalSize != 0
+              && SessionHandler::m_sessionInterface->isInMultiblock(session))
         {
             // get message-size base on the rest
             currentMessageSize = 500;
@@ -358,6 +369,8 @@ process_Data_Multi_Init_Reply(Session* session,
                                                           Session::errorCodes::MULTIBLOCK_FAILED,
                                                           "unable not send multi-block-Message");
     }
+
+    SessionHandler::m_sessionInterface->finishMultiblockBuffer(session);
 }
 
 /**
@@ -387,12 +400,28 @@ process_Data_Multi_Finish(Session* session,
         LOG_DEBUG("process data multi finish");
     }
 
-    const uint64_t totalSize = SessionHandler::m_sessionInterface->getTotalBufferSize(session);
+    const uint64_t totalSize = SessionHandler::m_sessionInterface->getUsedBufferSize(session);
     const uint8_t* dataPointer = SessionHandler::m_sessionInterface->getDataPointer(session);
     SessionHandler::m_sessionInterface->receivedData(session,
                                                      false,
                                                      dataPointer,
                                                      totalSize);
+
+    SessionHandler::m_sessionInterface->finishMultiblockBuffer(session);
+}
+
+/**
+ * @brief process_Data_Multi_Abort
+ */
+inline void
+process_Data_Multi_Abort(Session* session,
+                         const Data_MultiAbort_Message*)
+{
+    if(DEBUG_MODE) {
+        LOG_DEBUG("process data multi abort");
+    }
+
+    SessionHandler::m_sessionInterface->finishMultiblockBuffer(session);
 }
 
 /**
@@ -483,6 +512,16 @@ process_Data_Type(Session* session,
                     break;
                 }
                 process_Data_Multi_Finish(session, message);
+                return sizeof(*message);
+            }
+        case DATA_MULTI_ABORT_SUBTYPE:
+            {
+                const Data_MultiAbort_Message* message =
+                        getObjectFromBuffer<Data_MultiAbort_Message>(recvBuffer);
+                if(message == nullptr) {
+                    break;
+                }
+                process_Data_Multi_Abort(session, message);
                 return sizeof(*message);
             }
         default:
