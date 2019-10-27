@@ -1,9 +1,9 @@
 /**
- *  @file       internal_session_interface.h
+ * @file       internal_session_interface.h
  *
- *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
+ * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
- *  @copyright  Apache License Version 2.0
+ * @copyright  Apache License Version 2.0
  *
  *      Copyright 2019 Tobias Anker
  *
@@ -28,6 +28,7 @@
 #include <map>
 #include <atomic>
 
+// additional debug-flag to enable debug-log in performance critical sections
 #define DEBUG_MODE true
 
 namespace Kitsune
@@ -48,19 +49,30 @@ class InternalSessionInterface
 {
 public:
     InternalSessionInterface(void* sessionTarget,
-                             void (*processSession)(void*, Session*, const uint64_t),
+                             void (*processSession)(void*,
+                                                    Session*,
+                                                    const uint64_t),
                              void* dataTarget,
-                             void (*processData)(void*, Session*, const bool,
-                                                 const void*, const uint64_t),
+                             void (*processData)(void*,
+                                                 Session*,
+                                                 const bool,
+                                                 const void*,
+                                                 const uint64_t),
                              void* errorTarget,
-                             void (*processError)(void*, Session*,
-                                                  const uint8_t, const std::string));
+                             void (*processError)(void*,
+                                                  Session*,
+                                                  const uint8_t,
+                                                  const std::string));
     ~InternalSessionInterface();
 
     // callback-forwarding
-    void receivedData(Session* session, const bool isStream,
-                      const void* data, const uint64_t dataSize);
-    void receivedError(Session* session, const uint8_t errorCode, const std::string &message);
+    void receivedData(Session* session,
+                      const bool isStream,
+                      const void* data,
+                      const uint64_t dataSize);
+    void receivedError(Session* session,
+                       const uint8_t errorCode,
+                       const std::string &message);
 
     // send messages
     void sendMessage(Session* session,
@@ -70,8 +82,11 @@ public:
     void sendHeartbeat(Session* session);
 
     // multi-block data operations
-    bool initMultiblockBuffer(Session* session, const uint64_t size);
-    bool writeDataIntoBuffer(Session* session, const void* data, const uint64_t size);
+    bool initMultiblockBuffer(Session* session,
+                              const uint64_t size);
+    bool writeDataIntoBuffer(Session* session,
+                             const void* data,
+                             const uint64_t size);
     bool finishMultiblockBuffer(Session* session);
     bool isInMultiblock(Session* session);
 
@@ -82,15 +97,14 @@ public:
     Session* createNewSession(Network::AbstractSocket* socket);
     bool connectiSession(Session* session,
                          const uint32_t sessionId,
-                         const uint64_t customValue,
+                         const uint64_t sessionIdentifier,
                          const bool init = false);
     bool makeSessionReady(Session* session,
                           const uint32_t sessionId,
-                          const uint64_t customValue);
+                          const uint64_t sessionIdentifier);
 
     bool endSession(Session* session,
-                    const bool init = false,
-                    const bool replyExpected = false);
+                    const bool init = false);
     bool disconnectSession(Session* session);
 
 private:

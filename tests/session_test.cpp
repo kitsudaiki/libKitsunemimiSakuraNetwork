@@ -1,9 +1,9 @@
 /**
- *  @file       session_test.cpp
+ * @file       session_test.cpp
  *
- *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
+ * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
- *  @copyright  Apache License Version 2.0
+ * @copyright  Apache License Version 2.0
  *
  *      Copyright 2019 Tobias Anker
  *
@@ -73,7 +73,7 @@ void errorCallback(void*,
 
 void sessionCallback(void* target,
                      Kitsune::Project::Common::Session* session,
-                     const uint64_t customValue)
+                     const uint64_t sessionIdentifier)
 {
 
     Session_Test* testClass = static_cast<Session_Test*>(target);
@@ -82,7 +82,7 @@ void sessionCallback(void* target,
     testClass->compare(id, (uint32_t)131072);
 
     if(session->isClientSide() == false) {
-        testClass->compare(customValue,  (uint64_t)42);
+        testClass->compare(sessionIdentifier,  (uint64_t)42);
     }
 
     if(session->isClientSide())
@@ -108,8 +108,7 @@ void sessionCallback(void* target,
         // multiblock
         const std::string multiblockTestString = testClass->m_multiBlockMessage;
         ret = session->sendStandaloneData(multiblockTestString.c_str(),
-                                          multiblockTestString.size(),
-                                          true);
+                                          multiblockTestString.size());
         testClass->compare(ret,  true);
     }
 }
@@ -159,10 +158,10 @@ Session_Test::runTest()
     sleep(2);
 
     UNITTEST(m_controller->getSession(131072)->closeSession(), true);
-    UNITTEST(m_controller->getSession(131072)->closeSession(), false);
+    const bool isNull = m_controller->getSession(131072) == nullptr;
+    UNITTEST(isNull, true);
 
     delete m_controller;
-
 }
 
 } // namespace Common

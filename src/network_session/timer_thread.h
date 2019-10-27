@@ -1,9 +1,9 @@
 /**
- *  @file       timer_thread.h
+ * @file       timer_thread.h
  *
- *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
+ * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
- *  @copyright  Apache License Version 2.0
+ * @copyright  Apache License Version 2.0
  *
  *      Copyright 2019 Tobias Anker
  *
@@ -40,18 +40,19 @@ class TimerThread : public Kitsune::Common::Thread
 {
 public:
     TimerThread();
+    ~TimerThread();
 
     void addMessage(const uint8_t messageType,
                     const uint32_t sessionId,
                     const uint64_t messageId,
                     Session* session);
     void addMessage(const uint8_t messageType,
-                    const uint64_t messageId,
+                    const uint64_t completeMessageId,
                     Session* session);
 
     bool removeMessage(const uint32_t sessionId,
                        const uint64_t messageId);
-    bool removeMessage(const uint64_t messageId);
+    bool removeMessage(const uint64_t completeMessageId);
 
     void removeAllOfSession(const uint32_t sessionId);
 
@@ -61,7 +62,7 @@ protected:
 private:
     struct MessageTime
     {
-        uint64_t messageId = 0;
+        uint64_t completeMessageId = 0;
         float timer = 0;
         uint8_t messageType = 0;
         Session* session = nullptr;
@@ -70,7 +71,8 @@ private:
     float m_timeoutValue = 2.0f;
     std::vector<MessageTime> m_messageList;
 
-    bool removeMessageFromList(const uint64_t messageId);
+    void makeTimerStep();
+    bool removeMessageFromList(const uint64_t completeMessageId);
 };
 
 } // namespace Common

@@ -1,9 +1,9 @@
 ﻿/**
- *  @file       session.h
+ * @file       session.h
  *
- *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
+ * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
- *  @copyright  Apache License Version 2.0
+ * @copyright  Apache License Version 2.0
  *
  *      Copyright 2019 Tobias Anker
  *
@@ -51,6 +51,11 @@ namespace Project
 namespace Common
 {
 
+/**
+ * @brief constructor
+ *
+ * @param socket pointer to socket
+ */
 Session::Session(Network::AbstractSocket* socket)
 {
     m_socket = socket;
@@ -58,16 +63,23 @@ Session::Session(Network::AbstractSocket* socket)
     initStatemachine();
 }
 
+/**
+ * @brief destructor
+ */
 Session::~Session()
 {
     closeSession(false);
 }
 
 /**
- * @brief Session::sendData
- * @param data
- * @param size
- * @return
+ * @brief send data as stream
+ *
+ * @param data data-pointer
+ * @param size number of bytes
+ * @param dynamic if true, packets are not bigger as necessary, but its slower
+ * @param replyExpected if true, the other side sends a reply-message to check timeouts
+ *
+ * @return false if session is NOT ready to send, else true
  */
 bool
 Session::sendStreamData(const void* data,
@@ -89,22 +101,22 @@ Session::sendStreamData(const void* data,
 }
 
 /**
- * @brief Session::sendStandaloneData
- * @param data
- * @param size
- * @param replyExpected
- * @return
+ * @brief send data a multi-block-message
+ *
+ * @param data data-pointer
+ * @param size number of bytes
+ *
+ * @return false if session is NOT ready to send, else true
  */
 bool
 Session::sendStandaloneData(const void* data,
-                            const uint64_t size,
-                            const bool replyExpected)
+                            const uint64_t size)
 {
     if(m_sessionReady == false) {
         return false;
     }
 
-    if(SessionHandler::m_sessionInterface->initMultiblockBuffer(this, size))
+    if(startMultiblockDataTransfer(size))
     {
         SessionHandler::m_sessionInterface->writeDataIntoBuffer(this, data, size);
         send_Data_Multi_Init(this, size);
@@ -115,18 +127,35 @@ Session::sendStandaloneData(const void* data,
 }
 
 /**
- * @brief Session::closeSession
- * @return
+ * @brief close the session inclusive multiblock-messages, statemachine, message to the other side
+ *        and close the socket
+ *
+ * @param replyExpected true, to expect a reply-message
+ *
+ * @return true, if all was successful, else false
  */
 bool
 Session::closeSession(const bool replyExpected)
 {
-    return endSession(true, replyExpected);
+    if(m_statemachine.isInState(SESSION_NOT_READY)) {
+        return false;
+    }
+
+    finishMultiblockDataTransfer(true);
+    if(replyExpected) {
+        send_Session_Close_Start(this, true);
+    }
+    else {
+        return endSession(true);
+    }
+
+    return true;
 }
 
 /**
- * @brief Session::sessionId
- * @return
+ * @brief getter for the id of the session
+ *
+ * @return session-id
  */
 uint32_t
 Session::sessionId() const
@@ -135,8 +164,9 @@ Session::sessionId() const
 }
 
 /**
- * @brief Session::isClientSide
- * @return
+ * @brief check if session is client- or server-side
+ *
+ * @return true, if session is on client-side, else false
  */
 bool
 Session::isClientSide() const
@@ -145,13 +175,19 @@ Session::isClientSide() const
 }
 
 /**
- * @brief Session::connect
- * @return
+ * @brief create the network connection of the session
+ *
+ * @param sessionId id for the session
+ * @param sessionIdentifier session-identifier value to identify the session on server-side
+ *                          before the first data-message was send
+ * @param init true to start the initial message-transfer
+ *
+ * @return false if session is already init or socker can not be connected, else true
  */
 bool
 Session::connectiSession(const uint32_t sessionId,
-                         const uint64_t customValue,
-                         bool init)
+                         const uint64_t sessionIdentifier,
+                         const bool init)
 {
     LOG_DEBUG("CALL session connect: " + std::to_string(m_sessionId));
 
@@ -170,129 +206,190 @@ Session::connectiSession(const uint32_t sessionId,
         return false;
     }
     m_sessionId = sessionId;
-    m_socket->start();
+    m_socket->startThread();
 
     // init session
     if(init) {
-        send_Session_Init_Start(this, customValue);
+        send_Session_Init_Start(this, sessionIdentifier);
     }
 
     return true;
 }
 
 /**
- * @brief Session::startSession
+ * @brief bring the session into ready-state after a successful initial message-transfer
  *
- * @return
+ * @param sessionId final id for the session
+ * @param sessionIdentifier session-identifier value to identify the session on server-side
+ *                          before the first data-message was send
+ *
+ * @return false, if session is already in ready-state, else true
  */
 bool
-Session::makeSessionReady()
+Session::makeSessionReady(const uint32_t sessionId,
+                          const uint64_t sessionIdentifier)
 {
-    LOG_DEBUG("CALL session start: " + std::to_string(m_sessionId));
+    LOG_DEBUG("CALL make session ready: " + std::to_string(m_sessionId));
 
-    // check statemachine
-    if(m_statemachine.isInState(SESSION_NOT_READY) == false) {
-        return false;
+    if(m_statemachine.goToNextState(START_SESSION, SESSION_NOT_READY))
+    {
+        m_sessionReady = true;
+        m_sessionId = sessionId;
+        m_sessionIdentifier = sessionIdentifier;
+
+        m_processSession(m_sessionTarget, this, m_sessionIdentifier);
+
+        return true;
     }
 
-    if(m_statemachine.goToNextState(START_SESSION) == false) {
-        return false;
-    }
-
-    m_sessionReady = true;
-    m_processSession(m_sessionTarget, this, m_customValue);
-
-    return true;
+    return false;
 }
 
 /**
- * @brief Session::endSession
+ * @brief initialize multiblock-message by data-buffer for a new multiblock and bring statemachine
+ *        into required state
  *
- * @param init
- * @param replyExpected
+ * @param size total size of the payload of the message (no header)
  *
- * @return
+ * @return false, if session is already in send/receive of a multiblock-message
  */
 bool
-Session::endSession(const bool init,
-                    const bool replyExpected)
+Session::startMultiblockDataTransfer(const uint64_t size)
+{
+    LOG_DEBUG("CALL start multiblock data-transfer: " + std::to_string(m_sessionId));
+
+    if(m_statemachine.goToNextState(START_DATATRANSFER, NORMAL))
+    {
+        m_inMultiMessage = true;
+
+        const uint32_t numberOfBlocks = static_cast<uint32_t>(size / 4096) + 1;
+        m_multiBlockBuffer = new Kitsune::Common::DataBuffer(numberOfBlocks);
+
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @brief append data to the data-buffer for the multiblock-message
+ *
+ * @param data pointer to the data
+ * @param size number of bytes
+ *
+ * @return false, if session is not in the multiblock-transfer-state
+ */
+bool
+Session::writeDataIntoBuffer(const void* data,
+                             const uint64_t size)
+{
+    if(DEBUG_MODE) {
+        LOG_DEBUG("CALL write data into buffer: " + std::to_string(m_sessionId));
+    }
+
+    if(m_inMultiMessage == false) {
+        return false;
+    }
+
+    return Kitsune::Common::addDataToBuffer(m_multiBlockBuffer,
+                                            data,
+                                            size);
+}
+
+/**
+ * @brief last step of a mutliblock data-transfer by cleaning the buffer. Can also initialize the
+ *        abort-process for a multiblock-datatransfer
+ *
+ * @param initAbort true to initialize an abort-process
+
+ * @return true, if statechange was successful, else false
+ */
+bool
+Session::finishMultiblockDataTransfer(const bool initAbort)
+{
+    LOG_DEBUG("CALL finish multiblock data-transfer: " + std::to_string(m_sessionId));
+
+    // abort multi-block data-transfer, if one is in progress
+    if(m_statemachine.goToNextState(STOP_DATATRANSFER))
+    {
+        m_inMultiMessage = false;
+
+        if(initAbort) {
+            send_Data_Multi_Abort(this);
+        }
+
+        if(m_multiBlockBuffer != nullptr)
+        {
+            delete m_multiBlockBuffer;
+            m_multiBlockBuffer = nullptr;
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @brief stop the session to prevent it from all data-transfers. Delete the session from the
+ *        session-handler and close the socket.
+ *
+ * @param init true, if the caller of the methods initialize the closing process for the session
+ *
+ * @return true, if statechange and socket-disconnect were successful, else false
+ */
+bool
+Session::endSession(const bool init)
 {
     LOG_DEBUG("CALL session close: " + std::to_string(m_sessionId));
 
-    // check statemachine
-    if(m_statemachine.isInState(IN_DATATRANSFER))
+    // try to stop the session
+    if(m_statemachine.goToNextState(STOP_SESSION))
     {
+        m_sessionReady = false;
         if(init) {
-            send_Data_Multi_Abort(this);
+            send_Session_Close_Start(this, false);
         }
+
+        SessionHandler::m_sessionHandler->removeSession(m_sessionId);
+        return disconnectSession();
     }
 
-    if(m_statemachine.isInState(SESSION_READY) == false) {
-        return false;
-    }
-
-    if(m_statemachine.goToNextState(STOP_SESSION) == false) {
-        return false;
-    }
-    m_sessionReady = false;
-
-    if(init) {
-        send_Session_Close_Start(this, replyExpected);
-    }
-
-    return true;
+    return false;
 }
 
 /**
- * @brief Session::disconnect
- * @return
+ * @brief disconnect the socket within the sesson
+ *
+ * @return true, is state-change of the statemachine and closing sthe socket were successful,
+ *         else false
  */
 bool
 Session::disconnectSession()
 {
     LOG_DEBUG("CALL session disconnect: " + std::to_string(m_sessionId));
 
-    // check statemachine
-    if(m_statemachine.isInState(CONNECTED) == false) {
-        return false;
+    if(m_statemachine.goToNextState(DISCONNECT))
+    {
+        return m_socket->closeSocket();
     }
 
-    if(m_statemachine.goToNextState(DISCONNECT) == false) {
-        return false;
-    }
-    m_socket->closeSocket();
-
-    return true;
+    return false;
 }
 
 /**
- * @brief Session::sendHeartbeat
- * @return
+ * @brief send a heartbeat-message
+ *
+ * @return true, if session is ready, else false
  */
 bool
 Session::sendHeartbeat()
 {
     LOG_DEBUG("CALL send hearbeat: " + std::to_string(m_sessionId));
 
-    if(m_statemachine.isInState(SESSION_READY) == false) {
-        return false;
-    }
-
-    send_Heartbeat_Start(this);
-
-    return true;
-}
-
-/**
- * @brief Session::lockForMultiblockMessage
- * @return
- */
-bool
-Session::lockForMultiblockMessage()
-{
-    if(m_statemachine.goToNextState(START_DATATRANSFER, NORMAL))
+    if(m_statemachine.isInState(SESSION_READY))
     {
-        m_inMultiMessage = true;
+        send_Heartbeat_Start(this);
         return true;
     }
 
@@ -300,23 +397,7 @@ Session::lockForMultiblockMessage()
 }
 
 /**
- * @brief Session::unlockFromMultiblockMessage
- * @return
- */
-bool
-Session::unlockFromMultiblockMessage()
-{
-    if(m_statemachine.goToNextState(STOP_DATATRANSFER, IN_DATATRANSFER))
-    {
-        m_inMultiMessage = false;
-        return true;
-    }
-
-    return false;
-}
-
-/**
- * @brief Session::initStatemachine
+ * @brief init the statemachine
  */
 void
 Session::initStatemachine()
@@ -348,16 +429,16 @@ Session::initStatemachine()
     assert(m_statemachine.addTransition(IN_DATATRANSFER,   STOP_DATATRANSFER,  NORMAL));
 }
 
-
 /**
- * @brief SessionHandler::increaseMessageIdCounter
- * @return
+ * @brief increase the message-id-counter and return the new id
+ *
+ * @return new message id
  */
 uint32_t
 Session::increaseMessageIdCounter()
 {
     uint32_t tempId = 0;
-    while (m_messageIdCounter_lock.test_and_set(std::memory_order_acquire))  // acquire lock
+    while (m_messageIdCounter_lock.test_and_set(std::memory_order_acquire)) 
                  ; // spin
     m_messageIdCounter++;
     tempId = m_messageIdCounter;

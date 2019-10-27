@@ -1,9 +1,9 @@
 /**
- *  @file       session_controller.h
+ * @file       session_controller.h
  *
- *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
+ * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
- *  @copyright  Apache License Version 2.0
+ * @copyright  Apache License Version 2.0
  *
  *      Copyright 2019 Tobias Anker
  *
@@ -64,15 +64,15 @@ public:
 
     // session
     bool startUnixDomainSession(const std::string socketFile,
-                                const uint64_t customValue = 0);
+                                const uint64_t sessionIdentifier = 0);
     bool startTcpSession(const std::string address,
                          const uint16_t port,
-                         const uint64_t customValue = 0);
+                         const uint64_t sessionIdentifier = 0);
     bool startTlsTcpSession(const std::string address,
                             const uint16_t port,
                             const std::string certFile,
                             const std::string keyFile,
-                            const uint64_t customValue = 0);
+                            const uint64_t sessionIdentifier = 0);
     bool closeSession(const uint32_t id);
     Session* getSession(const uint32_t id);
     void closeAllSession();
@@ -81,7 +81,7 @@ private:
     uint32_t m_serverIdCounter = 0;
 
     bool startSession(Network::AbstractSocket* socket,
-                      const uint64_t customValue);
+                      const uint64_t sessionIdentifier);
 };
 
 } // namespace Common

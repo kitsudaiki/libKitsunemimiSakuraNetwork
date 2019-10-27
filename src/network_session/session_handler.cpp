@@ -1,9 +1,9 @@
 /**
- *  @file       session_handler.cpp
+ * @file       session_handler.cpp
  *
- *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
+ * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
- *  @copyright  Apache License Version 2.0
+ * @copyright  Apache License Version 2.0
  *
  *      Copyright 2019 Tobias Anker
  *
@@ -39,10 +39,14 @@ namespace Project
 namespace Common
 {
 
+// init static variables
 TimerThread* SessionHandler::m_timerThread = nullptr;
 SessionHandler* SessionHandler::m_sessionHandler = nullptr;
 InternalSessionInterface* SessionHandler::m_sessionInterface = nullptr;
 
+/**
+ * @brief constructor
+ */
 SessionHandler::SessionHandler(void* sessionTarget,
                                void (*processSession)(void*, Session*, const uint64_t),
                                void* dataTarget,
@@ -65,7 +69,7 @@ SessionHandler::SessionHandler(void* sessionTarget,
     if(m_timerThread == nullptr)
     {
         m_timerThread = new TimerThread();
-        m_timerThread->start();
+        m_timerThread->startThread();
     }
 
     // check if messages have the size of a multiple of 8
@@ -89,14 +93,17 @@ SessionHandler::SessionHandler(void* sessionTarget,
 }
 
 /**
- * @brief SessionHandler::~SessionHandler
+ * @brief destructor
  */
 SessionHandler::~SessionHandler()
 {
-    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))  // acquire lock
+    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))
                  ; // spin
+
+    // clear maps
     m_sessions.clear();
     m_servers.clear();
+
     m_sessionMap_lock.clear(std::memory_order_release);
 
     if(m_sessionInterface != nullptr)
@@ -113,23 +120,28 @@ SessionHandler::~SessionHandler()
 }
 
 /**
- * @brief SessionHandler::addSession
- * @param id
- * @param session
+ * @brief add a new session the the internal list
+ *
+ * @param id id of the session, which should be added
+ * @param session pointer to the session
  */
 void
 SessionHandler::addSession(const uint32_t id, Session* session)
 {
     LOG_DEBUG("add session with id: " + std::to_string(id));
-    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))  // acquire lock
+
+    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))
                  ; // spin
+
     m_sessions.insert(std::pair<uint32_t, Session*>(id, session));
+
     m_sessionMap_lock.clear(std::memory_order_release);
 }
 
 /**
- * @brief SessionHandler::removeSession
- * @param id
+ * @brief remove a session from the internal list, but doesn't close the session
+ *
+ * @param id id of the session, which should be removed
  */
 Session*
 SessionHandler::removeSession(const uint32_t id)
@@ -137,8 +149,10 @@ SessionHandler::removeSession(const uint32_t id)
     LOG_DEBUG("remove session with id: " + std::to_string(id));
 
     Session* ret = nullptr;
-    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))  // acquire lock
+
+    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))
                  ; // spin
+
     std::map<uint32_t, Session*>::iterator it;
     it = m_sessions.find(id);
 
@@ -147,40 +161,48 @@ SessionHandler::removeSession(const uint32_t id)
         ret = it->second;
         m_sessions.erase(it);
     }
+
     m_sessionMap_lock.clear(std::memory_order_release);
 
     return ret;
 }
 
 /**
- * @brief SessionHandler::increaseSessionIdCounter
- * @return
+ * @brief increase the internal counter by one and returns the new counter-value
+ *
+ * @return id for the new session
  */
 uint16_t
 SessionHandler::increaseSessionIdCounter()
 {
     uint16_t tempId = 0;
-    while (m_sessionIdCounter_lock.test_and_set(std::memory_order_acquire))  // acquire lock
+
+    while (m_sessionIdCounter_lock.test_and_set(std::memory_order_acquire))
                  ; // spin
+
     m_sessionIdCounter++;
     tempId = m_sessionIdCounter;
+
     m_sessionIdCounter_lock.clear(std::memory_order_release);
+
     return tempId;
 }
 
 /**
- * @brief RessourceHandler::sendHeartBeats
+ * @brief send a heartbeat to all registered sessions
  */
 void
 SessionHandler::sendHeartBeats()
 {
-    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))  // acquire lock
+    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))
                  ; // spin
+
     std::map<uint32_t, Session*>::iterator it;
     for(it = m_sessions.begin(); it != m_sessions.end(); it++)
     {
         m_sessionInterface->sendHeartbeat(it->second);
     }
+
     m_sessionMap_lock.clear(std::memory_order_release);
 }
 

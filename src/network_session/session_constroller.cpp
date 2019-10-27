@@ -1,9 +1,9 @@
 /**
- *  @file       session_controller.cpp
+ * @file       session_controller.cpp
  *
- *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
+ * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
- *  @copyright  Apache License Version 2.0
+ * @copyright  Apache License Version 2.0
  *
  *      Copyright 2019 Tobias Anker
  *
@@ -47,7 +47,7 @@ namespace Common
 SessionController* SessionController::m_sessionController = nullptr;
 
 /**
- * @brief SessionController::SessionController
+ * @brief constructor
  */
 SessionController::SessionController(void* sessionTarget,
                                      void (*processSession)(void*,
@@ -79,7 +79,7 @@ SessionController::SessionController(void* sessionTarget,
 }
 
 /**
- * @brief SessionController::~SessionController
+ * @brief destructor
  */
 SessionController::~SessionController()
 {
@@ -96,9 +96,11 @@ SessionController::~SessionController()
 //==================================================================================================
 
 /**
- * @brief SessionHandler::addUnixDomainServer
- * @param socketFile
- * @return
+ * @brief add new unix-domain-server
+ *
+ * @param socketFile file-path for the server
+ *
+ * @return id of the new server
  */
 uint32_t
 SessionController::addUnixDomainServer(const std::string socketFile)
@@ -106,7 +108,7 @@ SessionController::addUnixDomainServer(const std::string socketFile)
     Network::UnixDomainServer* server = new Network::UnixDomainServer(this,
                                                                       &processConnection_Callback);
     server->initServer(socketFile);
-    server->start();
+    server->startThread();
 
     SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
     m_serverIdCounter++;
@@ -117,9 +119,11 @@ SessionController::addUnixDomainServer(const std::string socketFile)
 }
 
 /**
- * @brief SessionHandler::addTcpServer
- * @param port
- * @return
+ * @brief add new tcp-server
+ *
+ * @param port port where the server should listen
+ *
+ * @return id of the new server
  */
 uint32_t
 SessionController::addTcpServer(const uint16_t port)
@@ -127,7 +131,7 @@ SessionController::addTcpServer(const uint16_t port)
     Network::TcpServer* server = new Network::TcpServer(this,
                                                         &processConnection_Callback);
     server->initServer(port);
-    server->start();
+    server->startThread();
 
     SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
     m_serverIdCounter++;
@@ -138,11 +142,13 @@ SessionController::addTcpServer(const uint16_t port)
 }
 
 /**
- * @brief SessionHandler::addTlsTcpServer
- * @param port
- * @param certFile
- * @param keyFile
- * @return
+ * @brief add new tls-encrypted tcp-server
+ *
+ * @param port port where the server should listen
+ * @param certFile certificate-file for tls-encryption
+ * @param keyFile key-file for tls-encryption
+ *
+ * @return id of the new server
  */
 uint32_t
 SessionController::addTlsTcpServer(const uint16_t port,
@@ -154,7 +160,7 @@ SessionController::addTlsTcpServer(const uint16_t port,
                                                               certFile,
                                                               keyFile);
     server->initServer(port);
-    server->start();
+    server->startThread();
 
     SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
     m_serverIdCounter++;
@@ -165,9 +171,11 @@ SessionController::addTlsTcpServer(const uint16_t port,
 }
 
 /**
- * @brief SessionHandler::closeServer
- * @param id
- * @return
+ * @brief close server
+ *
+ * @param id id of the server
+ *
+ * @return false, if id not exist, else true
  */
 bool
 SessionController::closeServer(const uint32_t id)
@@ -210,10 +218,10 @@ SessionController::cloesAllServers()
  */
 bool
 SessionController::startUnixDomainSession(const std::string socketFile,
-                                          const uint64_t customValue)
+                                          const uint64_t sessionIdentifier)
 {
     Network::UnixDomainSocket* unixDomainSocket = new Network::UnixDomainSocket(socketFile);
-    return startSession(unixDomainSocket, customValue);
+    return startSession(unixDomainSocket, sessionIdentifier);
 }
 
 /**
@@ -224,10 +232,10 @@ SessionController::startUnixDomainSession(const std::string socketFile,
 bool
 SessionController::startTcpSession(const std::string address,
                                    const uint16_t port,
-                                   const uint64_t customValue)
+                                   const uint64_t sessionIdentifier)
 {
     Network::TcpSocket* tcpSocket = new Network::TcpSocket(address, port);
-    return startSession(tcpSocket, customValue);
+    return startSession(tcpSocket, sessionIdentifier);
 }
 
 /**
@@ -242,13 +250,13 @@ SessionController::startTlsTcpSession(const std::string address,
                                       const uint16_t port,
                                       const std::string certFile,
                                       const std::string keyFile,
-                                      const uint64_t customValue)
+                                      const uint64_t sessionIdentifier)
 {
     Network::TlsTcpSocket* tlsTcpSocket = new Network::TlsTcpSocket(address,
                                                                     port,
                                                                     certFile,
                                                                     keyFile);
-    return startSession(tlsTcpSocket, customValue);
+    return startSession(tlsTcpSocket, sessionIdentifier);
 }
 
 /**
@@ -305,19 +313,19 @@ SessionController::closeAllSession()
 /**
  * @brief SessionController::startSession
  * @param socket
- * @param customValue
+ * @param sessionIdentifier
  * @return
  */
 bool
 SessionController::startSession(Network::AbstractSocket *socket,
-                                const uint64_t customValue)
+                                const uint64_t sessionIdentifier)
 {
     Session* newSession = SessionHandler::m_sessionInterface->createNewSession(socket);
     socket->setMessageCallback(newSession, &processMessage_callback);
 
     const uint32_t newId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
     SessionHandler::m_sessionHandler->addSession(newId, newSession);
-    return SessionHandler::m_sessionInterface->connectiSession(newSession, newId, customValue, true);
+    return SessionHandler::m_sessionInterface->connectiSession(newSession, newId, sessionIdentifier, true);
 }
 
 //==================================================================================================

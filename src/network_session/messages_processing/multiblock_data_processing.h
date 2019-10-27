@@ -1,9 +1,9 @@
 /**
- *  @file       multiblock_data_processing.h
+ * @file       multiblock_data_processing.h
  *
- *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
+ * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
- *  @copyright  Apache License Version 2.0
+ * @copyright  Apache License Version 2.0
  *
  *      Copyright 2019 Tobias Anker
  *
@@ -198,15 +198,15 @@ process_Data_Multi_Init_Reply(Session* session,
         uint32_t partCounter = 0;
 
         // static values
-        const uint32_t totalPartNumber = static_cast<uint32_t>(totalSize / 500) + 1;
+        const uint32_t totalPartNumber = static_cast<uint32_t>(totalSize / 1000) + 1;
         const uint8_t* dataPointer = SessionHandler::m_sessionInterface->getDataPointer(session);
 
         while(totalSize != 0
               && SessionHandler::m_sessionInterface->isInMultiblock(session))
         {
             // get message-size base on the rest
-            currentMessageSize = 500;
-            if(totalSize < 500) {
+            currentMessageSize = 1000;
+            if(totalSize < 1000) {
                 currentMessageSize = totalSize;
             }
             totalSize -= currentMessageSize;
@@ -215,7 +215,7 @@ process_Data_Multi_Init_Reply(Session* session,
             send_Data_Multi_Static(session,
                                    totalPartNumber,
                                    partCounter,
-                                   dataPointer + (500 * partCounter),
+                                   dataPointer + (1000 * partCounter),
                                    currentMessageSize);
 
             partCounter++;
@@ -263,11 +263,11 @@ process_Data_Multi_Finish(Session* session,
 
     const uint64_t totalSize = SessionHandler::m_sessionInterface->getUsedBufferSize(session);
     const uint8_t* dataPointer = SessionHandler::m_sessionInterface->getDataPointer(session);
+
     SessionHandler::m_sessionInterface->receivedData(session,
                                                      false,
                                                      dataPointer,
                                                      totalSize);
-
     SessionHandler::m_sessionInterface->finishMultiblockBuffer(session);
 }
 
@@ -286,11 +286,13 @@ process_Data_Multi_Abort(Session* session,
 }
 
 /**
- * @brief process_Data_Type
- * @param session
- * @param header
- * @param recvBuffer
- * @return
+ * @brief process messages of multiblock-message-type
+ *
+ * @param session pointer to the session
+ * @param header pointer to the common header of the message within the message-ring-buffer
+ * @param recvBuffer pointer to the message-ring-buffer
+ *
+ * @return number of processed bytes
  */
 inline uint64_t
 process_MultiBlock_Data_Type(Session* session,
@@ -303,6 +305,7 @@ process_MultiBlock_Data_Type(Session* session,
 
     switch(header->subType)
     {
+        //------------------------------------------------------------------------------------------
         case DATA_MULTI_INIT_SUBTYPE:
             {
                 const Data_MultiInit_Message* message =
@@ -313,6 +316,7 @@ process_MultiBlock_Data_Type(Session* session,
                 process_Data_Multi_Init(session, message);
                 return sizeof(*message);
             }
+        //------------------------------------------------------------------------------------------
         case DATA_MULTI_INIT_REPLY_SUBTYPE:
             {
                 const Data_MultiInitReply_Message* message =
@@ -323,6 +327,7 @@ process_MultiBlock_Data_Type(Session* session,
                 process_Data_Multi_Init_Reply(session, message);
                 return sizeof(*message);
             }
+        //------------------------------------------------------------------------------------------
         case DATA_MULTI_STATIC_SUBTYPE:
             {
                 const Data_MultiStatic_Message* message =
@@ -333,6 +338,7 @@ process_MultiBlock_Data_Type(Session* session,
                 process_Data_Multi_Static(session, message);
                 return sizeof(*message);
             }
+        //------------------------------------------------------------------------------------------
         case DATA_MULTI_FINISH_SUBTYPE:
             {
                 const Data_MultiFinish_Message* message =
@@ -343,6 +349,7 @@ process_MultiBlock_Data_Type(Session* session,
                 process_Data_Multi_Finish(session, message);
                 return sizeof(*message);
             }
+        //------------------------------------------------------------------------------------------
         case DATA_MULTI_ABORT_SUBTYPE:
             {
                 const Data_MultiAbort_Message* message =
@@ -353,6 +360,7 @@ process_MultiBlock_Data_Type(Session* session,
                 process_Data_Multi_Abort(session, message);
                 return sizeof(*message);
             }
+        //------------------------------------------------------------------------------------------
         default:
             break;
     }

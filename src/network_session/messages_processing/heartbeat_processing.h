@@ -1,9 +1,11 @@
 /**
- *  @file       heartbeat_processing.h
+ * @file        heartbeat_processing.h
  *
- *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
+ * @brief       send and handle messages of heartbeat-type
  *
- *  @copyright  Apache License Version 2.0
+ * @author      Tobias Anker <tobias.anker@kitsunemimi.moe>
+ *
+ * @copyright   Apache License Version 2.0
  *
  *      Copyright 2019 Tobias Anker
  *
@@ -47,9 +49,9 @@ namespace Common
 {
 
 /**
- * @brief send_Heartbeat_Start
- * @param id
- * @param socket
+ * @brief send the initial message
+ *
+ * @param session pointer to the session
  */
 inline void
 send_Heartbeat_Start(Session* session)
@@ -68,9 +70,10 @@ send_Heartbeat_Start(Session* session)
 }
 
 /**
- * @brief send_Heartbeat_Reply
- * @param id
- * @param socket
+ * @brief send reply-message
+ *
+ * @param session pointer to the session
+ * @param id of the message of the initial heartbeat
  */
 inline void
 send_Heartbeat_Reply(Session* session,
@@ -90,7 +93,10 @@ send_Heartbeat_Reply(Session* session,
 }
 
 /**
- * @brief process_Heartbeat_Start
+ * @brief handle incoming heartbeats by sending a reply mesage
+ *
+ * @param session pointer to the session
+ * @param message incoming message
  */
 inline void
 process_Heartbeat_Start(Session* session,
@@ -105,7 +111,8 @@ process_Heartbeat_Start(Session* session,
 }
 
 /**
- * @brief process_Heartbeat_Reply
+ * @brief handle the reply-message, but do nothing here, because it is only important, that the
+ *        message is arrived to be handled by the timer-thread
  */
 inline void
 process_Heartbeat_Reply(Session*,
@@ -117,10 +124,13 @@ process_Heartbeat_Reply(Session*,
 }
 
 /**
- * @brief process_Heartbeat_Type
- * @param header
- * @param recvBuffer
- * @return
+ * @brief process messages of heartbeat-type
+ *
+ * @param session pointer to the session
+ * @param header pointer to the common header of the message within the message-ring-buffer
+ * @param recvBuffer pointer to the message-ring-buffer
+ *
+ * @return number of processed bytes
  */
 inline uint64_t
 process_Heartbeat_Type(Session* session,
@@ -133,6 +143,7 @@ process_Heartbeat_Type(Session* session,
 
     switch(header->subType)
     {
+        //------------------------------------------------------------------------------------------
         case HEARTBEAT_START_SUBTYPE:
             {
                 const Heartbeat_Start_Message* message =
@@ -143,6 +154,7 @@ process_Heartbeat_Type(Session* session,
                 process_Heartbeat_Start(session, message);
                 return sizeof(*message);
             }
+        //------------------------------------------------------------------------------------------
         case HEARTBEAT_REPLY_SUBTYPE:
             {
                 const Heartbeat_Reply_Message* message =
@@ -153,6 +165,7 @@ process_Heartbeat_Type(Session* session,
                 process_Heartbeat_Reply(session, message);
                 return sizeof(*message);
             }
+        //------------------------------------------------------------------------------------------
         default:
             break;
     }

@@ -1,9 +1,9 @@
 /**
- *  @file       callbacks.h
+ * @file       callbacks.h
  *
- *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
+ * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
- *  @copyright  Apache License Version 2.0
+ * @copyright  Apache License Version 2.0
  *
  *      Copyright 2019 Tobias Anker
  *
@@ -130,9 +130,8 @@ processConnection_Callback(void*,
                            AbstractSocket* socket)
 {
     Session* newSession = SessionHandler::m_sessionInterface->createNewSession(socket);
-
     socket->setMessageCallback(newSession, &processMessage_callback);
-    socket->start();
+    socket->startThread();
 }
 
 } // namespace Common

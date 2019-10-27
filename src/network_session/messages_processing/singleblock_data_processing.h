@@ -1,9 +1,9 @@
 /**
- *  @file       singleblock_data_processing.h
+ * @file       singleblock_data_processing.h
  *
- *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
+ * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
- *  @copyright  Apache License Version 2.0
+ * @copyright  Apache License Version 2.0
  *
  *      Copyright 2019 Tobias Anker
  *
@@ -86,29 +86,38 @@ send_Data_Single_Dynamic(Session* session,
         LOG_DEBUG("SEND data single dynamic");
     }
 
-    uint64_t totalMessageSize = sizeof(Data_SingleDynamic_Header)
-                                + dataSize
-                                + sizeof(CommonMessageEnd);
-    totalMessageSize += totalMessageSize % 8;
+    // calculate size of the message
+    const uint64_t totalMessageSize = sizeof(Data_SingleDynamic_Header)
+                                      + dataSize
+                                      + sizeof(CommonMessageEnd);
+    // bring message-size to a multiple of 8
+    const uint64_t totalMessageSizeAligned = totalMessageSize + (totalMessageSize % 8);
 
-    uint8_t completeMessage[totalMessageSize];
+    // create message-buffer
+    uint8_t* completeMessage = new uint8_t[totalMessageSizeAligned];
+
+    // create header- and end-part of the message
     Data_SingleDynamic_Header header(session->sessionId(),
                                      session->increaseMessageIdCounter(),
                                      replyExpected);
-    header.commonHeader.size = static_cast<uint32_t>(totalMessageSize);
+    header.commonHeader.size = static_cast<uint32_t>(totalMessageSizeAligned);
     header.payloadSize = dataSize;
     CommonMessageEnd end;
 
-    memcpy(&completeMessage[0], &header, sizeof(Data_SingleDynamic_Header));
-    memcpy(&completeMessage[sizeof(Data_SingleDynamic_Header)], data, dataSize);
-    memcpy(&completeMessage[totalMessageSize - sizeof(CommonMessageEnd)],
+    // fill buffer to build the complete message
+    memcpy(completeMessage, &header, sizeof(Data_SingleDynamic_Header));
+    memcpy(completeMessage + sizeof(Data_SingleDynamic_Header), data, dataSize);
+    memcpy(completeMessage + (totalMessageSizeAligned - sizeof(CommonMessageEnd)),
            &end,
            sizeof(CommonMessageEnd));
 
+    // send message
     SessionHandler::m_sessionInterface->sendMessage(session,
                                                     header.commonHeader,
-                                                    &completeMessage,
-                                                    sizeof(completeMessage));
+                                                    completeMessage,
+                                                    totalMessageSizeAligned);
+
+    delete[] completeMessage;
 }
 
 /**
@@ -187,11 +196,13 @@ process_Data_Single_Reply(Session*,
 }
 
 /**
- * @brief process_Data_Type
- * @param session
- * @param header
- * @param recvBuffer
- * @return
+ * @brief process messages of singleblock-message-type
+ *
+ * @param session pointer to the session
+ * @param header pointer to the common header of the message within the message-ring-buffer
+ * @param recvBuffer pointer to the message-ring-buffer
+ *
+ * @return number of processed bytes
  */
 inline uint64_t
 process_SingleBlock_Data_Type(Session* session,
@@ -204,6 +215,7 @@ process_SingleBlock_Data_Type(Session* session,
 
     switch(header->subType)
     {
+        //------------------------------------------------------------------------------------------
         case DATA_SINGLE_STATIC_SUBTYPE:
             {
                 const Data_SingleStatic_Message* message =
@@ -214,6 +226,7 @@ process_SingleBlock_Data_Type(Session* session,
                 process_Data_Single_Static(session, message);
                 return sizeof(*message);
             }
+        //------------------------------------------------------------------------------------------
         case DATA_SINGLE_DYNAMIC_SUBTYPE:
             {
                 const Data_SingleDynamic_Header* messageHeader =
@@ -226,6 +239,7 @@ process_SingleBlock_Data_Type(Session* session,
                                                                          recvBuffer);
                 return messageSize;
             }
+        //------------------------------------------------------------------------------------------
         case DATA_SINGLE_REPLY_SUBTYPE:
             {
                 const Data_SingleReply_Message* message =
@@ -236,6 +250,7 @@ process_SingleBlock_Data_Type(Session* session,
                 process_Data_Single_Reply(session, message);
                 return sizeof(*message);
             }
+        //------------------------------------------------------------------------------------------
         default:
             break;
     }

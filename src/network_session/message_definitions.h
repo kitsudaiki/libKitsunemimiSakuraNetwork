@@ -1,9 +1,9 @@
 /**
- *  @file       message_definitions.h
+ * @file       message_definitions.h
  *
- *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
+ * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
- *  @copyright  Apache License Version 2.0
+ * @copyright  Apache License Version 2.0
  *
  *      Copyright 2019 Tobias Anker
  *
@@ -110,11 +110,12 @@ struct Session_Init_Start_Message
 {
     CommonMessageHeader commonHeader;
     uint32_t clientSessionId = 0;
-    uint64_t customValue = 0;
+    uint64_t sessionIdentifier = 0;
     CommonMessageEnd commonEnd;
 
     Session_Init_Start_Message(const uint32_t sessionId,
-                               const uint32_t messageId)
+                               const uint32_t messageId,
+                               const uint64_t sessionIdentifier)
     {
         commonHeader.type = SESSION_TYPE;
         commonHeader.subType = SESSION_INIT_START_SUBTYPE;
@@ -122,6 +123,7 @@ struct Session_Init_Start_Message
         commonHeader.messageId = messageId;
         commonHeader.flags = 0x1;
         commonHeader.size = sizeof(*this);
+        this->sessionIdentifier = sessionIdentifier;
     }
 } __attribute__((packed));
 
@@ -420,7 +422,7 @@ struct Data_MultiStatic_Message
     uint32_t totalPartNumber = 0;
     uint32_t partId = 0;
     uint64_t payloadSize = 0;
-    uint8_t payload[500];
+    uint8_t payload[1004];
     CommonMessageEnd commonEnd;
 
     Data_MultiStatic_Message(const uint32_t sessionId,
