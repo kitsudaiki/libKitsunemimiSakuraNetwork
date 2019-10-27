@@ -25,7 +25,8 @@
 
 #include <network_session/messages_processing/session_processing.h>
 #include <network_session/messages_processing/heartbeat_processing.h>
-#include <network_session/messages_processing/data_processing.h>
+#include <network_session/messages_processing/singleblock_data_processing.h>
+#include <network_session/messages_processing/multiblock_data_processing.h>
 
 #include <libKitsunePersistence/logger/logger.h>
 

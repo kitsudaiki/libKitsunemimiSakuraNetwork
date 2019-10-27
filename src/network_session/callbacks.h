@@ -33,7 +33,8 @@
 #include <network_session/messages_processing/session_processing.h>
 #include <network_session/messages_processing/heartbeat_processing.h>
 #include <network_session/messages_processing/error_processing.h>
-#include <network_session/messages_processing/data_processing.h>
+#include <network_session/messages_processing/singleblock_data_processing.h>
+#include <network_session/messages_processing/multiblock_data_processing.h>
 
 using Kitsune::Network::MessageRingBuffer;
 using Kitsune::Network::AbstractSocket;
@@ -93,8 +94,10 @@ processMessage(void* target,
     // process message by type
     switch(header->type)
     {
-        case DATA_TYPE:
-            return process_Data_Type(session, header, recvBuffer);
+        case SINGLEBLOCK_DATA_TYPE:
+            return process_SingleBlock_Data_Type(session, header, recvBuffer);
+        case MULTIBLOCK_DATA_TYPE:
+            return process_MultiBlock_Data_Type(session, header, recvBuffer);
         case SESSION_TYPE:
             return process_Session_Type(session, header, recvBuffer);
         case HEARTBEAT_TYPE:
