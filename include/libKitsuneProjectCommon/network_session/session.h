@@ -81,8 +81,10 @@ private:
     Kitsune::Common::DataBuffer* m_multiBlockBuffer = nullptr;
     Network::AbstractSocket* m_socket = nullptr;
     uint32_t m_sessionId = 0;
-    bool m_sessionReady = true;
     uint64_t m_customValue = 0;
+
+    bool m_sessionReady = false;
+    bool m_inMultiMessage = false;
 
     // internal methods triggered by the InternalSessionInterface
     bool connectiSession(const uint32_t sessionId,

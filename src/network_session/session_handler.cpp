@@ -85,6 +85,7 @@ SessionHandler::SessionHandler(void* sessionTarget,
     assert(sizeof(Data_MultiInitReply_Message) % 8 == 0);
     assert(sizeof(Data_MultiStatic_Message) % 8 == 0);
     assert(sizeof(Data_MultiFinish_Message) % 8 == 0);
+    assert(sizeof(Data_MultiAbort_Message) % 8 == 0);
 }
 
 /**

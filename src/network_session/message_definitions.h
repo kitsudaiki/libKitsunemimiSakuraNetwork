@@ -80,6 +80,7 @@ enum data_subTypes
     DATA_MULTI_INIT_REPLY_SUBTYPE = 5,
     DATA_MULTI_STATIC_SUBTYPE = 6,
     DATA_MULTI_FINISH_SUBTYPE = 7,
+    DATA_MULTI_ABORT_SUBTYPE = 8,
 };
 
 //==================================================================================================
@@ -441,6 +442,23 @@ struct Data_MultiFinish_Message
     {
         commonHeader.type = DATA_TYPE;
         commonHeader.subType = DATA_MULTI_FINISH_SUBTYPE;
+        commonHeader.sessionId = sessionId;
+        commonHeader.messageId = messageId;
+        commonHeader.size = sizeof(*this);
+    }
+} __attribute__((packed));
+
+struct Data_MultiAbort_Message
+{
+    CommonMessageHeader commonHeader;
+    uint8_t padding[4];
+    CommonMessageEnd commonEnd;
+
+    Data_MultiAbort_Message(const uint32_t sessionId,
+                            const uint32_t messageId)
+    {
+        commonHeader.type = DATA_TYPE;
+        commonHeader.subType = DATA_MULTI_ABORT_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
         commonHeader.size = sizeof(*this);

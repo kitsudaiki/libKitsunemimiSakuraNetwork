@@ -183,6 +183,9 @@ InternalSessionInterface::writeDataIntoBuffer(Session* session,
                                               const void* data,
                                               const uint64_t size)
 {
+    if(session->m_inMultiMessage == false) {
+        return false;
+    }
     return Kitsune::Common::addDataToBuffer(session->m_multiBlockBuffer,
                                             data,
                                             size);
@@ -196,7 +199,26 @@ InternalSessionInterface::writeDataIntoBuffer(Session* session,
 bool
 InternalSessionInterface::finishMultiblockBuffer(Session *session)
 {
-    return session->unlockFromMultiblockMessage();
+    session->unlockFromMultiblockMessage();
+
+    if(session->m_multiBlockBuffer != nullptr)
+    {
+        delete session->m_multiBlockBuffer;
+        session->m_multiBlockBuffer = nullptr;
+    }
+
+    return true;
+}
+
+/**
+ * @brief InternalSessionInterface::isInMultiblock
+ * @param session
+ * @return
+ */
+bool
+InternalSessionInterface::isInMultiblock(Session *session)
+{
+    return session->m_inMultiMessage;
 }
 
 /**
@@ -219,24 +241,6 @@ uint8_t*
 InternalSessionInterface::getDataPointer(Session *session)
 {
     return session->m_multiBlockBuffer->getBlock(0);
-}
-
-/**
- * @brief InternalSessionInterface::deleteBuffer
- * @param session
- * @return
- */
-bool
-InternalSessionInterface::deleteBuffer(Session* session)
-{
-    if(session->m_multiBlockBuffer != nullptr)
-    {
-        delete session->m_multiBlockBuffer;
-        session->m_multiBlockBuffer = nullptr;
-        return true;
-    }
-
-    return false;
 }
 
 /**

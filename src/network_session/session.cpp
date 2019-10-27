@@ -219,6 +219,13 @@ Session::endSession(const bool init,
     LOG_DEBUG("CALL session close: " + std::to_string(m_sessionId));
 
     // check statemachine
+    if(m_statemachine.isInState(IN_DATATRANSFER))
+    {
+        if(init) {
+            send_Data_Multi_Abort(this);
+        }
+    }
+
     if(m_statemachine.isInState(SESSION_READY) == false) {
         return false;
     }
@@ -226,7 +233,7 @@ Session::endSession(const bool init,
     if(m_statemachine.goToNextState(STOP_SESSION) == false) {
         return false;
     }
-    m_sessionReady = true;;
+    m_sessionReady = false;
 
     if(init) {
         send_Session_Close_Start(this, replyExpected);
@@ -282,7 +289,13 @@ Session::sendHeartbeat()
 bool
 Session::lockForMultiblockMessage()
 {
-    return m_statemachine.goToNextState(START_DATATRANSFER, NORMAL);
+    if(m_statemachine.goToNextState(START_DATATRANSFER, NORMAL))
+    {
+        m_inMultiMessage = true;
+        return true;
+    }
+
+    return false;
 }
 
 /**
@@ -292,7 +305,13 @@ Session::lockForMultiblockMessage()
 bool
 Session::unlockFromMultiblockMessage()
 {
-    return m_statemachine.goToNextState(STOP_DATATRANSFER, IN_DATATRANSFER);
+    if(m_statemachine.goToNextState(STOP_DATATRANSFER, IN_DATATRANSFER))
+    {
+        m_inMultiMessage = false;
+        return true;
+    }
+
+    return false;
 }
 
 /**

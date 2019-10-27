@@ -220,6 +220,21 @@ send_Data_Multi_Finish(Session* session)
 }
 
 /**
+ * @brief send_Data_Multi_Abort
+ * @param session
+ */
+inline void
+send_Data_Multi_Abort(Session* session)
+{
+    if(DEBUG_MODE) {
+        LOG_DEBUG("SEND data multi abort");
+    }
+
+    Data_MultiAbort_Message message(session->sessionId(),
+                                    session->increaseMessageIdCounter());
+}
+
+/**
  * @brief process_Data_Single_Static
  */
 inline void
@@ -325,7 +340,8 @@ process_Data_Multi_Init_Reply(Session* session,
         const uint32_t totalPartNumber = static_cast<uint32_t>(totalSize / 500) + 1;
         const uint8_t* dataPointer = SessionHandler::m_sessionInterface->getDataPointer(session);
 
-        while(totalSize != 0)
+        while(totalSize != 0
+              && SessionHandler::m_sessionInterface->isInMultiblock(session))
         {
             // get message-size base on the rest
             currentMessageSize = 500;
@@ -390,6 +406,20 @@ process_Data_Multi_Finish(Session* session,
                                                      false,
                                                      dataPointer,
                                                      totalSize);
+
+    SessionHandler::m_sessionInterface->finishMultiblockBuffer(session);
+}
+
+/**
+ * @brief process_Data_Multi_Abort
+ */
+inline void
+process_Data_Multi_Abort(Session* session,
+                         const Data_MultiAbort_Message*)
+{
+    if(DEBUG_MODE) {
+        LOG_DEBUG("process data multi abort");
+    }
 
     SessionHandler::m_sessionInterface->finishMultiblockBuffer(session);
 }
@@ -482,6 +512,16 @@ process_Data_Type(Session* session,
                     break;
                 }
                 process_Data_Multi_Finish(session, message);
+                return sizeof(*message);
+            }
+        case DATA_MULTI_ABORT_SUBTYPE:
+            {
+                const Data_MultiAbort_Message* message =
+                        getObjectFromBuffer<Data_MultiAbort_Message>(recvBuffer);
+                if(message == nullptr) {
+                    break;
+                }
+                process_Data_Multi_Abort(session, message);
                 return sizeof(*message);
             }
         default:
