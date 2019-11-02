@@ -1,9 +1,19 @@
 /**
- *  @file       internal_session_interface.cpp
+ * @file        internal_session_interface.cpp
  *
- *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
+ * @brief       Internal used class for access session-objects
  *
- *  @copyright  Apache License Version 2.0
+ * @detail      The session class is public accessible, but it has many variables and methods,
+ *              where the most shouldn't ever used from outside this library. So these things had
+ *              to be declared as private. Problem was, that the methods for handling of incoming
+ *              messages are not within a class, but should have access to these stuff. So this
+ *              internal class was added as friend class for the session-class. It would have been
+ *              also possible to make all in the session-class public, but that would had make the
+ *              class more complicate for new users of this library.
+ *
+ * @author      Tobias Anker <tobias.anker@kitsunemimi.moe>
+ *
+ * @copyright   Apache License Version 2.0
  *
  *      Copyright 2019 Tobias Anker
  *
@@ -39,10 +49,7 @@ namespace Common
 {
 
 /**
- * @brief InternalSessionInterface::InternalSessionInterface
- * @param sessionTarget
- * @param dataTarget
- * @param errorTarget
+ * @brief constructor
  */
 InternalSessionInterface::InternalSessionInterface(void* sessionTarget,
                                                    void (*processSession)(void*,
@@ -69,17 +76,12 @@ InternalSessionInterface::InternalSessionInterface(void* sessionTarget,
 }
 
 /**
- * @brief InternalSessionInterface::~InternalSessionInterface
+ * @brief destructor
  */
-InternalSessionInterface::~InternalSessionInterface()
-{
-
-}
+InternalSessionInterface::~InternalSessionInterface() {}
 
 /**
- * @brief InternalSessionInterface::createNewSession
- * @param socket
- * @return
+ * @brief createNewSession
  */
 Session*
 InternalSessionInterface::createNewSession(Network::AbstractSocket* socket)
@@ -88,11 +90,7 @@ InternalSessionInterface::createNewSession(Network::AbstractSocket* socket)
 }
 
 /**
- * @brief InternalSessionInterface::receivedData
- * @param session
- * @param isStream
- * @param data
- * @param dataSize
+ * @brief receivedData
  */
 void
 InternalSessionInterface::receivedData(Session* session,
@@ -108,10 +106,7 @@ InternalSessionInterface::receivedData(Session* session,
 }
 
 /**
- * @brief RessourceHandler::receivedError
- * @param session
- * @param errorCode
- * @param message
+ * @brief receivedError
  */
 void
 InternalSessionInterface::receivedError(Session* session,
@@ -127,11 +122,7 @@ InternalSessionInterface::receivedError(Session* session,
 }
 
 /**
- * @brief RessourceHandler::sendMessage
- * @param session
- * @param data
- * @param size
- * @return
+ * @brief sendMessage
  */
 void
 InternalSessionInterface::sendMessage(Session* session,
@@ -151,80 +142,46 @@ InternalSessionInterface::sendMessage(Session* session,
 }
 
 /**
- * @brief InternalSessionInterface::initMultiblockBuffer
- * @param session
- * @param size
- * @return
+ * @brief initMultiblockBuffer
  */
 bool
 InternalSessionInterface::initMultiblockBuffer(Session* session,
                                                const uint64_t size)
 {
-    if(session->lockForMultiblockMessage())
-    {
-        const uint32_t numberOfBlocks = static_cast<uint32_t>(size / 4096) + 1;
-        session->m_multiBlockBuffer = new Kitsune::Common::DataBuffer(numberOfBlocks);
-
-        // TODO: check if allocation was successful
-        return true;
-    }
-    return false;
+    return session->startMultiblockDataTransfer(size);
 }
 
 /**
- * @brief InternalSessionInterface::writeDataIntoBuffer
- * @param session
- * @param data
- * @param size
- * @return
+ * @brief writeDataIntoBuffer
  */
 bool
 InternalSessionInterface::writeDataIntoBuffer(Session* session,
                                               const void* data,
                                               const uint64_t size)
 {
-    if(session->m_inMultiMessage == false) {
-        return false;
-    }
-    return Kitsune::Common::addDataToBuffer(session->m_multiBlockBuffer,
-                                            data,
-                                            size);
+    return session->writeDataIntoBuffer(data, size);
 }
 
 /**
- * @brief InternalSessionInterface::finishMultiblockBuffer
- * @param session
- * @return
+ * @brief finishMultiblockBuffer
  */
 bool
-InternalSessionInterface::finishMultiblockBuffer(Session *session)
+InternalSessionInterface::finishMultiblockBuffer(Session* session)
 {
-    session->unlockFromMultiblockMessage();
-
-    if(session->m_multiBlockBuffer != nullptr)
-    {
-        delete session->m_multiBlockBuffer;
-        session->m_multiBlockBuffer = nullptr;
-    }
-
-    return true;
+    return session->finishMultiblockDataTransfer();
 }
 
 /**
- * @brief InternalSessionInterface::isInMultiblock
- * @param session
- * @return
+ * @brief isInMultiblock
  */
 bool
-InternalSessionInterface::isInMultiblock(Session *session)
+InternalSessionInterface::isInMultiblock(Session* session)
 {
     return session->m_inMultiMessage;
 }
 
 /**
- * @brief InternalSessionInterface::getTotalBufferSize
- * @param session
- * @return
+ * @brief getUsedBufferSize
  */
 uint64_t
 InternalSessionInterface::getUsedBufferSize(Session* session)
@@ -233,37 +190,30 @@ InternalSessionInterface::getUsedBufferSize(Session* session)
 }
 
 /**
- * @brief InternalSessionInterface::getDataPointer
- * @param session
- * @return
+ * @brief getDataPointer
  */
 uint8_t*
-InternalSessionInterface::getDataPointer(Session *session)
+InternalSessionInterface::getDataPointer(Session* session)
 {
     return session->m_multiBlockBuffer->getBlock(0);
 }
 
 /**
- * @brief InternalSessionInterface::sendHeartbeat
- * @param session
+ * @brief sendHeartbeat
  */
 void
-InternalSessionInterface::sendHeartbeat(Session *session)
+InternalSessionInterface::sendHeartbeat(Session* session)
 {
     session->sendHeartbeat();
 }
 
 /**
- * @brief RessourceHandler::connectiSession
- * @param session
- * @param sessionId
- * @param init
- * @return
+ * @brief connectiSession
  */
 bool
 InternalSessionInterface::connectiSession(Session* session,
                                           const uint32_t sessionId,
-                                          const uint64_t customValue,
+                                          const uint64_t sessionIdentifier,
                                           const bool init)
 {
     session->m_sessionTarget = m_sessionTarget;
@@ -273,44 +223,32 @@ InternalSessionInterface::connectiSession(Session* session,
     session->m_errorTarget = m_errorTarget;
     session->m_processError = m_processError;
 
-    return session->connectiSession(sessionId, customValue, init);
+    return session->connectiSession(sessionId, sessionIdentifier, init);
 }
 
 /**
- * @brief RessourceHandler::makeSessionReady
- * @param session
- * @param sessionId
- * @return
+ * @brief makeSessionReady
  */
 bool
 InternalSessionInterface::makeSessionReady(Session* session,
                                            const uint32_t sessionId,
-                                           const uint64_t customValue)
+                                           const uint64_t sessionIdentifier)
 {
-    session->m_sessionId = sessionId;
-    session->m_customValue = customValue;
-    return session->makeSessionReady();
+    return session->makeSessionReady(sessionId, sessionIdentifier);
 }
 
 /**
- * @brief RessourceHandler::endSession
- * @param session
- * @param init
- * @param replyExpected
- * @return
+ * @brief endSession
  */
 bool
 InternalSessionInterface::endSession(Session* session,
-                                     const bool init,
-                                     const bool replyExpected)
+                                     const bool init)
 {
-    return session->endSession(init, replyExpected);
+    return session->endSession(init);
 }
 
 /**
- * @brief RessourceHandler::disconnectSession
- * @param session
- * @return
+ * @brief disconnectSession
  */
 bool
 InternalSessionInterface::disconnectSession(Session* session)

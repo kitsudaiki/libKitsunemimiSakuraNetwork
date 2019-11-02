@@ -1,9 +1,9 @@
 /**
- *  @file       message_definitions.h
+ * @file       message_definitions.h
  *
- *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
+ * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
- *  @copyright  Apache License Version 2.0
+ * @copyright  Apache License Version 2.0
  *
  *      Copyright 2019 Tobias Anker
  *
@@ -44,8 +44,8 @@ enum types
     SESSION_TYPE = 1,
     HEARTBEAT_TYPE = 2,
     ERROR_TYPE = 3,
-    DATA_TYPE = 4,
-    SUB_PROTOCOL_TYPE = 5,
+    SINGLEBLOCK_DATA_TYPE = 4,
+    MULTIBLOCK_DATA_TYPE = 5,
 };
 
 enum session_subTypes
@@ -70,12 +70,15 @@ enum error_subTypes
     ERROR_INVALID_MESSAGE_SUBTYPE = 3,
 };
 
-enum data_subTypes
+enum singleblock_data_subTypes
 {
     DATA_SINGLE_STATIC_SUBTYPE = 1,
     DATA_SINGLE_DYNAMIC_SUBTYPE = 2,
     DATA_SINGLE_REPLY_SUBTYPE = 3,
+};
 
+enum multiblock_data_subTypes
+{
     DATA_MULTI_INIT_SUBTYPE = 4,
     DATA_MULTI_INIT_REPLY_SUBTYPE = 5,
     DATA_MULTI_STATIC_SUBTYPE = 6,
@@ -107,11 +110,12 @@ struct Session_Init_Start_Message
 {
     CommonMessageHeader commonHeader;
     uint32_t clientSessionId = 0;
-    uint64_t customValue = 0;
+    uint64_t sessionIdentifier = 0;
     CommonMessageEnd commonEnd;
 
     Session_Init_Start_Message(const uint32_t sessionId,
-                               const uint32_t messageId)
+                               const uint32_t messageId,
+                               const uint64_t sessionIdentifier)
     {
         commonHeader.type = SESSION_TYPE;
         commonHeader.subType = SESSION_INIT_START_SUBTYPE;
@@ -119,6 +123,7 @@ struct Session_Init_Start_Message
         commonHeader.messageId = messageId;
         commonHeader.flags = 0x1;
         commonHeader.size = sizeof(*this);
+        this->sessionIdentifier = sessionIdentifier;
     }
 } __attribute__((packed));
 
@@ -316,7 +321,7 @@ struct Data_SingleStatic_Message
                               const uint32_t messageId,
                               const bool replyExpected)
     {
-        commonHeader.type = DATA_TYPE;
+        commonHeader.type = SINGLEBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_SINGLE_STATIC_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
@@ -336,7 +341,7 @@ struct Data_SingleDynamic_Header
                                const uint32_t messageId,
                                const bool replyExpected)
     {
-        commonHeader.type = DATA_TYPE;
+        commonHeader.type = SINGLEBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_SINGLE_DYNAMIC_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
@@ -356,7 +361,7 @@ struct Data_SingleReply_Message
     Data_SingleReply_Message(const uint32_t sessionId,
                              const uint32_t messageId)
     {
-        commonHeader.type = DATA_TYPE;
+        commonHeader.type = SINGLEBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_SINGLE_REPLY_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
@@ -365,6 +370,7 @@ struct Data_SingleReply_Message
     }
 } __attribute__((packed));
 
+//==================================================================================================
 
 struct Data_MultiInit_Message
 {
@@ -376,7 +382,7 @@ struct Data_MultiInit_Message
     Data_MultiInit_Message(const uint32_t sessionId,
                            const uint32_t messageId)
     {
-        commonHeader.type = DATA_TYPE;
+        commonHeader.type = MULTIBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_MULTI_INIT_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
@@ -401,7 +407,7 @@ struct Data_MultiInitReply_Message
     Data_MultiInitReply_Message(const uint32_t sessionId,
                                 const uint32_t messageId)
     {
-        commonHeader.type = DATA_TYPE;
+        commonHeader.type = MULTIBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_MULTI_INIT_REPLY_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
@@ -410,20 +416,19 @@ struct Data_MultiInitReply_Message
     }
 } __attribute__((packed));
 
-
 struct Data_MultiStatic_Message
 {
     CommonMessageHeader commonHeader;
     uint32_t totalPartNumber = 0;
     uint32_t partId = 0;
     uint64_t payloadSize = 0;
-    uint8_t payload[500];
+    uint8_t payload[1004];
     CommonMessageEnd commonEnd;
 
     Data_MultiStatic_Message(const uint32_t sessionId,
                              const uint32_t messageId)
     {
-        commonHeader.type = DATA_TYPE;
+        commonHeader.type = MULTIBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_MULTI_STATIC_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
@@ -440,7 +445,7 @@ struct Data_MultiFinish_Message
     Data_MultiFinish_Message(const uint32_t sessionId,
                              const uint32_t messageId)
     {
-        commonHeader.type = DATA_TYPE;
+        commonHeader.type = MULTIBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_MULTI_FINISH_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
@@ -457,7 +462,7 @@ struct Data_MultiAbort_Message
     Data_MultiAbort_Message(const uint32_t sessionId,
                             const uint32_t messageId)
     {
-        commonHeader.type = DATA_TYPE;
+        commonHeader.type = MULTIBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_MULTI_ABORT_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;

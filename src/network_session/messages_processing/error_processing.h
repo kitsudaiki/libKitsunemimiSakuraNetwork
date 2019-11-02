@@ -1,9 +1,11 @@
 /**
- *  @file       error_processing.h
+ * @file        error_processing.h
  *
- *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
+ * @brief       send and handle messages of error-type
  *
- *  @copyright  Apache License Version 2.0
+ * @author      Tobias Anker <tobias.anker@kitsunemimi.moe>
+ *
+ * @copyright   Apache License Version 2.0
  *
  *      Copyright 2019 Tobias Anker
  *
@@ -46,10 +48,11 @@ namespace Common
 {
 
 /**
- * @brief send_ErrorMessage
- * @param session
- * @param errorCode
- * @param message
+ * @brief send error-message to the other side
+ *
+ * @param session pointer to the session
+ * @param errorCode error-code enum to automatic identify the error-message by code
+ * @param message human readable error-message for log-output
  */
 inline void
 send_ErrorMessage(Session* session,
@@ -60,6 +63,7 @@ send_ErrorMessage(Session* session,
 
     switch(errorCode)
     {
+        //------------------------------------------------------------------------------------------
         case Session::errorCodes::FALSE_VERSION:
         {
             Error_FalseVersion_Message errorMessage(
@@ -72,7 +76,7 @@ send_ErrorMessage(Session* session,
                                                             sizeof(errorMessage));
             break;
         }
-
+        //------------------------------------------------------------------------------------------
         case Session::errorCodes::UNKNOWN_SESSION:
         {
             Error_UnknownSession_Message errorMessage(
@@ -85,7 +89,7 @@ send_ErrorMessage(Session* session,
                                                             sizeof(errorMessage));
             break;
         }
-
+        //------------------------------------------------------------------------------------------
         case Session::errorCodes::INVALID_MESSAGE_SIZE:
         {
             Error_InvalidMessage_Message errorMessage(
@@ -98,28 +102,33 @@ send_ErrorMessage(Session* session,
                                                             sizeof(errorMessage));
             break;
         }
-
+        //------------------------------------------------------------------------------------------
         default:
             break;
     }
 }
 
 /**
- * @brief process_Error_Type
- * @param session
- * @param header
- * @param recvBuffer
- * @return
+ * @brief process messages of error-type
+ *
+ * @param session pointer to the session
+ * @param header pointer to the common header of the message within the message-ring-buffer
+ * @param recvBuffer pointer to the message-ring-buffer
+ *
+ * @return number of processed bytes
  */
 inline uint64_t
 process_Error_Type(Session* session,
                    const CommonMessageHeader* header,
                    MessageRingBuffer* recvBuffer)
 {
-    LOG_DEBUG("process error message");
+    if(DEBUG_MODE) {
+        LOG_DEBUG("process error message");
+    }
 
     switch(header->subType)
     {
+        //------------------------------------------------------------------------------------------
         case ERROR_FALSE_VERSION_SUBTYPE:
             {
                 const Error_FalseVersion_Message* message =
@@ -134,6 +143,7 @@ process_Error_Type(Session* session,
                             std::string(message->message, message->messageSize));
                 return sizeof(*message);
             }
+        //------------------------------------------------------------------------------------------
         case ERROR_UNKNOWN_SESSION_SUBTYPE:
             {
                 const Error_UnknownSession_Message* message =
@@ -148,22 +158,22 @@ process_Error_Type(Session* session,
                             std::string(message->message, message->messageSize));
                 return sizeof(*message);
             }
-
+        //------------------------------------------------------------------------------------------
         case ERROR_INVALID_MESSAGE_SUBTYPE:
-        {
-            const Error_InvalidMessage_Message* message =
-                    getObjectFromBuffer<Error_InvalidMessage_Message>(recvBuffer);
-            if(message == nullptr) {
-                break;
+            {
+                const Error_InvalidMessage_Message* message =
+                        getObjectFromBuffer<Error_InvalidMessage_Message>(recvBuffer);
+                if(message == nullptr) {
+                    break;
+                }
+
+                SessionHandler::m_sessionInterface->receivedError(
+                            session,
+                            Session::errorCodes::INVALID_MESSAGE_SIZE,
+                            std::string(message->message, message->messageSize));
+                return sizeof(*message);
             }
-
-            SessionHandler::m_sessionInterface->receivedError(
-                        session,
-                        Session::errorCodes::INVALID_MESSAGE_SIZE,
-                        std::string(message->message, message->messageSize));
-            return sizeof(*message);
-        }
-
+        //------------------------------------------------------------------------------------------
         default:
             break;
     }

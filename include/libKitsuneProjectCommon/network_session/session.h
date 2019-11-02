@@ -1,9 +1,9 @@
 /**
- *  @file       session.h
+ * @file       session.h
  *
- *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
+ * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
- *  @copyright  Apache License Version 2.0
+ * @copyright  Apache License Version 2.0
  *
  *      Copyright 2019 Tobias Anker
  *
@@ -53,8 +53,7 @@ public:
                         const bool dynamic = false,
                         const bool replyExpected = false);
     bool sendStandaloneData(const void* data,
-                            const uint64_t size,
-                            const bool replyExpected = false);
+                            const uint64_t size);
     bool closeSession(const bool replyExpected = false);
 
     uint32_t sessionId() const;
@@ -81,23 +80,26 @@ private:
     Kitsune::Common::DataBuffer* m_multiBlockBuffer = nullptr;
     Network::AbstractSocket* m_socket = nullptr;
     uint32_t m_sessionId = 0;
-    uint64_t m_customValue = 0;
+    uint64_t m_sessionIdentifier = 0;
 
+    // additional check for faster check of machine states
     bool m_sessionReady = false;
     bool m_inMultiMessage = false;
 
     // internal methods triggered by the InternalSessionInterface
     bool connectiSession(const uint32_t sessionId,
-                         const uint64_t customValue,
+                         const uint64_t sessionIdentifier,
                          const bool init = false);
-    bool makeSessionReady();
+    bool makeSessionReady(const uint32_t sessionId,
+                          const uint64_t sessionIdentifier);
+    bool startMultiblockDataTransfer(const uint64_t size);
 
-    bool endSession(const bool init = false,
-                    const bool replyExpected = false);
+    bool writeDataIntoBuffer(const void* data,
+                             const uint64_t size);
+
+    bool finishMultiblockDataTransfer(const bool initAbort = false);
+    bool endSession(const bool init = false);
     bool disconnectSession();
-
-    bool lockForMultiblockMessage();
-    bool unlockFromMultiblockMessage();
 
     bool sendHeartbeat();
     void initStatemachine();

@@ -1,9 +1,9 @@
 /**
- *  @file       timer_thread.cpp
+ * @file       timer_thread.cpp
  *
- *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
+ * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
- *  @copyright  Apache License Version 2.0
+ * @copyright  Apache License Version 2.0
  *
  *      Copyright 2019 Tobias Anker
  *
@@ -37,17 +37,25 @@ namespace Common
 {
 
 /**
- * constructor
+ * @brief constructor
  */
-TimerThread::TimerThread()
-{
+TimerThread::TimerThread() {}
 
+/**
+ * @brief destructor
+ */
+TimerThread::~TimerThread()
+{
+    m_messageList.clear();
 }
 
 /**
- * @brief TimerThread::addMessage
- * @param messageId
- * @param sessionId
+ * @brief add a message to the internal timeout-queue
+ *
+ * @param messageType type of the message
+ * @param sessionId is of the session of the message
+ * @param messageId id of the message, which should be added
+ * @param session pointer to the session-object, which had sended the message
  */
 void
 TimerThread::addMessage(const uint8_t messageType,
@@ -59,29 +67,34 @@ TimerThread::addMessage(const uint8_t messageType,
 }
 
 /**
- * @brief TimerThread::addMessage
- * @param messageId
+ * @brief add a message to the internal timeout-queue
+ *
+ * @param messageType type of the message
+ * @param completeMessageId completed id of the message, which should be added
+ * @param session pointer to the session-object, which had sended the message
  */
 void
 TimerThread::addMessage(const uint8_t messageType,
-                        const uint64_t messageId,
+                        const uint64_t completeMessageId,
                         Session* session)
 {
     MessageTime messageTime;
-    messageTime.messageId = messageId;
+    messageTime.completeMessageId = completeMessageId;
     messageTime.messageType = messageType;
     messageTime.session = session;
 
-    mutexLock();
+    spinLock();
     m_messageList.push_back(messageTime);
-    mutexUnlock();
+    spinUnlock();
 }
 
 /**
- * @brief TimerThread::removeMessage
- * @param messageId
- * @param sessionId
- * @return
+ * @brief remove a message from the internal list
+ *
+ * @param sessionId is of the session of the message
+ * @param messageId id of the message, which should be removed
+ *
+ * @return false, if message-id doesn't exist in the list, else true
  */
 bool
 TimerThread::removeMessage(const uint32_t sessionId,
@@ -91,56 +104,61 @@ TimerThread::removeMessage(const uint32_t sessionId,
 }
 
 /**
- * @brief TimerThread::removeMessage
- * @param messageId
- * @return
+ * @brief remove a message from the internal list
+ *
+ * @param completeMessageId id of the message, which should be removed
+ *
+ * @return false, if message-id doesn't exist in the list, else true
  */
 bool
-TimerThread::removeMessage(const uint64_t messageId)
+TimerThread::removeMessage(const uint64_t completeMessageId)
 {
     bool result = false;
 
-    mutexLock();
-    result = removeMessageFromList(messageId);
-    mutexUnlock();
+    spinLock();
+    result = removeMessageFromList(completeMessageId);
+    spinUnlock();
 
     return result;
 }
 
 /**
- * @brief TimerThread::removeAllOfSession
- * @param sessionId
+ * @brief remove all messages from the internal message, which are related to a specific session
+ *
+ * @param sessionId id of the session
  */
 void
 TimerThread::removeAllOfSession(const uint32_t sessionId)
 {
-    mutexLock();
+    spinLock();
 
     std::vector<MessageTime>::iterator it;
     for(it = m_messageList.begin(); it != m_messageList.end(); it++)
     {
-        if((it->messageId & 0xFFFFFFFF) == sessionId)
+        if((it->completeMessageId & 0xFFFFFFFF) == sessionId)
         {
             m_messageList.erase(it);
             continue;
         }
     }
 
-    mutexUnlock();
+    spinUnlock();
 }
 
 /**
- * @brief TimerThread::removeMessage
- * @param messageId
- * @return
+ * @brief remove a message from the internal list
+ *
+ * @param messageId id of the message, which should be removed
+ *
+ * @return false, if message-id doesn't exist in the list, else true
  */
 bool
-TimerThread::removeMessageFromList(const uint64_t messageId)
+TimerThread::removeMessageFromList(const uint64_t completeMessageId)
 {
     std::vector<MessageTime>::iterator it;
     for(it = m_messageList.begin(); it != m_messageList.end(); it++)
     {
-        if(it->messageId == messageId)
+        if(it->completeMessageId == completeMessageId)
         {
             if(m_messageList.size() > 1)
             {
@@ -162,7 +180,7 @@ TimerThread::removeMessageFromList(const uint64_t messageId)
 }
 
 /**
- * @brief TimerThread::run
+ * @brief endless thread-loop the time timer
  */
 void
 TimerThread::run()
@@ -178,30 +196,7 @@ TimerThread::run()
             break;
         }
 
-        mutexLock();
-
-        for(uint64_t i = 0; i < m_messageList.size(); i++)
-        {
-            MessageTime* temp = &m_messageList[i];
-            temp->timer += 0.1f;
-            //it.base()->timer += 0.1f;
-            if(temp->timer >= m_timeoutValue)
-            {
-                if(removeMessageFromList(temp->messageId))
-                {
-                    const std::string err = "TIMEOUT of message: " + std::to_string(temp->messageId)
-                                            + " with type: " + std::to_string(temp->messageType);
-
-                    SessionHandler::m_sessionInterface->receivedError(
-                                temp->session,
-                                Session::errorCodes::MESSAGE_TIMEOUT,
-                                err);
-
-                    i--;
-                }
-            }
-        }
-        mutexUnlock();
+        makeTimerStep();
 
         if(counter % 10 == 0)
         {
@@ -209,6 +204,37 @@ TimerThread::run()
             counter = 0;
         }
     }
+}
+
+/**
+ * @brief Increase the timer of all messages and handle timeouts
+ */
+void
+TimerThread::makeTimerStep()
+{
+    spinLock();
+
+    for(uint64_t i = 0; i < m_messageList.size(); i++)
+    {
+        MessageTime* temp = &m_messageList[i];
+        temp->timer += 0.1f;
+
+        if(temp->timer >= m_timeoutValue)
+        {
+            if(removeMessageFromList(temp->completeMessageId))
+            {
+                const std::string err = "TIMEOUT of message: " + std::to_string(temp->completeMessageId)
+                                        + " with type: " + std::to_string(temp->messageType);
+
+                SessionHandler::m_sessionInterface->receivedError(temp->session,
+                                                                  Session::errorCodes::MESSAGE_TIMEOUT,
+                                                                  err);
+                i--;
+            }
+        }
+    }
+
+    spinUnlock();
 }
 
 } // namespace Common

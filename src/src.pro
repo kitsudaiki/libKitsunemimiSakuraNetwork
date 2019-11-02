@@ -36,7 +36,8 @@ HEADERS += \
     ../include/libKitsuneProjectCommon/network_session/session_controller.h \
     network_session/internal_session_interface.h \
     network_session/session_handler.h \
-    network_session/messages_processing/data_processing.h
+    network_session/messages_processing/multiblock_data_processing.h \
+    network_session/messages_processing/singleblock_data_processing.h
 
 SOURCES += \
     network_session/timer_thread.cpp \

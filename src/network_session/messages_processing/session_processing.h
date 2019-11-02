@@ -1,9 +1,9 @@
 /**
- *  @file       session_processing.h
+ * @file       session_processing.h
  *
- *  @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
+ * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
- *  @copyright  Apache License Version 2.0
+ * @copyright  Apache License Version 2.0
  *
  *      Copyright 2019 Tobias Anker
  *
@@ -46,19 +46,21 @@ namespace Common
 {
 
 /**
- * @brief sendSession_InitStart
- * @param initialId
- * @param socket
+ * @brief send_Session_Init_Start
+ *
+ * @param session pointer to the session
+ * @param sessionIdentifier custom value, which is sended within the init-message to pre-identify
+ *                          the message on server-side
  */
 inline void
 send_Session_Init_Start(Session* session,
-                        const  uint64_t customValue)
+                        const uint64_t sessionIdentifier)
 {
     LOG_DEBUG("SEND session init start");
 
     Session_Init_Start_Message message(session->sessionId(),
-                                       session->increaseMessageIdCounter());
-    message.customValue = customValue;
+                                       session->increaseMessageIdCounter(),
+                                       sessionIdentifier);
 
     SessionHandler::m_sessionInterface->sendMessage(session,
                                                     message.commonHeader,
@@ -67,22 +69,24 @@ send_Session_Init_Start(Session* session,
 }
 
 /**
- * @brief sendSessionIniReply
- * @param id
- * @param socket
+ * @brief send_Session_Init_Reply
+ *
+ * @param session pointer to the session
+ * @param initialSessionId initial id, which was sended by the client
+ * @param messageId id of the original incoming message
+ * @param completeSessionId completed session-id based on the id of the server and the client
  */
 inline void
 send_Session_Init_Reply(Session* session,
                         const uint32_t initialSessionId,
                         const uint32_t messageId,
-                        const uint32_t completeSessionId,
-                        const uint32_t clientSessionId)
+                        const uint32_t completeSessionId)
 {
     LOG_DEBUG("SEND session init reply");
 
     Session_Init_Reply_Message message(initialSessionId, messageId);
     message.completeSessionId = completeSessionId;
-    message.clientSessionId = clientSessionId;
+    message.clientSessionId = initialSessionId;
 
     SessionHandler::m_sessionInterface->sendMessage(session,
                                                     message.commonHeader,
@@ -91,10 +95,10 @@ send_Session_Init_Reply(Session* session,
 }
 
 /**
- * @brief sendSession_Close_Start
- * @param id
- * @param replyRequired
- * @param socket
+ * @brief send_Session_Close_Start
+ *
+ * @param session pointer to the session
+ * @param replyExpected set to true to get a reply-message for the session-close-message
  */
 inline void
 send_Session_Close_Start(Session* session,
@@ -113,9 +117,10 @@ send_Session_Close_Start(Session* session,
 }
 
 /**
- * @brief sendSession_Close_Reply
- * @param id
- * @param socket
+ * @brief send_Session_Close_Reply
+ *
+ * @param session pointer to the session
+ * @param messageId id of the original incoming message
  */
 inline void
 send_Session_Close_Reply(Session* session,
@@ -123,8 +128,7 @@ send_Session_Close_Reply(Session* session,
 {
     LOG_DEBUG("SEND session close reply");
 
-    Session_Close_Reply_Message message(session->sessionId(),
-                                        messageId);
+    Session_Close_Reply_Message message(session->sessionId(), messageId);
 
     SessionHandler::m_sessionInterface->sendMessage(session,
                                                     message.commonHeader,
@@ -134,6 +138,9 @@ send_Session_Close_Reply(Session* session,
 
 /**
  * @brief process_Session_Init_Start
+ *
+ * @param session pointer to the session
+ * @param message pointer to the complete message within the message-ring-buffer
  */
 inline void
 process_Session_Init_Start(Session* session,
@@ -141,26 +148,29 @@ process_Session_Init_Start(Session* session,
 {
     LOG_DEBUG("process session init start");
 
+    // get and calculate session-id
     const uint32_t clientSessionId = message->clientSessionId;
     const uint16_t serverSessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
-    const uint32_t completeSessionId = clientSessionId + (serverSessionId * 0x10000);
-    const uint64_t customValue = message->customValue;
+    const uint32_t sessionId = clientSessionId + (serverSessionId * 0x10000);
+    const uint64_t sessionIdentifier = message->sessionIdentifier;
 
-    // create new session
-    SessionHandler::m_sessionHandler->addSession(completeSessionId, session);
-    SessionHandler::m_sessionInterface->connectiSession(session, completeSessionId, false);
-    SessionHandler::m_sessionInterface->makeSessionReady(session, completeSessionId, customValue);
+    // create new session and make it ready
+    SessionHandler::m_sessionHandler->addSession(sessionId, session);
+    SessionHandler::m_sessionInterface->connectiSession(session, sessionId, false);
+    SessionHandler::m_sessionInterface->makeSessionReady(session, sessionId, sessionIdentifier);
 
     // confirm id
     send_Session_Init_Reply(session,
                             clientSessionId,
                             message->commonHeader.messageId,
-                            completeSessionId,
-                            clientSessionId);
+                            sessionId);
 }
 
 /**
  * @brief process_Session_Init_Reply
+ *
+ * @param session pointer to the session
+ * @param message pointer to the complete message within the message-ring-buffer
  */
 inline void
 process_Session_Init_Reply(Session* session,
@@ -168,17 +178,21 @@ process_Session_Init_Reply(Session* session,
 {
     LOG_DEBUG("process session init reply");
 
-    // get session
     const uint32_t completeSessionId = message->completeSessionId;
     const uint32_t initialId = message->clientSessionId;
 
-    SessionHandler::m_sessionInterface->makeSessionReady(session, completeSessionId, 0);
+    // readd session under the new complete session-id and make session ready
     SessionHandler::m_sessionHandler->removeSession(initialId);
     SessionHandler::m_sessionHandler->addSession(completeSessionId, session);
+    // TODO: handle return-value of makeSessionReady
+    SessionHandler::m_sessionInterface->makeSessionReady(session, completeSessionId, 0);
 }
 
 /**
  * @brief process_Session_Close_Start
+ *
+ * @param session pointer to the session
+ * @param message pointer to the complete message within the message-ring-buffer
  */
 inline void
 process_Session_Close_Start(Session* session,
@@ -189,6 +203,7 @@ process_Session_Close_Start(Session* session,
     send_Session_Close_Reply(session,
                              message->commonHeader.messageId);
 
+    // close session and disconnect session
     SessionHandler::m_sessionHandler->removeSession(message->sessionId);
     SessionHandler::m_sessionInterface->endSession(session);
     SessionHandler::m_sessionInterface->disconnectSession(session);
@@ -196,6 +211,9 @@ process_Session_Close_Start(Session* session,
 
 /**
  * @brief process_Session_Close_Reply
+ *
+ * @param session pointer to the session
+ * @param message pointer to the complete message within the message-ring-buffer
  */
 inline void
 process_Session_Close_Reply(Session* session,
@@ -203,15 +221,19 @@ process_Session_Close_Reply(Session* session,
 {
     LOG_DEBUG("process session close reply");
 
+    // disconnect session
     SessionHandler::m_sessionHandler->removeSession(message->sessionId);
     SessionHandler::m_sessionInterface->disconnectSession(session);
 }
 
 /**
- * @brief process_Session_Init
- * @param recvBuffer
- * @param socket
- * @return
+ * @brief process messages of session-type
+ *
+ * @param session pointer to the session
+ * @param header pointer to the common header of the message within the message-ring-buffer
+ * @param recvBuffer pointer to the message-ring-buffer
+ *
+ * @return number of processed bytes
  */
 inline uint64_t
 process_Session_Type(Session* session,
@@ -224,6 +246,7 @@ process_Session_Type(Session* session,
 
     switch(header->subType)
     {
+        //------------------------------------------------------------------------------------------
         case SESSION_INIT_START_SUBTYPE:
             {
                 const Session_Init_Start_Message* message =
@@ -234,6 +257,7 @@ process_Session_Type(Session* session,
                 process_Session_Init_Start(session, message);
                 return sizeof(*message);
             }
+        //------------------------------------------------------------------------------------------
         case SESSION_INIT_REPLY_SUBTYPE:
             {
                 const Session_Init_Reply_Message* message =
@@ -244,6 +268,7 @@ process_Session_Type(Session* session,
                 process_Session_Init_Reply(session, message);
                 return sizeof(*message);
             }
+        //------------------------------------------------------------------------------------------
         case SESSION_CLOSE_START_SUBTYPE:
             {
                 const Session_Close_Start_Message* message =
@@ -254,6 +279,7 @@ process_Session_Type(Session* session,
                 process_Session_Close_Start(session, message);
                 return sizeof(*message);
             }
+        //------------------------------------------------------------------------------------------
         case SESSION_CLOSE_REPLY_SUBTYPE:
             {
                 const Session_Close_Reply_Message* message =
@@ -264,6 +290,7 @@ process_Session_Type(Session* session,
                 process_Session_Close_Reply(session, message);
                 return sizeof(*message);
             }
+        //------------------------------------------------------------------------------------------
         default:
             break;
     }
