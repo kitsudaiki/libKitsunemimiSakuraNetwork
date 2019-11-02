@@ -20,24 +20,24 @@
  *      limitations under the License.
  */
 
-#include <libKitsuneProjectCommon/network_session/session_controller.h>
+#include <libKitsunemimiProjectCommon/network_session/session_controller.h>
 
 #include <network_session/timer_thread.h>
 #include <network_session/session_handler.h>
 #include <network_session/callbacks.h>
 
-#include <libKitsuneNetwork/tcp/tcp_server.h>
-#include <libKitsuneNetwork/tcp/tcp_socket.h>
-#include <libKitsuneNetwork/unix/unix_domain_server.h>
-#include <libKitsuneNetwork/unix/unix_domain_socket.h>
-#include <libKitsuneNetwork/tls_tcp/tls_tcp_server.h>
-#include <libKitsuneNetwork/tls_tcp/tls_tcp_socket.h>
-#include <libKitsuneNetwork/abstract_server.h>
-#include <libKitsuneNetwork/abstract_socket.h>
+#include <libKitsunemimiNetwork/tcp/tcp_server.h>
+#include <libKitsunemimiNetwork/tcp/tcp_socket.h>
+#include <libKitsunemimiNetwork/unix/unix_domain_server.h>
+#include <libKitsunemimiNetwork/unix/unix_domain_socket.h>
+#include <libKitsunemimiNetwork/tls_tcp/tls_tcp_server.h>
+#include <libKitsunemimiNetwork/tls_tcp/tls_tcp_socket.h>
+#include <libKitsunemimiNetwork/abstract_server.h>
+#include <libKitsunemimiNetwork/abstract_socket.h>
 
-#include <libKitsunePersistence/logger/logger.h>
+#include <libKitsunemimiPersistence/logger/logger.h>
 
-namespace Kitsune
+namespace Kitsunemimi
 {
 namespace Project
 {
@@ -332,4 +332,4 @@ SessionController::startSession(Network::AbstractSocket *socket,
 
 } // namespace Common
 } // namespace Project
-} // namespace Kitsune
+} // namespace Kitsunemimi

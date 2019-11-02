@@ -24,12 +24,12 @@
 #include <network_session/session_handler.h>
 #include <network_session/internal_session_interface.h>
 
-#include <libKitsuneProjectCommon/network_session/session.h>
+#include <libKitsunemimiProjectCommon/network_session/session.h>
 
-#include <libKitsuneNetwork/abstract_socket.h>
-#include <libKitsunePersistence/logger/logger.h>
+#include <libKitsunemimiNetwork/abstract_socket.h>
+#include <libKitsunemimiPersistence/logger/logger.h>
 
-namespace Kitsune
+namespace Kitsunemimi
 {
 namespace Project
 {
@@ -239,4 +239,4 @@ TimerThread::makeTimerStep()
 
 } // namespace Common
 } // namespace Project
-} // namespace Kitsune
+} // namespace Kitsunemimi

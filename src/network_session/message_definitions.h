@@ -31,7 +31,7 @@
 #include <network_session/session_handler.h>
 #include <network_session/timer_thread.h>
 
-namespace Kitsune
+namespace Kitsunemimi
 {
 namespace Project
 {
@@ -474,6 +474,6 @@ struct Data_MultiAbort_Message
 
 } // namespace Common
 } // namespace Project
-} // namespace Kitsune
+} // namespace Kitsunemimi
 
 #endif // MESSAGE_DEFINITIONS_H

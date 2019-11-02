@@ -28,9 +28,9 @@
 #include <map>
 #include <atomic>
 
-#include <libKitsuneProjectCommon/network_session/session.h>
+#include <libKitsunemimiProjectCommon/network_session/session.h>
 
-namespace Kitsune
+namespace Kitsunemimi
 {
 namespace Network {
 class AbstractServer;
@@ -51,7 +51,7 @@ public:
                       void (*processError)(void*, Session*, const uint8_t, const std::string));
     ~SessionController();
 
-    static Kitsune::Project::Common::SessionController* m_sessionController;
+    static Kitsunemimi::Project::Common::SessionController* m_sessionController;
 
     // server
     uint32_t addUnixDomainServer(const std::string socketFile);
@@ -86,6 +86,6 @@ private:
 
 } // namespace Common
 } // namespace Project
-} // namespace Kitsune
+} // namespace Kitsunemimi
 
 #endif // SESSION_HANDLER_H

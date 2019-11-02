@@ -20,31 +20,35 @@
  *      limitations under the License.
  */
 
-#include <libKitsuneProjectCommon/network_session/session.h>
-#include <libKitsuneNetwork/abstract_socket.h>
+#include <libKitsunemimiProjectCommon/network_session/session.h>
+#include <libKitsunemimiNetwork/abstract_socket.h>
 
 #include <network_session/messages_processing/session_processing.h>
 #include <network_session/messages_processing/heartbeat_processing.h>
 #include <network_session/messages_processing/singleblock_data_processing.h>
 #include <network_session/messages_processing/multiblock_data_processing.h>
 
-#include <libKitsunePersistence/logger/logger.h>
+#include <libKitsunemimiPersistence/logger/logger.h>
 
-#define NOT_CONNECTED "not connected"
-#define CONNECTED "connected"
-#define SESSION_NOT_READY "session not ready"
-#define SESSION_READY "session init"
-#define NORMAL "normal"
-#define IN_DATATRANSFER "in datatransfer"
+enum statemachineItems {
+    NOT_CONNECTED = 1,
+    CONNECTED = 2,
+    SESSION_NOT_READY = 3,
+    SESSION_READY = 4,
+    NORMAL = 5,
+    IN_DATATRANSFER = 6,
 
-#define CONNECT "connect"
-#define DISCONNECT "disconnect"
-#define START_SESSION "start session"
-#define STOP_SESSION "stop session"
-#define START_DATATRANSFER "start datatransfer"
-#define STOP_DATATRANSFER "stop datatransfer"
+    CONNECT = 7,
+    DISCONNECT = 8,
+    START_SESSION = 9,
+    STOP_SESSION = 10,
+    START_DATATRANSFER = 11,
+    STOP_DATATRANSFER = 12,
 
-namespace Kitsune
+};
+
+
+namespace Kitsunemimi
 {
 namespace Project
 {
@@ -263,7 +267,7 @@ Session::startMultiblockDataTransfer(const uint64_t size)
         m_inMultiMessage = true;
 
         const uint32_t numberOfBlocks = static_cast<uint32_t>(size / 4096) + 1;
-        m_multiBlockBuffer = new Kitsune::Common::DataBuffer(numberOfBlocks);
+        m_multiBlockBuffer = new Kitsunemimi::Common::DataBuffer(numberOfBlocks);
 
         return true;
     }
@@ -291,7 +295,7 @@ Session::writeDataIntoBuffer(const void* data,
         return false;
     }
 
-    return Kitsune::Common::addDataToBuffer(m_multiBlockBuffer,
+    return Kitsunemimi::Common::addDataToBuffer(m_multiBlockBuffer,
                                             data,
                                             size);
 }
@@ -403,12 +407,12 @@ void
 Session::initStatemachine()
 {
     // init states
-    assert(m_statemachine.createNewState(NOT_CONNECTED));
-    assert(m_statemachine.createNewState(CONNECTED));
-    assert(m_statemachine.createNewState(SESSION_NOT_READY));
-    assert(m_statemachine.createNewState(SESSION_READY));
-    assert(m_statemachine.createNewState(NORMAL));
-    assert(m_statemachine.createNewState(IN_DATATRANSFER));
+    assert(m_statemachine.createNewState(NOT_CONNECTED, "not connected"));
+    assert(m_statemachine.createNewState(CONNECTED, "connected"));
+    assert(m_statemachine.createNewState(SESSION_NOT_READY, "session not ready"));
+    assert(m_statemachine.createNewState(SESSION_READY, "session ready"));
+    assert(m_statemachine.createNewState(NORMAL, "normal"));
+    assert(m_statemachine.createNewState(IN_DATATRANSFER, "in datatransfer"));
 
     // set child state
     assert(m_statemachine.addChildState(CONNECTED,     SESSION_NOT_READY));
@@ -448,4 +452,4 @@ Session::increaseMessageIdCounter()
 
 } // namespace Common
 } // namespace Project
-} // namespace Kitsune
+} // namespace Kitsunemimi

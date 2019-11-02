@@ -27,18 +27,18 @@
 #include <network_session/session_handler.h>
 #include <network_session/internal_session_interface.h>
 
-#include <libKitsuneNetwork/abstract_socket.h>
+#include <libKitsunemimiNetwork/abstract_socket.h>
 
-#include <libKitsuneProjectCommon/network_session/session_controller.h>
-#include <libKitsuneProjectCommon/network_session/session.h>
+#include <libKitsunemimiProjectCommon/network_session/session_controller.h>
+#include <libKitsunemimiProjectCommon/network_session/session.h>
 
-#include <libKitsunePersistence/logger/logger.h>
+#include <libKitsunemimiPersistence/logger/logger.h>
 
-using Kitsune::Network::MessageRingBuffer;
-using Kitsune::Network::AbstractSocket;
-using Kitsune::Network::getObjectFromBuffer;
+using Kitsunemimi::Network::MessageRingBuffer;
+using Kitsunemimi::Network::AbstractSocket;
+using Kitsunemimi::Network::getObjectFromBuffer;
 
-namespace Kitsune
+namespace Kitsunemimi
 {
 namespace Project
 {
@@ -300,6 +300,6 @@ process_Session_Type(Session* session,
 
 } // namespace Common
 } // namespace Project
-} // namespace Kitsune
+} // namespace Kitsunemimi
 
 #endif // SESSION_PROCESSING_H

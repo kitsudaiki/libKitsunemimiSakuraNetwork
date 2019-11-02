@@ -31,7 +31,7 @@
 // additional debug-flag to enable debug-log in performance critical sections
 #define DEBUG_MODE true
 
-namespace Kitsune
+namespace Kitsunemimi
 {
 namespace Network {
 class AbstractServer;
@@ -43,7 +43,7 @@ namespace Common
 {
 class Session;
 struct CommonMessageHeader;
-using Kitsune::Project::Common::CommonMessageHeader;
+using Kitsunemimi::Project::Common::CommonMessageHeader;
 
 class InternalSessionInterface
 {
@@ -119,6 +119,6 @@ private:
 
 } // namespace Common
 } // namespace Project
-} // namespace Kitsune
+} // namespace Kitsunemimi
 
 #endif // INTERNAL_SESSION_INTERFACE_H

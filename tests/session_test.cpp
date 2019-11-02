@@ -22,7 +22,7 @@
 
 #include "session_test.h"
 
-namespace Kitsune
+namespace Kitsunemimi
 {
 namespace Project
 {
@@ -72,7 +72,7 @@ void errorCallback(void*,
 }
 
 void sessionCallback(void* target,
-                     Kitsune::Project::Common::Session* session,
+                     Kitsunemimi::Project::Common::Session* session,
                      const uint64_t sessionIdentifier)
 {
 
@@ -114,7 +114,7 @@ void sessionCallback(void* target,
 }
 
 Session_Test::Session_Test() :
-    Kitsune::Common::UnitTest("Session_Test")
+    Kitsunemimi::Common::Test("Session_Test")
 {
     initTestCase();
     runTest();
@@ -152,18 +152,18 @@ Session_Test::runTest()
                                                             this, &dataCallback,
                                                             this, &errorCallback);
 
-    UNITTEST(m_controller->addTcpServer(1234), 1);
-    UNITTEST(m_controller->startTcpSession("127.0.0.1", 1234, 42), 1);
+    TEST_EQUAL(m_controller->addTcpServer(1234), 1);
+    TEST_EQUAL(m_controller->startTcpSession("127.0.0.1", 1234, 42), 1);
 
     sleep(2);
 
-    UNITTEST(m_controller->getSession(131072)->closeSession(), true);
+    TEST_EQUAL(m_controller->getSession(131072)->closeSession(), true);
     const bool isNull = m_controller->getSession(131072) == nullptr;
-    UNITTEST(isNull, true);
+    TEST_EQUAL(isNull, true);
 
     delete m_controller;
 }
 
 } // namespace Common
 } // namespace Project
-} // namespace Kitsune
+} // namespace Kitsunemimi

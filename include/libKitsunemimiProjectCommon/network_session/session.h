@@ -27,10 +27,10 @@
 #include <assert.h>
 #include <atomic>
 
-#include <libKitsuneCommon/statemachine.h>
-#include <libKitsuneCommon/data_buffer.h>
+#include <libKitsunemimiCommon/statemachine.h>
+#include <libKitsunemimiCommon/data_buffer.h>
 
-namespace Kitsune
+namespace Kitsunemimi
 {
 namespace Network {
 class AbstractSocket;
@@ -76,8 +76,8 @@ private:
 
     Session(Network::AbstractSocket* socket);
 
-    Kitsune::Common::Statemachine m_statemachine;
-    Kitsune::Common::DataBuffer* m_multiBlockBuffer = nullptr;
+    Kitsunemimi::Common::Statemachine m_statemachine;
+    Kitsunemimi::Common::DataBuffer* m_multiBlockBuffer = nullptr;
     Network::AbstractSocket* m_socket = nullptr;
     uint32_t m_sessionId = 0;
     uint64_t m_sessionIdentifier = 0;
@@ -119,6 +119,6 @@ private:
 
 } // namespace Common
 } // namespace Project
-} // namespace Kitsune
+} // namespace Kitsunemimi
 
 #endif // SESSION_H

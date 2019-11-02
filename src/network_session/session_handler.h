@@ -28,7 +28,7 @@
 #include <map>
 #include <atomic>
 
-namespace Kitsune
+namespace Kitsunemimi
 {
 namespace Network {
 class AbstractServer;
@@ -46,10 +46,10 @@ class SessionHandler
 {
 public:
 
-    static Kitsune::Project::Common::TimerThread* m_timerThread;
-    static Kitsune::Project::Common::SessionController* m_sessionController;
-    static Kitsune::Project::Common::SessionHandler* m_sessionHandler;
-    static Kitsune::Project::Common::InternalSessionInterface* m_sessionInterface;
+    static Kitsunemimi::Project::Common::TimerThread* m_timerThread;
+    static Kitsunemimi::Project::Common::SessionController* m_sessionController;
+    static Kitsunemimi::Project::Common::SessionHandler* m_sessionHandler;
+    static Kitsunemimi::Project::Common::InternalSessionInterface* m_sessionInterface;
 
     SessionHandler(void* sessionTarget,
                    void (*processSession)(void*, Session*, const uint64_t),
@@ -80,6 +80,6 @@ private:
 
 } // namespace Common
 } // namespace Project
-} // namespace Kitsune
+} // namespace Kitsunemimi
 
 #endif // RESSOURCE_HANDLER_H

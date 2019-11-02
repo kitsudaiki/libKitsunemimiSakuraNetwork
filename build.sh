@@ -45,14 +45,14 @@ function get_required_kitsune_lib_repo () {
 
 #-----------------------------------------------------------------------------------------------------------------
 
-get_required_kitsune_lib_repo "libKitsuneCommon" "master"
+get_required_kitsune_lib_repo "libKitsunemimiCommon" "v0.7.0"
 
-get_required_kitsune_lib_repo "libKitsunePersistence" "master"
+get_required_kitsune_lib_repo "libKitsunemimiPersistence" "v0.6.0"
 
-get_required_kitsune_lib_repo "libKitsuneNetwork" "master"
+get_required_kitsune_lib_repo "libKitsunemimiNetwork" "v0.5.0"
 
 #-----------------------------------------------------------------------------------------------------------------
 
-build_kitsune_lib_repo "libKitsuneProjectCommon"
+build_kitsune_lib_repo "libKitsunemimiProjectCommon"
 
 #-----------------------------------------------------------------------------------------------------------------
