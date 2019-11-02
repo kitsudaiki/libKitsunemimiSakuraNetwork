@@ -32,16 +32,16 @@
 
 #include "internal_session_interface.h"
 
-#include <libKitsuneProjectCommon/network_session/session.h>
+#include <libKitsunemimiProjectCommon/network_session/session.h>
 
 #include <network_session/message_definitions.h>
 #include <network_session/session_handler.h>
 
-#include <libKitsuneNetwork/abstract_socket.h>
-#include <libKitsuneCommon/data_buffer.h>
-#include <libKitsunePersistence/logger/logger.h>
+#include <libKitsunemimiNetwork/abstract_socket.h>
+#include <libKitsunemimiCommon/data_buffer.h>
+#include <libKitsunemimiPersistence/logger/logger.h>
 
-namespace Kitsune
+namespace Kitsunemimi
 {
 namespace Project
 {
@@ -258,4 +258,4 @@ InternalSessionInterface::disconnectSession(Session* session)
 
 } // namespace Common
 } // namespace Project
-} // namespace Kitsune
+} // namespace Kitsunemimi

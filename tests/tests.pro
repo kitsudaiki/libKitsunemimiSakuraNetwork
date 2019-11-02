@@ -5,27 +5,27 @@ QT -= qt core gui
 CONFIG   -= app_bundle
 CONFIG += c++14 console
 
-LIBS += -L../../libKitsuneCommon/src -lKitsuneCommon
-LIBS += -L../../libKitsuneCommon/src/debug -lKitsuneCommon
-LIBS += -L../../libKitsuneCommon/src/release -lKitsuneCommon
-INCLUDEPATH += ../../libKitsuneCommon/include
+LIBS += -L../../libKitsunemimiCommon/src -lKitsunemimiCommon
+LIBS += -L../../libKitsunemimiCommon/src/debug -lKitsunemimiCommon
+LIBS += -L../../libKitsunemimiCommon/src/release -lKitsunemimiCommon
+INCLUDEPATH += ../../libKitsunemimiCommon/include
 
-LIBS += -L../../libKitsuneNetwork/src -lKitsuneNetwork
-LIBS += -L../../libKitsuneNetwork/src/debug -lKitsuneNetwork
-LIBS += -L../../libKitsuneNetwork/src/release -lKitsuneNetwork
-INCLUDEPATH += ../../libKitsuneNetwork/include
+LIBS += -L../../libKitsunemimiNetwork/src -lKitsunemimiNetwork
+LIBS += -L../../libKitsunemimiNetwork/src/debug -lKitsunemimiNetwork
+LIBS += -L../../libKitsunemimiNetwork/src/release -lKitsunemimiNetwork
+INCLUDEPATH += ../../libKitsunemimiNetwork/include
 
-LIBS += -L../../libKitsunePersistence/src -lKitsunePersistence
-LIBS += -L../../libKitsunePersistence/src/debug -lKitsunePersistence
-LIBS += -L../../libKitsunePersistence/src/release -lKitsunePersistence
-INCLUDEPATH += ../../libKitsunePersistence/include
+LIBS += -L../../libKitsunemimiPersistence/src -lKitsunemimiPersistence
+LIBS += -L../../libKitsunemimiPersistence/src/debug -lKitsunemimiPersistence
+LIBS += -L../../libKitsunemimiPersistence/src/release -lKitsunemimiPersistence
+INCLUDEPATH += ../../libKitsunemimiPersistence/include
 
 LIBS +=  -lssl -lcrypt
 LIBS +=  -lboost_filesystem -lboost_system -lsqlite3
 
 INCLUDEPATH += $$PWD
 
-LIBS += -L../src -lKitsuneProjectCommon
+LIBS += -L../src -lKitsunemimiProjectCommon
 
 
 SOURCES += \

@@ -20,16 +20,16 @@
  *      limitations under the License.
  */
 
-#include <libKitsunePersistence/logger/logger.h>
+#include <libKitsunemimiPersistence/logger/logger.h>
 
 #include <session_test.h>
 
-using Kitsune::Persistence::initLogger;
+using Kitsunemimi::Persistence::initLogger;
 
 
 int main()
 {
     //initLogger("/tmp", "testlog", true, true);
 
-    Kitsune::Project::Common::Session_Test();
+    Kitsunemimi::Project::Common::Session_Test();
 }

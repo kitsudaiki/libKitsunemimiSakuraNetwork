@@ -27,12 +27,12 @@
 #include <network_session/message_definitions.h>
 #include <network_session/internal_session_interface.h>
 
-#include <libKitsuneProjectCommon/network_session/session.h>
-#include <libKitsuneProjectCommon/network_session/session_controller.h>
+#include <libKitsunemimiProjectCommon/network_session/session.h>
+#include <libKitsunemimiProjectCommon/network_session/session_controller.h>
 
-#include <libKitsunePersistence/logger/logger.h>
+#include <libKitsunemimiPersistence/logger/logger.h>
 
-namespace Kitsune
+namespace Kitsunemimi
 {
 namespace Project
 {
@@ -208,4 +208,4 @@ SessionHandler::sendHeartBeats()
 
 } // namespace Common
 } // namespace Project
-} // namespace Kitsune
+} // namespace Kitsunemimi

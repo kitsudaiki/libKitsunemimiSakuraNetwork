@@ -26,9 +26,9 @@
 #include <vector>
 #include <iostream>
 
-#include <libKitsuneCommon/thread.h>
+#include <libKitsunemimiCommon/thread.h>
 
-namespace Kitsune
+namespace Kitsunemimi
 {
 namespace Project
 {
@@ -36,7 +36,7 @@ namespace Common
 {
 class Session;
 
-class TimerThread : public Kitsune::Common::Thread
+class TimerThread : public Kitsunemimi::Common::Thread
 {
 public:
     TimerThread();
@@ -77,6 +77,6 @@ private:
 
 } // namespace Common
 } // namespace Project
-} // namespace Kitsune
+} // namespace Kitsunemimi
 
 #endif // TIMER_THREAD_H

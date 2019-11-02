@@ -23,12 +23,12 @@
 #ifndef CALLBACKS_H
 #define CALLBACKS_H
 
-#include <libKitsuneNetwork/abstract_socket.h>
-#include <libKitsuneNetwork/message_ring_buffer.h>
+#include <libKitsunemimiNetwork/abstract_socket.h>
+#include <libKitsunemimiNetwork/message_ring_buffer.h>
 
-#include <libKitsuneCommon/data_buffer.h>
+#include <libKitsunemimiCommon/data_buffer.h>
 
-#include <libKitsuneProjectCommon/network_session/session_controller.h>
+#include <libKitsunemimiProjectCommon/network_session/session_controller.h>
 
 #include <network_session/messages_processing/session_processing.h>
 #include <network_session/messages_processing/heartbeat_processing.h>
@@ -36,11 +36,11 @@
 #include <network_session/messages_processing/singleblock_data_processing.h>
 #include <network_session/messages_processing/multiblock_data_processing.h>
 
-using Kitsune::Network::MessageRingBuffer;
-using Kitsune::Network::AbstractSocket;
-using Kitsune::Common::DataBuffer;
+using Kitsunemimi::Network::MessageRingBuffer;
+using Kitsunemimi::Network::AbstractSocket;
+using Kitsunemimi::Common::DataBuffer;
 
-namespace Kitsune
+namespace Kitsunemimi
 {
 namespace Project
 {
@@ -136,6 +136,6 @@ processConnection_Callback(void*,
 
 } // namespace Common
 } // namespace Project
-} // namespace Kitsune
+} // namespace Kitsunemimi
 
 #endif // CALLBACKS_H

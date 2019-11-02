@@ -24,15 +24,15 @@
 #define SESSION_TEST_H
 
 #include <iostream>
-#include <libKitsunePersistence/logger/logger.h>
-#include <libKitsuneProjectCommon/network_session/session_controller.h>
+#include <libKitsunemimiPersistence/logger/logger.h>
+#include <libKitsunemimiProjectCommon/network_session/session_controller.h>
 #include <network_session/session_handler.h>
-#include <libKitsuneProjectCommon/network_session/session.h>
-#include <libKitsuneNetwork/abstract_socket.h>
+#include <libKitsunemimiProjectCommon/network_session/session.h>
+#include <libKitsunemimiNetwork/abstract_socket.h>
 
-#include <libKitsuneCommon/unit_test.h>
+#include <libKitsunemimiCommon/test.h>
 
-namespace Kitsune
+namespace Kitsunemimi
 {
 namespace Project
 {
@@ -40,7 +40,7 @@ namespace Common
 {
 
 class Session_Test
-        : public Kitsune::Common::UnitTest
+        : public Kitsunemimi::Common::Test
 {
 public:
     Session_Test();
@@ -51,7 +51,7 @@ public:
     template<typename  T>
     void compare(T isValue, T shouldValue)
     {
-        UNITTEST(isValue, shouldValue);
+        TEST_EQUAL(isValue, shouldValue);
     }
 
     std::string m_staticMessage = "";
@@ -61,6 +61,6 @@ public:
 
 } // namespace Common
 } // namespace Project
-} // namespace Kitsune
+} // namespace Kitsunemimi
 
 #endif // SESSION_TEST_H
