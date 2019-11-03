@@ -48,7 +48,7 @@ InternalSessionInterface* SessionHandler::m_sessionInterface = nullptr;
  * @brief constructor
  */
 SessionHandler::SessionHandler(void* sessionTarget,
-                               void (*processSession)(void*, Session*, const uint64_t),
+                               void (*processSession)(void*, bool, Session*, const uint64_t),
                                void* dataTarget,
                                void (*processData)(void*, Session*, const bool,
                                                    const void*, const uint64_t),

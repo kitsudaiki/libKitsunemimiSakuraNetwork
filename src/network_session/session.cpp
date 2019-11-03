@@ -241,7 +241,7 @@ Session::makeSessionReady(const uint32_t sessionId,
         m_sessionId = sessionId;
         m_sessionIdentifier = sessionIdentifier;
 
-        m_processSession(m_sessionTarget, this, m_sessionIdentifier);
+        m_processSession(m_sessionTarget, true, this, m_sessionIdentifier);
 
         return true;
     }
@@ -350,6 +350,8 @@ Session::endSession(const bool init)
     // try to stop the session
     if(m_statemachine.goToNextState(STOP_SESSION))
     {
+        m_processSession(m_sessionTarget, false, this, m_sessionIdentifier);
+
         m_sessionReady = false;
         if(init) {
             send_Session_Close_Start(this, false);

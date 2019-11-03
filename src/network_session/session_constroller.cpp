@@ -51,6 +51,7 @@ SessionController* SessionController::m_sessionController = nullptr;
  */
 SessionController::SessionController(void* sessionTarget,
                                      void (*processSession)(void*,
+                                                            bool,
                                                             Session*,
                                                             const uint64_t),
                                      void* dataTarget,

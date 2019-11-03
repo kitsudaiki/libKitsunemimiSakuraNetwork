@@ -72,44 +72,53 @@ void errorCallback(void*,
 }
 
 void sessionCallback(void* target,
+                     bool isInit,
                      Kitsunemimi::Project::Common::Session* session,
                      const uint64_t sessionIdentifier)
 {
 
     Session_Test* testClass = static_cast<Session_Test*>(target);
 
-    const uint32_t id = session->sessionId();
-    testClass->compare(id, (uint32_t)131072);
+    testClass->compare(session->sessionId(), (uint32_t)131072);
 
-    if(session->isClientSide() == false) {
-        testClass->compare(sessionIdentifier,  (uint64_t)42);
-    }
-
-    if(session->isClientSide())
+    if(isInit)
     {
-        bool ret = false;
+        testClass->m_numberOfInitSessions++;
 
-        // static size
-        const std::string staticTestString = testClass->m_staticMessage;
-        ret = session->sendStreamData(staticTestString.c_str(),
-                                      staticTestString.size(),
-                                      false,
-                                      true);
-        testClass->compare(ret,  true);
+        if(session->isClientSide() == false) {
+            testClass->compare(sessionIdentifier,  (uint64_t)42);
+        }
 
-        // dynamic size
-        const std::string dynamicTestString = testClass->m_dynamicMessage;
-        ret = session->sendStreamData(dynamicTestString.c_str(),
-                                      dynamicTestString.size(),
-                                      true,
-                                      true);
-        testClass->compare(ret,  true);
+        if(session->isClientSide())
+        {
+            bool ret = false;
 
-        // multiblock
-        const std::string multiblockTestString = testClass->m_multiBlockMessage;
-        ret = session->sendStandaloneData(multiblockTestString.c_str(),
-                                          multiblockTestString.size());
-        testClass->compare(ret,  true);
+            // static size
+            const std::string staticTestString = testClass->m_staticMessage;
+            ret = session->sendStreamData(staticTestString.c_str(),
+                                          staticTestString.size(),
+                                          false,
+                                          true);
+            testClass->compare(ret,  true);
+
+            // dynamic size
+            const std::string dynamicTestString = testClass->m_dynamicMessage;
+            ret = session->sendStreamData(dynamicTestString.c_str(),
+                                          dynamicTestString.size(),
+                                          true,
+                                          true);
+            testClass->compare(ret,  true);
+
+            // multiblock
+            const std::string multiblockTestString = testClass->m_multiBlockMessage;
+            ret = session->sendStandaloneData(multiblockTestString.c_str(),
+                                              multiblockTestString.size());
+            testClass->compare(ret,  true);
+        }
+    }
+    else
+    {
+        testClass->m_numberOfEndSessions++;
     }
 }
 
@@ -160,6 +169,11 @@ Session_Test::runTest()
     TEST_EQUAL(m_controller->getSession(131072)->closeSession(), true);
     const bool isNull = m_controller->getSession(131072) == nullptr;
     TEST_EQUAL(isNull, true);
+
+    usleep(100000);
+
+    TEST_EQUAL(m_numberOfInitSessions, 2);
+    TEST_EQUAL(m_numberOfEndSessions, 2);
 
     delete m_controller;
 }
