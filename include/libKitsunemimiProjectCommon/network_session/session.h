@@ -82,10 +82,6 @@ private:
     uint32_t m_sessionId = 0;
     uint64_t m_sessionIdentifier = 0;
 
-    // additional check for faster check of machine states
-    bool m_sessionReady = false;
-    bool m_inMultiMessage = false;
-
     // internal methods triggered by the InternalSessionInterface
     bool connectiSession(const uint32_t sessionId,
                          const uint64_t sessionIdentifier,
@@ -103,6 +99,7 @@ private:
 
     bool sendHeartbeat();
     void initStatemachine();
+    bool isInDatatransfer();
 
     // callbacks
     void* m_sessionTarget = nullptr;

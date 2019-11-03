@@ -178,7 +178,7 @@ InternalSessionInterface::finishMultiblockBuffer(Session* session)
 bool
 InternalSessionInterface::isInMultiblock(Session* session)
 {
-    return session->m_inMultiMessage;
+    return session->isInDatatransfer();
 }
 
 /**

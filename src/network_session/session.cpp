@@ -47,7 +47,6 @@ enum statemachineItems {
 
 };
 
-
 namespace Kitsunemimi
 {
 namespace Project
@@ -91,17 +90,18 @@ Session::sendStreamData(const void* data,
                         const bool dynamic,
                         const bool replyExpected)
 {
-    if(m_sessionReady == false) {
-        return false;
+    if(m_statemachine.isInState(NORMAL))
+    {
+        if(dynamic) {
+            send_Data_Single_Dynamic(this, data, size, replyExpected);
+        } else {
+            send_Data_Single_Static(this, data, size, replyExpected);
+        }
+
+        return true;
     }
 
-    if(dynamic) {
-        send_Data_Single_Dynamic(this, data, size, replyExpected);
-    } else {
-        send_Data_Single_Static(this, data, size, replyExpected);
-    }
-
-    return true;
+    return false;
 }
 
 /**
@@ -116,15 +116,14 @@ bool
 Session::sendStandaloneData(const void* data,
                             const uint64_t size)
 {
-    if(m_sessionReady == false) {
-        return false;
-    }
-
-    if(startMultiblockDataTransfer(size))
+    if(m_statemachine.isInState(NORMAL))
     {
-        SessionHandler::m_sessionInterface->writeDataIntoBuffer(this, data, size);
-        send_Data_Multi_Init(this, size);
-        return true;
+        if(startMultiblockDataTransfer(size))
+        {
+            SessionHandler::m_sessionInterface->writeDataIntoBuffer(this, data, size);
+            send_Data_Multi_Init(this, size);
+            return true;
+        }
     }
 
     return false;
@@ -141,19 +140,21 @@ Session::sendStandaloneData(const void* data,
 bool
 Session::closeSession(const bool replyExpected)
 {
-    if(m_statemachine.isInState(SESSION_NOT_READY)) {
-        return false;
+    if(m_statemachine.isInState(SESSION_READY))
+    {
+        finishMultiblockDataTransfer(true);
+        if(replyExpected)
+        {
+            send_Session_Close_Start(this, true);
+            return true;
+        }
+        else
+        {
+            return endSession(true);
+        }
     }
 
-    finishMultiblockDataTransfer(true);
-    if(replyExpected) {
-        send_Session_Close_Start(this, true);
-    }
-    else {
-        return endSession(true);
-    }
-
-    return true;
+    return false;
 }
 
 /**
@@ -196,28 +197,29 @@ Session::connectiSession(const uint32_t sessionId,
     LOG_DEBUG("CALL session connect: " + std::to_string(m_sessionId));
 
     // check if already connected
-    if(m_statemachine.isInState(NOT_CONNECTED) == false) {
-        return false;
+    if(m_statemachine.isInState(NOT_CONNECTED))
+    {
+        // connect socket
+        if(m_socket->initClientSide() == false) {
+            return false;
+        }
+
+        // git into connected state
+        if(m_statemachine.goToNextState(CONNECT) == false) {
+            return false;
+        }
+        m_sessionId = sessionId;
+        m_socket->startThread();
+
+        // init session
+        if(init) {
+            send_Session_Init_Start(this, sessionIdentifier);
+        }
+
+        return true;
     }
 
-    // connect socket
-    if(m_socket->initClientSide() == false) {
-        return false;
-    }
-
-    // git into connected state
-    if(m_statemachine.goToNextState(CONNECT) == false) {
-        return false;
-    }
-    m_sessionId = sessionId;
-    m_socket->startThread();
-
-    // init session
-    if(init) {
-        send_Session_Init_Start(this, sessionIdentifier);
-    }
-
-    return true;
+    return false;
 }
 
 /**
@@ -237,7 +239,6 @@ Session::makeSessionReady(const uint32_t sessionId,
 
     if(m_statemachine.goToNextState(START_SESSION, SESSION_NOT_READY))
     {
-        m_sessionReady = true;
         m_sessionId = sessionId;
         m_sessionIdentifier = sessionIdentifier;
 
@@ -264,8 +265,6 @@ Session::startMultiblockDataTransfer(const uint64_t size)
 
     if(m_statemachine.goToNextState(START_DATATRANSFER, NORMAL))
     {
-        m_inMultiMessage = true;
-
         const uint32_t numberOfBlocks = static_cast<uint32_t>(size / 4096) + 1;
         m_multiBlockBuffer = new Kitsunemimi::Common::DataBuffer(numberOfBlocks);
 
@@ -291,13 +290,14 @@ Session::writeDataIntoBuffer(const void* data,
         LOG_DEBUG("CALL write data into buffer: " + std::to_string(m_sessionId));
     }
 
-    if(m_inMultiMessage == false) {
-        return false;
+    if(m_statemachine.isInState(IN_DATATRANSFER))
+    {
+        return Kitsunemimi::Common::addDataToBuffer(m_multiBlockBuffer,
+                                                    data,
+                                                    size);
     }
 
-    return Kitsunemimi::Common::addDataToBuffer(m_multiBlockBuffer,
-                                            data,
-                                            size);
+    return false;
 }
 
 /**
@@ -316,8 +316,6 @@ Session::finishMultiblockDataTransfer(const bool initAbort)
     // abort multi-block data-transfer, if one is in progress
     if(m_statemachine.goToNextState(STOP_DATATRANSFER))
     {
-        m_inMultiMessage = false;
-
         if(initAbort) {
             send_Data_Multi_Abort(this);
         }
@@ -352,7 +350,6 @@ Session::endSession(const bool init)
     {
         m_processSession(m_sessionTarget, false, this, m_sessionIdentifier);
 
-        m_sessionReady = false;
         if(init) {
             send_Session_Close_Start(this, false);
         }
@@ -433,6 +430,17 @@ Session::initStatemachine()
     assert(m_statemachine.addTransition(SESSION_READY,     STOP_SESSION,       SESSION_NOT_READY));
     assert(m_statemachine.addTransition(NORMAL,            START_DATATRANSFER, IN_DATATRANSFER));
     assert(m_statemachine.addTransition(IN_DATATRANSFER,   STOP_DATATRANSFER,  NORMAL));
+}
+
+/**
+ * @brief check if statemachine of the session is in data-transfer mode
+ *
+ * @return true, if in data-transfer-state, else false
+ */
+bool
+Session::isInDatatransfer()
+{
+    return m_statemachine.isInState(IN_DATATRANSFER);
 }
 
 /**
