@@ -50,6 +50,7 @@ class InternalSessionInterface
 public:
     InternalSessionInterface(void* sessionTarget,
                              void (*processSession)(void*,
+                                                    bool,
                                                     Session*,
                                                     const uint64_t),
                              void* dataTarget,
@@ -110,7 +111,7 @@ public:
 private:
     // callbacks
     void* m_sessionTarget = nullptr;
-    void (*m_processSession)(void*, Session*, const uint64_t);
+    void (*m_processSession)(void*, bool, Session*, const uint64_t);
     void* m_dataTarget = nullptr;
     void (*m_processData)(void*, Session*, const bool, const void*, const uint64_t);
     void* m_errorTarget = nullptr;

@@ -52,7 +52,7 @@ public:
     static Kitsunemimi::Project::Common::InternalSessionInterface* m_sessionInterface;
 
     SessionHandler(void* sessionTarget,
-                   void (*processSession)(void*, Session*, const uint64_t),
+                   void (*processSession)(void*, bool, Session*, const uint64_t),
                    void* dataTarget,
                    void (*processData)(void*, Session*, const bool, const void*, const uint64_t),
                    void* errorTarget,

@@ -53,6 +53,7 @@ namespace Common
  */
 InternalSessionInterface::InternalSessionInterface(void* sessionTarget,
                                                    void (*processSession)(void*,
+                                                                          bool,
                                                                           Session*,
                                                                           const uint64_t),
                                                    void* dataTarget,
