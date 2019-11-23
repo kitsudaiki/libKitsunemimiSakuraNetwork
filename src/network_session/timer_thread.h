@@ -26,7 +26,7 @@
 #include <vector>
 #include <iostream>
 
-#include <libKitsunemimiCommon/thread.h>
+#include <libKitsunemimiCommon/threading/thread.h>
 
 namespace Kitsunemimi
 {
