@@ -375,12 +375,14 @@ struct Data_SingleReply_Message
 struct Data_MultiInit_Message
 {
     CommonMessageHeader commonHeader;
+    uint64_t multiblockId = 0;
     uint64_t totalSize = 0;
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
 
     Data_MultiInit_Message(const uint32_t sessionId,
-                           const uint32_t messageId)
+                           const uint32_t messageId,
+                           const uint64_t multiblockId)
     {
         commonHeader.type = MULTIBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_MULTI_INIT_SUBTYPE;
@@ -388,6 +390,7 @@ struct Data_MultiInit_Message
         commonHeader.messageId = messageId;
         commonHeader.flags = 0x1;
         commonHeader.size = sizeof(*this);
+        this->multiblockId = multiblockId;
     }
 } __attribute__((packed));
 
@@ -400,12 +403,14 @@ struct Data_MultiInitReply_Message
     };
 
     CommonMessageHeader commonHeader;
+    uint64_t multiblockId = 0;
     uint8_t status = UNDEFINED;
     uint8_t padding[3];
     CommonMessageEnd commonEnd;
 
     Data_MultiInitReply_Message(const uint32_t sessionId,
-                                const uint32_t messageId)
+                                const uint32_t messageId,
+                                const uint64_t multiblockId)
     {
         commonHeader.type = MULTIBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_MULTI_INIT_REPLY_SUBTYPE;
@@ -413,12 +418,14 @@ struct Data_MultiInitReply_Message
         commonHeader.messageId = messageId;
         commonHeader.flags = 0x2;
         commonHeader.size = sizeof(*this);
+        this->multiblockId = multiblockId;
     }
 } __attribute__((packed));
 
 struct Data_MultiStatic_Message
 {
     CommonMessageHeader commonHeader;
+    uint64_t multiblockId = 0;
     uint32_t totalPartNumber = 0;
     uint32_t partId = 0;
     uint64_t payloadSize = 0;
@@ -426,47 +433,55 @@ struct Data_MultiStatic_Message
     CommonMessageEnd commonEnd;
 
     Data_MultiStatic_Message(const uint32_t sessionId,
-                             const uint32_t messageId)
+                             const uint32_t messageId,
+                             const uint64_t multiblockId)
     {
         commonHeader.type = MULTIBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_MULTI_STATIC_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
         commonHeader.size = sizeof(*this);
+        this->multiblockId = multiblockId;
     }
 } __attribute__((packed));
 
 struct Data_MultiFinish_Message
 {
     CommonMessageHeader commonHeader;
+    uint64_t multiblockId = 0;
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
 
     Data_MultiFinish_Message(const uint32_t sessionId,
-                             const uint32_t messageId)
+                             const uint32_t messageId,
+                             const uint64_t multiblockId)
     {
         commonHeader.type = MULTIBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_MULTI_FINISH_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
         commonHeader.size = sizeof(*this);
+        this->multiblockId = multiblockId;
     }
 } __attribute__((packed));
 
 struct Data_MultiAbort_Message
 {
     CommonMessageHeader commonHeader;
+    uint64_t multiblockId = 0;
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
 
     Data_MultiAbort_Message(const uint32_t sessionId,
-                            const uint32_t messageId)
+                            const uint32_t messageId,
+                            const uint64_t multiblockId)
     {
         commonHeader.type = MULTIBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_MULTI_ABORT_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
         commonHeader.size = sizeof(*this);
+        this->multiblockId = multiblockId;
     }
 } __attribute__((packed));
 

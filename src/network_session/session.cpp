@@ -35,15 +35,12 @@ enum statemachineItems {
     CONNECTED = 2,
     SESSION_NOT_READY = 3,
     SESSION_READY = 4,
-    NORMAL = 5,
-    IN_DATATRANSFER = 6,
+    ACTIVE = 5,
 
     CONNECT = 7,
     DISCONNECT = 8,
     START_SESSION = 9,
     STOP_SESSION = 10,
-    START_DATATRANSFER = 11,
-    STOP_DATATRANSFER = 12,
 
 };
 
@@ -90,7 +87,7 @@ Session::sendStreamData(const void* data,
                         const bool dynamic,
                         const bool replyExpected)
 {
-    if(m_statemachine.isInState(NORMAL))
+    if(m_statemachine.isInState(ACTIVE))
     {
         if(dynamic) {
             send_Data_Single_Dynamic(this, data, size, replyExpected);
@@ -116,12 +113,13 @@ bool
 Session::sendStandaloneData(const void* data,
                             const uint64_t size)
 {
-    if(m_statemachine.isInState(NORMAL))
+    if(m_statemachine.isInState(ACTIVE))
     {
-        if(startMultiblockDataTransfer(size))
+        const uint64_t multiblockId = startMultiblockDataTransfer(0, size);
+        if(multiblockId != 0)
         {
-            SessionHandler::m_sessionInterface->writeDataIntoBuffer(this, data, size);
-            send_Data_Multi_Init(this, size);
+            SessionHandler::m_sessionInterface->writeDataIntoBuffer(this, multiblockId, data, size);
+            send_Data_Multi_Init(this, multiblockId, size);
             return true;
         }
     }
@@ -258,43 +256,66 @@ Session::makeSessionReady(const uint32_t sessionId,
  *
  * @return false, if session is already in send/receive of a multiblock-message
  */
-bool
-Session::startMultiblockDataTransfer(const uint64_t size)
+uint64_t
+Session::startMultiblockDataTransfer(const uint64_t multiblockId,
+                                     const uint64_t size)
 {
     LOG_DEBUG("CALL start multiblock data-transfer: " + std::to_string(m_sessionId));
 
-    if(m_statemachine.goToNextState(START_DATATRANSFER, NORMAL))
+    if(m_statemachine.isInState(ACTIVE))
     {
         const uint32_t numberOfBlocks = static_cast<uint32_t>(size / 4096) + 1;
-        m_multiBlockBuffer = new Kitsunemimi::Common::DataBuffer(numberOfBlocks);
 
-        return true;
+        // init new multiblock-message
+        MultiblockMessage newMultiblockMessage;
+        newMultiblockMessage.multiBlockBuffer = new Kitsunemimi::Common::DataBuffer(numberOfBlocks);
+        newMultiblockMessage.messageSize = size;
+        newMultiblockMessage.isSource = true;
+
+        // set or create id
+        uint64_t newMultiblockId = multiblockId;
+        if(multiblockId == 0) {
+            newMultiblockId = getRandValue();
+        }
+
+        m_multiBlockMessages.insert(std::pair<uint64_t, MultiblockMessage>(newMultiblockId,
+                                                                           newMultiblockMessage));
+
+        return newMultiblockId;
     }
 
-    return false;
+    return 0;
 }
 
 /**
  * @brief append data to the data-buffer for the multiblock-message
  *
+ * @param multiblockId
  * @param data pointer to the data
  * @param size number of bytes
  *
  * @return false, if session is not in the multiblock-transfer-state
  */
 bool
-Session::writeDataIntoBuffer(const void* data,
+Session::writeDataIntoBuffer(const uint64_t multiblockId,
+                             const void* data,
                              const uint64_t size)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("CALL write data into buffer: " + std::to_string(m_sessionId));
     }
 
-    if(m_statemachine.isInState(IN_DATATRANSFER))
+    if(m_statemachine.isInState(ACTIVE))
     {
-        return Kitsunemimi::Common::addDataToBuffer(m_multiBlockBuffer,
-                                                    data,
-                                                    size);
+        std::map<uint64_t, MultiblockMessage>::const_iterator it;
+        it = m_multiBlockMessages.find(multiblockId);
+
+        if(it != m_multiBlockMessages.end())
+        {
+            return Kitsunemimi::Common::addDataToBuffer(it->second.multiBlockBuffer,
+                                                        data,
+                                                        size);
+        }
     }
 
     return false;
@@ -304,26 +325,34 @@ Session::writeDataIntoBuffer(const void* data,
  * @brief last step of a mutliblock data-transfer by cleaning the buffer. Can also initialize the
  *        abort-process for a multiblock-datatransfer
  *
+ * @param multiblockId
  * @param initAbort true to initialize an abort-process
 
  * @return true, if statechange was successful, else false
  */
 bool
-Session::finishMultiblockDataTransfer(const bool initAbort)
+Session::finishMultiblockDataTransfer(const uint64_t multiblockId,
+                                      const bool initAbort)
 {
     LOG_DEBUG("CALL finish multiblock data-transfer: " + std::to_string(m_sessionId));
 
     // abort multi-block data-transfer, if one is in progress
-    if(m_statemachine.goToNextState(STOP_DATATRANSFER))
+    if(m_statemachine.isInState(ACTIVE))
     {
-        if(initAbort) {
-            send_Data_Multi_Abort(this);
-        }
+        std::map<uint64_t, MultiblockMessage>::const_iterator it;
+        it = m_multiBlockMessages.find(multiblockId);
 
-        if(m_multiBlockBuffer != nullptr)
+        if(it != m_multiBlockMessages.end())
         {
-            delete m_multiBlockBuffer;
-            m_multiBlockBuffer = nullptr;
+            if(initAbort) {
+                send_Data_Multi_Abort(this, multiblockId);
+            }
+
+            if(it->second.multiBlockBuffer != nullptr)
+            {
+                delete it->second.multiBlockBuffer;
+                m_multiBlockMessages.erase(it);
+            }
         }
 
         return true;
@@ -410,37 +439,22 @@ Session::initStatemachine()
     assert(m_statemachine.createNewState(CONNECTED, "connected"));
     assert(m_statemachine.createNewState(SESSION_NOT_READY, "session not ready"));
     assert(m_statemachine.createNewState(SESSION_READY, "session ready"));
-    assert(m_statemachine.createNewState(NORMAL, "normal"));
-    assert(m_statemachine.createNewState(IN_DATATRANSFER, "in datatransfer"));
+    assert(m_statemachine.createNewState(ACTIVE, "active"));
 
     // set child state
     assert(m_statemachine.addChildState(CONNECTED,     SESSION_NOT_READY));
     assert(m_statemachine.addChildState(CONNECTED,     SESSION_READY));
-    assert(m_statemachine.addChildState(SESSION_READY, NORMAL));
-    assert(m_statemachine.addChildState(SESSION_READY, IN_DATATRANSFER));
+    assert(m_statemachine.addChildState(SESSION_READY, ACTIVE));
 
     // set initial states
     assert(m_statemachine.setInitialChildState(CONNECTED,     SESSION_NOT_READY));
-    assert(m_statemachine.setInitialChildState(SESSION_READY, NORMAL));
+    assert(m_statemachine.setInitialChildState(SESSION_READY, ACTIVE));
 
     // init transitions
     assert(m_statemachine.addTransition(NOT_CONNECTED,     CONNECT,            CONNECTED));
     assert(m_statemachine.addTransition(CONNECTED,         DISCONNECT,         NOT_CONNECTED));
     assert(m_statemachine.addTransition(SESSION_NOT_READY, START_SESSION,      SESSION_READY));
     assert(m_statemachine.addTransition(SESSION_READY,     STOP_SESSION,       SESSION_NOT_READY));
-    assert(m_statemachine.addTransition(NORMAL,            START_DATATRANSFER, IN_DATATRANSFER));
-    assert(m_statemachine.addTransition(IN_DATATRANSFER,   STOP_DATATRANSFER,  NORMAL));
-}
-
-/**
- * @brief check if statemachine of the session is in data-transfer mode
- *
- * @return true, if in data-transfer-state, else false
- */
-bool
-Session::isInDatatransfer()
-{
-    return m_statemachine.isInState(IN_DATATRANSFER);
 }
 
 /**
@@ -458,6 +472,25 @@ Session::increaseMessageIdCounter()
     tempId = m_messageIdCounter;
     m_messageIdCounter_lock.clear(std::memory_order_release);
     return tempId;
+}
+
+/**
+ * @brief Session::getRandValue
+ *
+ * @return
+ */
+uint64_t
+Session::getRandValue()
+{
+    uint64_t newId = 0;
+
+    // 0 is the undefined value and should never be allowed
+    while(newId == 0)
+    {
+        newId = (static_cast<uint64_t>(rand()) << 32) | static_cast<uint64_t>(rand());
+    }
+
+    return newId;
 }
 
 } // namespace Common
