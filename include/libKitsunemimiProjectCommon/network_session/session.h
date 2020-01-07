@@ -70,6 +70,7 @@ public:
     };
 
     uint32_t increaseMessageIdCounter();
+    uint64_t getRandValue();
 
 private:
     friend InternalSessionInterface;
@@ -77,10 +78,18 @@ private:
     Session(Network::AbstractSocket* socket);
 
     Kitsunemimi::Common::Statemachine m_statemachine;
-    Kitsunemimi::Common::DataBuffer* m_multiBlockBuffer = nullptr;
     Network::AbstractSocket* m_socket = nullptr;
     uint32_t m_sessionId = 0;
     uint64_t m_sessionIdentifier = 0;
+
+    // multiblock-message
+    struct MultiblockMessage
+    {
+        bool isSource = false;
+        uint64_t messageSize = 0;
+        Kitsunemimi::Common::DataBuffer* multiBlockBuffer = nullptr;
+    };
+    std::map<uint64_t, MultiblockMessage> m_multiBlockMessages;
 
     // internal methods triggered by the InternalSessionInterface
     bool connectiSession(const uint32_t sessionId,
@@ -88,18 +97,20 @@ private:
                          const bool init = false);
     bool makeSessionReady(const uint32_t sessionId,
                           const uint64_t sessionIdentifier);
-    bool startMultiblockDataTransfer(const uint64_t size);
+    uint64_t startMultiblockDataTransfer(const uint64_t multiblockId,
+                                         const uint64_t size);
 
-    bool writeDataIntoBuffer(const void* data,
+    bool writeDataIntoBuffer(const uint64_t multiblockId,
+                             const void* data,
                              const uint64_t size);
 
-    bool finishMultiblockDataTransfer(const bool initAbort = false);
+    bool finishMultiblockDataTransfer(const uint64_t multiblockId,
+                                      const bool initAbort = false);
     bool endSession(const bool init = false);
     bool disconnectSession();
 
     bool sendHeartbeat();
     void initStatemachine();
-    bool isInDatatransfer();
 
     // callbacks
     void* m_sessionTarget = nullptr;

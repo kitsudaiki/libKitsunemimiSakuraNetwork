@@ -84,15 +84,16 @@ public:
 
     // multi-block data operations
     bool initMultiblockBuffer(Session* session,
+                              const uint64_t multiblockId,
                               const uint64_t size);
     bool writeDataIntoBuffer(Session* session,
+                             const uint64_t multiblockId,
                              const void* data,
                              const uint64_t size);
-    bool finishMultiblockBuffer(Session* session);
-    bool isInMultiblock(Session* session);
+    bool finishMultiblockBuffer(Session* session, const uint64_t multiblockId);
 
-    uint64_t getUsedBufferSize(Session* session);
-    uint8_t* getDataPointer(Session* session);
+    uint64_t getUsedBufferSize(Session* session, const uint64_t multiblockId);
+    uint8_t* getDataPointer(Session* session, const uint64_t multiblockId);
 
     // session-control
     Session* createNewSession(Network::AbstractSocket* socket);

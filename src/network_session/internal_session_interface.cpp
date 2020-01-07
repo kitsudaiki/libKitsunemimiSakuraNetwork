@@ -147,9 +147,10 @@ InternalSessionInterface::sendMessage(Session* session,
  */
 bool
 InternalSessionInterface::initMultiblockBuffer(Session* session,
+                                               const uint64_t multiblockId,
                                                const uint64_t size)
 {
-    return session->startMultiblockDataTransfer(size);
+    return session->startMultiblockDataTransfer(multiblockId, size);
 }
 
 /**
@@ -157,46 +158,52 @@ InternalSessionInterface::initMultiblockBuffer(Session* session,
  */
 bool
 InternalSessionInterface::writeDataIntoBuffer(Session* session,
+                                              const uint64_t multiblockId,
                                               const void* data,
                                               const uint64_t size)
 {
-    return session->writeDataIntoBuffer(data, size);
+    return session->writeDataIntoBuffer(multiblockId, data, size);
 }
 
 /**
  * @brief finishMultiblockBuffer
  */
 bool
-InternalSessionInterface::finishMultiblockBuffer(Session* session)
+InternalSessionInterface::finishMultiblockBuffer(Session* session, const uint64_t multiblockId)
 {
-    return session->finishMultiblockDataTransfer();
-}
-
-/**
- * @brief isInMultiblock
- */
-bool
-InternalSessionInterface::isInMultiblock(Session* session)
-{
-    return session->isInDatatransfer();
+    return session->finishMultiblockDataTransfer(multiblockId);
 }
 
 /**
  * @brief getUsedBufferSize
  */
 uint64_t
-InternalSessionInterface::getUsedBufferSize(Session* session)
+InternalSessionInterface::getUsedBufferSize(Session* session, const uint64_t multiblockId)
 {
-    return session->m_multiBlockBuffer->bufferPosition;
+    std::map<uint64_t, Session::MultiblockMessage>::const_iterator it;
+    it = session->m_multiBlockMessages.find(multiblockId);
+
+    if(it != session->m_multiBlockMessages.end()) {
+        return it->second.multiBlockBuffer->bufferPosition;
+    }
+
+    return 0;
 }
 
 /**
  * @brief getDataPointer
  */
 uint8_t*
-InternalSessionInterface::getDataPointer(Session* session)
+InternalSessionInterface::getDataPointer(Session* session, const uint64_t multiblockId)
 {
-    return session->m_multiBlockBuffer->getBlock(0);
+    std::map<uint64_t, Session::MultiblockMessage>::const_iterator it;
+    it = session->m_multiBlockMessages.find(multiblockId);
+
+    if(it != session->m_multiBlockMessages.end()) {
+        return it->second.multiBlockBuffer->getBlock(0);
+    }
+
+    return nullptr;
 }
 
 /**
