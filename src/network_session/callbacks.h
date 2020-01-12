@@ -28,7 +28,7 @@
 
 #include <libKitsunemimiCommon/data_buffer.h>
 
-#include <libKitsunemimiProjectCommon/network_session/session_controller.h>
+#include <libKitsunemimiProjectNetwork/network_session/session_controller.h>
 
 #include <network_session/messages_processing/session_processing.h>
 #include <network_session/messages_processing/heartbeat_processing.h>

@@ -28,7 +28,7 @@
 #include <map>
 #include <atomic>
 
-#include <libKitsunemimiProjectCommon/network_session/session.h>
+#include <libKitsunemimiProjectNetwork/network_session/session.h>
 
 namespace Kitsunemimi
 {

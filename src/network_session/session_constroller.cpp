@@ -20,7 +20,7 @@
  *      limitations under the License.
  */
 
-#include <libKitsunemimiProjectCommon/network_session/session_controller.h>
+#include <libKitsunemimiProjectNetwork/network_session/session_controller.h>
 
 #include <network_session/timer_thread.h>
 #include <network_session/session_handler.h>

@@ -27,8 +27,8 @@
 #include <network_session/message_definitions.h>
 #include <network_session/internal_session_interface.h>
 
-#include <libKitsunemimiProjectCommon/network_session/session.h>
-#include <libKitsunemimiProjectCommon/network_session/session_controller.h>
+#include <libKitsunemimiProjectNetwork/network_session/session.h>
+#include <libKitsunemimiProjectNetwork/network_session/session_controller.h>
 
 #include <libKitsunemimiPersistence/logger/logger.h>
 

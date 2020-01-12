@@ -30,8 +30,8 @@
 #include <libKitsunemimiNetwork/abstract_socket.h>
 #include <libKitsunemimiNetwork/message_ring_buffer.h>
 
-#include <libKitsunemimiProjectCommon/network_session/session_controller.h>
-#include <libKitsunemimiProjectCommon/network_session/session.h>
+#include <libKitsunemimiProjectNetwork/network_session/session_controller.h>
+#include <libKitsunemimiProjectNetwork/network_session/session.h>
 
 #include <libKitsunemimiPersistence/logger/logger.h>
 
