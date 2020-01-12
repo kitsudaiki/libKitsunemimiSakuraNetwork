@@ -23,19 +23,18 @@
 #ifndef MESSAGE_DEFINITIONS_H
 #define MESSAGE_DEFINITIONS_H
 
+#define DEBUG_MODE false
+
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
 
-#include <network_session/session_handler.h>
 #include <network_session/timer_thread.h>
 
 namespace Kitsunemimi
 {
 namespace Project
-{
-namespace Common
 {
 
 enum types
@@ -487,7 +486,6 @@ struct Data_MultiAbort_Message
 
 //==================================================================================================
 
-} // namespace Common
 } // namespace Project
 } // namespace Kitsunemimi
 

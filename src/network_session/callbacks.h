@@ -44,8 +44,6 @@ namespace Kitsunemimi
 {
 namespace Project
 {
-namespace Common
-{
 
 /**
  * process incoming data
@@ -129,12 +127,11 @@ void
 processConnection_Callback(void*,
                            AbstractSocket* socket)
 {
-    Session* newSession = SessionHandler::m_sessionInterface->createNewSession(socket);
+    Session* newSession = new Session(socket);
     socket->setMessageCallback(newSession, &processMessage_callback);
     socket->startThread();
 }
 
-} // namespace Common
 } // namespace Project
 } // namespace Kitsunemimi
 

@@ -37,12 +37,13 @@ HEADERS += \
     network_session/internal_session_interface.h \
     network_session/session_handler.h \
     network_session/messages_processing/multiblock_data_processing.h \
-    network_session/messages_processing/singleblock_data_processing.h
+    network_session/messages_processing/singleblock_data_processing.h \
+    network_session/multiblock_io.h
 
 SOURCES += \
     network_session/timer_thread.cpp \
     network_session/session.cpp \
     network_session/session_constroller.cpp \
-    network_session/internal_session_interface.cpp \
-    network_session/session_handler.cpp
+    network_session/session_handler.cpp \
+    network_session/multiblock_io.cpp
 

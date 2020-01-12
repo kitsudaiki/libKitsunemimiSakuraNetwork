@@ -27,7 +27,7 @@
 
 #include <network_session/message_definitions.h>
 #include <network_session/session_handler.h>
-#include <network_session/internal_session_interface.h>
+#include <network_session/multiblock_io.h>
 
 #include <libKitsunemimiNetwork/abstract_socket.h>
 #include <libKitsunemimiNetwork/message_ring_buffer.h>
@@ -45,8 +45,6 @@ namespace Kitsunemimi
 {
 namespace Project
 {
-namespace Common
-{
 
 /**
  * @brief send the initial message
@@ -62,11 +60,10 @@ send_Heartbeat_Start(Session* session)
 
     Heartbeat_Start_Message message(session->sessionId(),
                                     session->increaseMessageIdCounter());
-
-    SessionHandler::m_sessionInterface->sendMessage(session,
-                                                    message.commonHeader,
-                                                    &message,
-                                                    sizeof(message));
+    SessionHandler::m_sessionHandler->sendMessage(session,
+                                                  message.commonHeader,
+                                                  &message,
+                                                  sizeof(message));
 }
 
 /**
@@ -85,11 +82,10 @@ send_Heartbeat_Reply(Session* session,
 
     Heartbeat_Reply_Message message(session->sessionId(),
                                     messageId);
-
-    SessionHandler::m_sessionInterface->sendMessage(session,
-                                                    message.commonHeader,
-                                                    &message,
-                                                    sizeof(message));
+    SessionHandler::m_sessionHandler->sendMessage(session,
+                                                  message.commonHeader,
+                                                  &message,
+                                                  sizeof(message));
 }
 
 /**
@@ -106,8 +102,7 @@ process_Heartbeat_Start(Session* session,
         LOG_DEBUG("process heartbeat start");
     }
 
-    send_Heartbeat_Reply(session,
-                         message->commonHeader.messageId);
+    send_Heartbeat_Reply(session, message->commonHeader.messageId);
 }
 
 /**
@@ -173,7 +168,6 @@ process_Heartbeat_Type(Session* session,
     return 0;
 }
 
-} // namespace Common
 } // namespace Project
 } // namespace Kitsunemimi
 

@@ -37,8 +37,6 @@ class AbstractServer;
 }
 namespace Project
 {
-namespace Common
-{
 
 class SessionController
 {
@@ -51,7 +49,7 @@ public:
                       void (*processError)(void*, Session*, const uint8_t, const std::string));
     ~SessionController();
 
-    static Kitsunemimi::Project::Common::SessionController* m_sessionController;
+    static Kitsunemimi::Project::SessionController* m_sessionController;
 
     // server
     uint32_t addUnixDomainServer(const std::string socketFile);
@@ -84,7 +82,6 @@ private:
                       const uint64_t sessionIdentifier);
 };
 
-} // namespace Common
 } // namespace Project
 } // namespace Kitsunemimi
 

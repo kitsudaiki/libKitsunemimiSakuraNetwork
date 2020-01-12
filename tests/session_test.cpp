@@ -26,8 +26,6 @@ namespace Kitsunemimi
 {
 namespace Project
 {
-namespace Common
-{
 
 void dataCallback(void* target,
                   Session*,
@@ -73,7 +71,7 @@ void errorCallback(void*,
 
 void sessionCallback(void* target,
                      bool isInit,
-                     Kitsunemimi::Project::Common::Session* session,
+                     Kitsunemimi::Project::Session* session,
                      const uint64_t sessionIdentifier)
 {
 
@@ -111,7 +109,7 @@ void sessionCallback(void* target,
 
             // multiblock
             const std::string multiblockTestString = testClass->m_multiBlockMessage;
-            ret = session->sendStandaloneData(multiblockTestString.c_str(),
+            ret = session->sendMultiblockData(multiblockTestString.c_str(),
                                               multiblockTestString.size());
             testClass->compare(ret,  true);
         }
@@ -178,6 +176,5 @@ Session_Test::runTest()
     delete m_controller;
 }
 
-} // namespace Common
 } // namespace Project
 } // namespace Kitsunemimi

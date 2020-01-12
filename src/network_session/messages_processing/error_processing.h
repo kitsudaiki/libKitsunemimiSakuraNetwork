@@ -27,7 +27,7 @@
 
 #include <network_session/message_definitions.h>
 #include <network_session/session_handler.h>
-#include <network_session/internal_session_interface.h>
+#include <network_session/multiblock_io.h>
 
 #include <libKitsunemimiNetwork/abstract_socket.h>
 #include <libKitsunemimiNetwork/message_ring_buffer.h>
@@ -43,8 +43,6 @@ using Kitsunemimi::Network::getObjectFromBuffer;
 namespace Kitsunemimi
 {
 namespace Project
-{
-namespace Common
 {
 
 /**
@@ -70,10 +68,10 @@ send_ErrorMessage(Session* session,
                     session->sessionId(),
                     session->increaseMessageIdCounter(),
                     message);
-            SessionHandler::m_sessionInterface->sendMessage(session,
-                                                            errorMessage.commonHeader,
-                                                            &errorMessage,
-                                                            sizeof(errorMessage));
+            SessionHandler::m_sessionHandler->sendMessage(session,
+                                                          errorMessage.commonHeader,
+                                                          &errorMessage,
+                                                          sizeof(errorMessage));
             break;
         }
         //------------------------------------------------------------------------------------------
@@ -83,7 +81,7 @@ send_ErrorMessage(Session* session,
                     session->sessionId(),
                     session->increaseMessageIdCounter(),
                     message);
-            SessionHandler::m_sessionInterface->sendMessage(session,
+            SessionHandler::m_sessionHandler->sendMessage(session,
                                                             errorMessage.commonHeader,
                                                             &errorMessage,
                                                             sizeof(errorMessage));
@@ -96,7 +94,7 @@ send_ErrorMessage(Session* session,
                     session->sessionId(),
                     session->increaseMessageIdCounter(),
                     message);
-            SessionHandler::m_sessionInterface->sendMessage(session,
+            SessionHandler::m_sessionHandler->sendMessage(session,
                                                             errorMessage.commonHeader,
                                                             &errorMessage,
                                                             sizeof(errorMessage));
@@ -137,10 +135,10 @@ process_Error_Type(Session* session,
                     break;
                 }
 
-                SessionHandler::m_sessionInterface->receivedError(
-                            session,
-                            Session::errorCodes::FALSE_VERSION,
-                            std::string(message->message, message->messageSize));
+                session->m_processError(session->m_errorTarget,
+                                        session,
+                                        Session::errorCodes::FALSE_VERSION,
+                                        std::string(message->message, message->messageSize));
                 return sizeof(*message);
             }
         //------------------------------------------------------------------------------------------
@@ -152,10 +150,11 @@ process_Error_Type(Session* session,
                     break;
                 }
 
-                SessionHandler::m_sessionInterface->receivedError(
-                            session,
-                            Session::errorCodes::UNKNOWN_SESSION,
-                            std::string(message->message, message->messageSize));
+
+                session->m_processError(session->m_errorTarget,
+                                        session,
+                                        Session::errorCodes::UNKNOWN_SESSION,
+                                        std::string(message->message, message->messageSize));
                 return sizeof(*message);
             }
         //------------------------------------------------------------------------------------------
@@ -167,10 +166,10 @@ process_Error_Type(Session* session,
                     break;
                 }
 
-                SessionHandler::m_sessionInterface->receivedError(
-                            session,
-                            Session::errorCodes::INVALID_MESSAGE_SIZE,
-                            std::string(message->message, message->messageSize));
+                session->m_processError(session->m_errorTarget,
+                                        session,
+                                        Session::errorCodes::INVALID_MESSAGE_SIZE,
+                                        std::string(message->message, message->messageSize));
                 return sizeof(*message);
             }
         //------------------------------------------------------------------------------------------
@@ -181,7 +180,6 @@ process_Error_Type(Session* session,
     return 0;
 }
 
-} // namespace Common
 } // namespace Project
 } // namespace Kitsunemimi
 

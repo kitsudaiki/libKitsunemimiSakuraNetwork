@@ -27,6 +27,7 @@
 #include <vector>
 #include <map>
 #include <atomic>
+#include <network_session/message_definitions.h>
 
 namespace Kitsunemimi
 {
@@ -35,21 +36,17 @@ class AbstractServer;
 }
 namespace Project
 {
-namespace Common
-{
 class Session;
 class TimerThread;
 class SessionController;
-class InternalSessionInterface;
 
 class SessionHandler
 {
 public:
 
-    static Kitsunemimi::Project::Common::TimerThread* m_timerThread;
-    static Kitsunemimi::Project::Common::SessionController* m_sessionController;
-    static Kitsunemimi::Project::Common::SessionHandler* m_sessionHandler;
-    static Kitsunemimi::Project::Common::InternalSessionInterface* m_sessionInterface;
+    static Kitsunemimi::Project::TimerThread* m_timerThread;
+    static Kitsunemimi::Project::SessionController* m_sessionController;
+    static Kitsunemimi::Project::SessionHandler* m_sessionHandler;
 
     SessionHandler(void* sessionTarget,
                    void (*processSession)(void*, bool, Session*, const uint64_t),
@@ -72,13 +69,24 @@ public:
     std::map<uint32_t, Session*> m_sessions;
     std::map<uint32_t, Network::AbstractServer*> m_servers;
 
+    void sendMessage(Session *session,
+                     const CommonMessageHeader &header,
+                     const void* data,
+                     const uint64_t size);
 private:
     // counter
     std::atomic_flag m_sessionIdCounter_lock = ATOMIC_FLAG_INIT;
     uint16_t m_sessionIdCounter = 0;
+
+    // callbacks
+    void* m_sessionTarget = nullptr;
+    void (*m_processSession)(void*, bool, Session*, const uint64_t);
+    void* m_dataTarget = nullptr;
+    void (*m_processData)(void*, Session*, const bool, const void*, const uint64_t);
+    void* m_errorTarget = nullptr;
+    void (*m_processError)(void*, Session*, const uint8_t, const std::string);
 };
 
-} // namespace Common
 } // namespace Project
 } // namespace Kitsunemimi
 

@@ -25,7 +25,7 @@
 
 #include <network_session/message_definitions.h>
 #include <network_session/session_handler.h>
-#include <network_session/internal_session_interface.h>
+#include <network_session/multiblock_io.h>
 
 #include <libKitsunemimiNetwork/abstract_socket.h>
 #include <libKitsunemimiNetwork/message_ring_buffer.h>
@@ -43,8 +43,6 @@ using Kitsunemimi::Network::getDataPointer;
 namespace Kitsunemimi
 {
 namespace Project
-{
-namespace Common
 {
 
 /**
@@ -67,10 +65,10 @@ send_Data_Single_Static(Session* session,
     memcpy(message.payload, data, size);
     message.payloadSize = size;
 
-    SessionHandler::m_sessionInterface->sendMessage(session,
-                                                    message.commonHeader,
-                                                    &message,
-                                                    sizeof(message));
+    SessionHandler::m_sessionHandler->sendMessage(session,
+                                                  message.commonHeader,
+                                                  &message,
+                                                  sizeof(message));
 }
 
 /**
@@ -112,10 +110,10 @@ send_Data_Single_Dynamic(Session* session,
            sizeof(CommonMessageEnd));
 
     // send message
-    SessionHandler::m_sessionInterface->sendMessage(session,
-                                                    header.commonHeader,
-                                                    completeMessage,
-                                                    totalMessageSizeAligned);
+    SessionHandler::m_sessionHandler->sendMessage(session,
+                                                  header.commonHeader,
+                                                  completeMessage,
+                                                  totalMessageSizeAligned);
 
     delete[] completeMessage;
 }
@@ -132,10 +130,10 @@ send_Data_Single_Reply(Session* session,
     }
 
     Data_SingleReply_Message message(session->sessionId(), messageId);
-    SessionHandler::m_sessionInterface->sendMessage(session,
-                                                    message.commonHeader,
-                                                    &message,
-                                                    sizeof(message));
+    SessionHandler::m_sessionHandler->sendMessage(session,
+                                                  message.commonHeader,
+                                                  &message,
+                                                  sizeof(message));
 }
 
 /**
@@ -149,10 +147,11 @@ process_Data_Single_Static(Session* session,
         LOG_DEBUG("process data single static");
     }
 
-    SessionHandler::m_sessionInterface->receivedData(session,
-                                                     true,
-                                                     static_cast<const void*>(message->payload),
-                                                     message->payloadSize);
+    session->m_processData(session->m_dataTarget,
+                               session,
+                               true,
+                               static_cast<const void*>(message->payload),
+                               message->payloadSize);
     send_Data_Single_Reply(session, message->commonHeader.messageId);
 }
 
@@ -174,10 +173,11 @@ process_Data_Single_Dynamic(Session* session,
     }
 
     const void* payload = completeMessage + sizeof(Data_SingleDynamic_Header);
-    SessionHandler::m_sessionInterface->receivedData(session,
-                                                     true,
-                                                     payload,
-                                                     message->payloadSize);
+    session->m_processData(session->m_dataTarget,
+                               session,
+                               true,
+                               payload,
+                               message->payloadSize);
     send_Data_Single_Reply(session, message->commonHeader.messageId);
 
     return message->commonHeader.size;
@@ -258,7 +258,6 @@ process_SingleBlock_Data_Type(Session* session,
     return 0;
 }
 
-} // namespace Common
 } // namespace Project
 } // namespace Kitsunemimi
 

@@ -32,8 +32,6 @@ namespace Kitsunemimi
 {
 namespace Project
 {
-namespace Common
-{
 class Session;
 
 class TimerThread : public Kitsunemimi::Common::Thread
@@ -75,7 +73,6 @@ private:
     bool removeMessageFromList(const uint64_t completeMessageId);
 };
 
-} // namespace Common
 } // namespace Project
 } // namespace Kitsunemimi
 

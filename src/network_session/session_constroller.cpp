@@ -41,8 +41,6 @@ namespace Kitsunemimi
 {
 namespace Project
 {
-namespace Common
-{
 
 SessionController* SessionController::m_sessionController = nullptr;
 
@@ -321,16 +319,15 @@ bool
 SessionController::startSession(Network::AbstractSocket *socket,
                                 const uint64_t sessionIdentifier)
 {
-    Session* newSession = SessionHandler::m_sessionInterface->createNewSession(socket);
+    Session* newSession = new Session(socket);
     socket->setMessageCallback(newSession, &processMessage_callback);
 
     const uint32_t newId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
     SessionHandler::m_sessionHandler->addSession(newId, newSession);
-    return SessionHandler::m_sessionInterface->connectiSession(newSession, newId, sessionIdentifier, true);
+    return newSession->connectiSession(newId, sessionIdentifier, true);
 }
 
 //==================================================================================================
 
-} // namespace Common
 } // namespace Project
 } // namespace Kitsunemimi

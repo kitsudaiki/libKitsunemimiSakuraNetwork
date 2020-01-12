@@ -25,7 +25,7 @@
 
 #include <network_session/message_definitions.h>
 #include <network_session/session_handler.h>
-#include <network_session/internal_session_interface.h>
+#include <network_session/multiblock_io.h>
 
 #include <libKitsunemimiNetwork/abstract_socket.h>
 #include <libKitsunemimiNetwork/message_ring_buffer.h>
@@ -43,8 +43,6 @@ using Kitsunemimi::Network::getDataPointer;
 namespace Kitsunemimi
 {
 namespace Project
-{
-namespace Common
 {
 
 /**
@@ -64,10 +62,10 @@ send_Data_Multi_Init(Session* session,
                                    multiblockId);
     message.totalSize = requestedSize;
 
-    SessionHandler::m_sessionInterface->sendMessage(session,
-                                                    message.commonHeader,
-                                                    &message,
-                                                    sizeof(message));
+    SessionHandler::m_sessionHandler->sendMessage(session,
+                                                  message.commonHeader,
+                                                  &message,
+                                                  sizeof(message));
 }
 
 /**
@@ -88,10 +86,10 @@ send_Data_Multi_Init_Reply(Session* session,
                                         multiblockId);
     message.status = status;
 
-    SessionHandler::m_sessionInterface->sendMessage(session,
-                                                    message.commonHeader,
-                                                    &message,
-                                                    sizeof(message));
+    SessionHandler::m_sessionHandler->sendMessage(session,
+                                                  message.commonHeader,
+                                                  &message,
+                                                  sizeof(message));
 }
 
 /**
@@ -119,10 +117,10 @@ send_Data_Multi_Static(Session* session,
     memcpy(message.payload, data, size);
     message.payloadSize = size;
 
-    SessionHandler::m_sessionInterface->sendMessage(session,
-                                                    message.commonHeader,
-                                                    &message,
-                                                    sizeof(message));
+    SessionHandler::m_sessionHandler->sendMessage(session,
+                                                  message.commonHeader,
+                                                  &message,
+                                                  sizeof(message));
 }
 
 /**
@@ -140,10 +138,10 @@ send_Data_Multi_Finish(Session* session,
     Data_MultiFinish_Message message(session->sessionId(),
                                      session->increaseMessageIdCounter(),
                                      multiblockId);
-    SessionHandler::m_sessionInterface->sendMessage(session,
-                                                    message.commonHeader,
-                                                    &message,
-                                                    sizeof(message));
+    SessionHandler::m_sessionHandler->sendMessage(session,
+                                                  message.commonHeader,
+                                                  &message,
+                                                  sizeof(message));
 }
 
 /**
@@ -174,9 +172,8 @@ process_Data_Multi_Init(Session* session,
         LOG_DEBUG("process data multi init");
     }
 
-    const bool ret = SessionHandler::m_sessionInterface->initMultiblockBuffer(session,
-                                                                              message->multiblockId,
-                                                                              message->totalSize);
+    const bool ret = session->m_multiblockIo->createIncomingBuffer(message->multiblockId,
+                                                                   message->totalSize);
     if(ret)
     {
         send_Data_Multi_Init_Reply(session,
@@ -206,49 +203,17 @@ process_Data_Multi_Init_Reply(Session* session,
 
     if(message->status == Data_MultiInitReply_Message::OK)
     {
-        // counter values
-        uint64_t totalSize =
-                SessionHandler::m_sessionInterface->getUsedBufferSize(session,
-                                                                      message->multiblockId);
-        uint64_t currentMessageSize = 0;
-        uint32_t partCounter = 0;
-
-        // static values
-        const uint32_t totalPartNumber = static_cast<uint32_t>(totalSize / 1000) + 1;
-        const uint8_t* dataPointer =
-                SessionHandler::m_sessionInterface->getDataPointer(session, message->multiblockId);
-
-        while(totalSize != 0)
-        {
-            // get message-size base on the rest
-            currentMessageSize = 1000;
-            if(totalSize < 1000) {
-                currentMessageSize = totalSize;
-            }
-            totalSize -= currentMessageSize;
-
-            // send single packet
-            send_Data_Multi_Static(session,
-                                   message->multiblockId,
-                                   totalPartNumber,
-                                   partCounter,
-                                   dataPointer + (1000 * partCounter),
-                                   currentMessageSize);
-
-            partCounter++;
-        }
-
-        // finish multi-block
-        send_Data_Multi_Finish(session, message->multiblockId);
+        session->m_multiblockIo->makeMultiblockReady(message->multiblockId);
     }
     else
     {
-        SessionHandler::m_sessionInterface->receivedError(session,
-                                                          Session::errorCodes::MULTIBLOCK_FAILED,
-                                                          "unable not send multi-block-Message");
+        session->m_processError(session->m_errorTarget,
+                                session,
+                                Session::errorCodes::MULTIBLOCK_FAILED,
+                                "unable not send multi-block-Message");
     }
 
-    SessionHandler::m_sessionInterface->finishMultiblockBuffer(session, message->multiblockId);
+    session->m_multiblockIo->finishMultiblockDataTransfer();
 }
 
 /**
@@ -262,10 +227,9 @@ process_Data_Multi_Static(Session* session,
         LOG_DEBUG("process data multi static");
     }
 
-    SessionHandler::m_sessionInterface->writeDataIntoBuffer(session,
-                                                            message->multiblockId,
-                                                            message->payload,
-                                                            message->payloadSize);
+    session->m_multiblockIo->writeDataIntoBuffer(message->multiblockId,
+                                                 message->payload,
+                                                 message->payloadSize);
 }
 
 /**
@@ -279,16 +243,15 @@ process_Data_Multi_Finish(Session* session,
         LOG_DEBUG("process data multi finish");
     }
 
-    const uint64_t totalSize =
-            SessionHandler::m_sessionInterface->getUsedBufferSize(session, message->multiblockId);
-    const uint8_t* dataPointer =
-            SessionHandler::m_sessionInterface->getDataPointer(session, message->multiblockId);
+    MultiblockIO::MultiblockMessage buffer =
+            session->m_multiblockIo->getIncomingBuffer(message->multiblockId, true);
 
-    SessionHandler::m_sessionInterface->receivedData(session,
-                                                     false,
-                                                     dataPointer,
-                                                     totalSize);
-    SessionHandler::m_sessionInterface->finishMultiblockBuffer(session, message->multiblockId);
+    session->m_processData(session->m_dataTarget,
+                           session,
+                           false,
+                           buffer.multiBlockBuffer->getBlock(0),
+                           buffer.messageSize);
+    session->m_multiblockIo->finishMultiblockDataTransfer();
 }
 
 /**
@@ -296,13 +259,13 @@ process_Data_Multi_Finish(Session* session,
  */
 inline void
 process_Data_Multi_Abort(Session* session,
-                         const Data_MultiAbort_Message* message)
+                         const Data_MultiAbort_Message*)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("process data multi abort");
     }
 
-    SessionHandler::m_sessionInterface->finishMultiblockBuffer(session, message->multiblockId);
+    session->m_multiblockIo->finishMultiblockDataTransfer();
 }
 
 /**
@@ -388,7 +351,6 @@ process_MultiBlock_Data_Type(Session* session,
     return 0;
 }
 
-} // namespace Common
 } // namespace Project
 } // namespace Kitsunemimi
 
