@@ -7,11 +7,11 @@ build:
     - apt-get update
     - apt-get install -y libboost-filesystem-dev libsqlite3-dev libboost-program-options-dev
 
-    - cd /builds/tobiasanker/libKitsunemimiProjectCommon
+    - cd /builds/tobiasanker/libKitsunemimiProjectNetwork
     - ./build.sh
 
     - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:'/builds/tobiasanker/result'
-    - /builds/tobiasanker/build/libKitsunemimiProjectCommon/tests/tests
+    - /builds/tobiasanker/build/libKitsunemimiProjectNetwork/tests/tests
 
   tags:
     - docker

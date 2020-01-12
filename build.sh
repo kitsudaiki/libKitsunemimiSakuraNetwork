@@ -53,6 +53,6 @@ get_required_kitsune_lib_repo "libKitsunemimiNetwork" "v0.5.1"
 
 #-----------------------------------------------------------------------------------------------------------------
 
-build_kitsune_lib_repo "libKitsunemimiProjectCommon"
+build_kitsune_lib_repo "libKitsunemimiProjectNetwork"
 
 #-----------------------------------------------------------------------------------------------------------------
