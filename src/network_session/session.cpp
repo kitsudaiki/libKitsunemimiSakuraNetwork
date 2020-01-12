@@ -115,7 +115,7 @@ Session::sendMultiblockData(const void* data,
                             const uint64_t size)
 {
     if(m_statemachine.isInState(ACTIVE)) {
-        return m_multiblockIo->createBacklogBuffer(data, size);
+        return m_multiblockIo->createOutgoingBuffer(data, size);
     }
 
     return 0;
@@ -131,7 +131,7 @@ Session::sendMultiblockData(const void* data,
 bool
 Session::abortMessages(const uint64_t multiblockMessageId)
 {
-    if(m_multiblockIo->abortMultiblockDataTransfer(multiblockMessageId))
+    if(m_multiblockIo->removeOutgoingMessage(multiblockMessageId))
     {
         send_Data_Multi_Abort(this, multiblockMessageId);
         return true;
@@ -153,7 +153,7 @@ Session::closeSession(const bool replyExpected)
 {
     if(m_statemachine.isInState(SESSION_READY))
     {
-        m_multiblockIo->abortMultiblockDataTransfer(0);
+        m_multiblockIo->removeOutgoingMessage(0);
         if(replyExpected)
         {
             send_Session_Close_Start(this, true);

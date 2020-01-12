@@ -59,21 +59,25 @@ public:
 
     Session* m_session = nullptr;
 
-    // handle multiblock-buffer
-    uint64_t createBacklogBuffer(const void* data,
-                                 const uint64_t size);
+    // create
+    uint64_t createOutgoingBuffer(const void* data,
+                                  const uint64_t size);
     bool createIncomingBuffer(const uint64_t multiblockId,
                               const uint64_t size);
 
-    bool writeDataIntoBuffer(const uint64_t multiblockId,
-                             const void* data,
-                             const uint64_t size);
-    bool makeMultiblockReady(const uint64_t multiblockId);
-    MultiblockMessage getIncomingBuffer(const uint64_t multiblockId,
-                                        const bool eraseFromMap = false);
+    // process outgoing
+    bool makeOutgoingReady(const uint64_t multiblockId);
+    bool sendOutgoingData(const MultiblockMessage &messageBuffer);
 
-    bool abortMultiblockDataTransfer(const uint64_t multiblockId=0);
-    bool finishMultiblockDataTransfer();
+    // process incoming
+    MultiblockMessage getIncomingBuffer(const uint64_t multiblockId);
+    bool writeIntoIncomingBuffer(const uint64_t multiblockId,
+                                 const void* data,
+                                 const uint64_t size);
+
+    // remove
+    bool removeOutgoingMessage(const uint64_t multiblockId=0);
+    bool removeIncomingMessage(const uint64_t multiblockId);
 
     uint64_t getRandValue();
 
@@ -81,10 +85,8 @@ protected:
     void run();
 
 private:
-    bool sendOutgoingData(const MultiblockMessage &messageBuffer);
-
-    std::atomic_flag m_backlog_lock = ATOMIC_FLAG_INIT;
-    std::deque<MultiblockMessage> m_backlog;
+    std::atomic_flag m_outgoing_lock = ATOMIC_FLAG_INIT;
+    std::deque<MultiblockMessage> m_outgoing;
 
     std::atomic_flag m_incoming_lock = ATOMIC_FLAG_INIT;
     std::map<uint64_t, MultiblockMessage> m_incoming;

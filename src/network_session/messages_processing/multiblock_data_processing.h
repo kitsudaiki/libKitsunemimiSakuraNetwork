@@ -203,7 +203,7 @@ process_Data_Multi_Init_Reply(Session* session,
 
     if(message->status == Data_MultiInitReply_Message::OK)
     {
-        session->m_multiblockIo->makeMultiblockReady(message->multiblockId);
+        session->m_multiblockIo->makeOutgoingReady(message->multiblockId);
     }
     else
     {
@@ -212,8 +212,6 @@ process_Data_Multi_Init_Reply(Session* session,
                                 Session::errorCodes::MULTIBLOCK_FAILED,
                                 "unable not send multi-block-Message");
     }
-
-    session->m_multiblockIo->finishMultiblockDataTransfer();
 }
 
 /**
@@ -227,7 +225,7 @@ process_Data_Multi_Static(Session* session,
         LOG_DEBUG("process data multi static");
     }
 
-    session->m_multiblockIo->writeDataIntoBuffer(message->multiblockId,
+    session->m_multiblockIo->writeIntoIncomingBuffer(message->multiblockId,
                                                  message->payload,
                                                  message->payloadSize);
 }
@@ -244,14 +242,14 @@ process_Data_Multi_Finish(Session* session,
     }
 
     MultiblockIO::MultiblockMessage buffer =
-            session->m_multiblockIo->getIncomingBuffer(message->multiblockId, true);
+            session->m_multiblockIo->getIncomingBuffer(message->multiblockId);
 
     session->m_processData(session->m_dataTarget,
                            session,
                            false,
                            buffer.multiBlockBuffer->getBlock(0),
                            buffer.messageSize);
-    session->m_multiblockIo->finishMultiblockDataTransfer();
+    session->m_multiblockIo->removeIncomingMessage(message->multiblockId);
 }
 
 /**
@@ -259,13 +257,13 @@ process_Data_Multi_Finish(Session* session,
  */
 inline void
 process_Data_Multi_Abort(Session* session,
-                         const Data_MultiAbort_Message*)
+                         const Data_MultiAbort_Message* message)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("process data multi abort");
     }
 
-    session->m_multiblockIo->finishMultiblockDataTransfer();
+    session->m_multiblockIo->removeIncomingMessage(message->multiblockId);
 }
 
 /**
