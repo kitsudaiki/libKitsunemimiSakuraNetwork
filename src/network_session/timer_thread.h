@@ -40,6 +40,7 @@ public:
     TimerThread();
     ~TimerThread();
 
+    // add
     void addMessage(const uint8_t messageType,
                     const uint32_t sessionId,
                     const uint64_t messageId,
@@ -48,10 +49,10 @@ public:
                     const uint64_t completeMessageId,
                     Session* session);
 
+    // remove
     bool removeMessage(const uint32_t sessionId,
                        const uint64_t messageId);
     bool removeMessage(const uint64_t completeMessageId);
-
     void removeAllOfSession(const uint32_t sessionId);
 
 protected:

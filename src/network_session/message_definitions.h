@@ -87,6 +87,9 @@ enum multiblock_data_subTypes
 
 //==================================================================================================
 
+/**
+ * @brief CommonMessageHeader
+ */
 struct CommonMessageHeader
 {
     uint8_t version = 0x1;
@@ -105,6 +108,9 @@ struct CommonMessageEnd
 
 //==================================================================================================
 
+/**
+ * @brief Session_Init_Start_Message
+ */
 struct Session_Init_Start_Message
 {
     CommonMessageHeader commonHeader;
@@ -126,6 +132,9 @@ struct Session_Init_Start_Message
     }
 } __attribute__((packed));
 
+/**
+ * @brief Session_Init_Reply_Message
+ */
 struct Session_Init_Reply_Message
 {
     CommonMessageHeader commonHeader;
@@ -148,6 +157,9 @@ struct Session_Init_Reply_Message
 
 //==================================================================================================
 
+/**
+ * @brief Session_Close_Start_Message
+ */
 struct Session_Close_Start_Message
 {
     CommonMessageHeader commonHeader;
@@ -170,6 +182,9 @@ struct Session_Close_Start_Message
     }
 } __attribute__((packed));
 
+/**
+ * @brief Session_Close_Reply_Message
+ */
 struct Session_Close_Reply_Message
 {
     CommonMessageHeader commonHeader;
@@ -190,6 +205,9 @@ struct Session_Close_Reply_Message
 
 //==================================================================================================
 
+/**
+ * @brief Heartbeat_Start_Message
+ */
 struct Heartbeat_Start_Message
 {
     CommonMessageHeader commonHeader;
@@ -208,6 +226,9 @@ struct Heartbeat_Start_Message
     }
 } __attribute__((packed));
 
+/**
+ * @brief Heartbeat_Reply_Message
+ */
 struct Heartbeat_Reply_Message
 {
     CommonMessageHeader commonHeader;
@@ -228,6 +249,9 @@ struct Heartbeat_Reply_Message
 
 //==================================================================================================
 
+/**
+ * @brief Error_FalseVersion_Message
+ */
 struct Error_FalseVersion_Message
 {
     CommonMessageHeader commonHeader;
@@ -254,6 +278,9 @@ struct Error_FalseVersion_Message
     }
 } __attribute__((packed));
 
+/**
+ * @brief Error_UnknownSession_Message
+ */
 struct Error_UnknownSession_Message
 {
     CommonMessageHeader commonHeader;
@@ -280,6 +307,9 @@ struct Error_UnknownSession_Message
     }
 } __attribute__((packed));
 
+/**
+ * @brief Error_InvalidMessage_Message
+ */
 struct Error_InvalidMessage_Message
 {
     CommonMessageHeader commonHeader;
@@ -308,6 +338,9 @@ struct Error_InvalidMessage_Message
 
 //==================================================================================================
 
+/**
+ * @brief Data_SingleStatic_Message
+ */
 struct Data_SingleStatic_Message
 {
     CommonMessageHeader commonHeader;
@@ -331,6 +364,9 @@ struct Data_SingleStatic_Message
     }
 } __attribute__((packed));
 
+/**
+ * @brief Data_SingleDynamic_Header
+ */
 struct Data_SingleDynamic_Header
 {
     CommonMessageHeader commonHeader;
@@ -351,6 +387,9 @@ struct Data_SingleDynamic_Header
     }
 } __attribute__((packed));
 
+/**
+ * @brief Data_SingleReply_Message
+ */
 struct Data_SingleReply_Message
 {
     CommonMessageHeader commonHeader;
@@ -371,6 +410,9 @@ struct Data_SingleReply_Message
 
 //==================================================================================================
 
+/**
+ * @brief Data_MultiInit_Message
+ */
 struct Data_MultiInit_Message
 {
     CommonMessageHeader commonHeader;
@@ -393,6 +435,9 @@ struct Data_MultiInit_Message
     }
 } __attribute__((packed));
 
+/**
+ * @brief Data_MultiInitReply_Message
+ */
 struct Data_MultiInitReply_Message
 {
     enum stati {
@@ -421,6 +466,9 @@ struct Data_MultiInitReply_Message
     }
 } __attribute__((packed));
 
+/**
+ * @brief Data_MultiStatic_Message
+ */
 struct Data_MultiStatic_Message
 {
     CommonMessageHeader commonHeader;
@@ -444,6 +492,9 @@ struct Data_MultiStatic_Message
     }
 } __attribute__((packed));
 
+/**
+ * @brief Data_MultiFinish_Message
+ */
 struct Data_MultiFinish_Message
 {
     CommonMessageHeader commonHeader;
@@ -464,6 +515,9 @@ struct Data_MultiFinish_Message
     }
 } __attribute__((packed));
 
+/**
+ * @brief Data_MultiAbort_Message
+ */
 struct Data_MultiAbort_Message
 {
     CommonMessageHeader commonHeader;

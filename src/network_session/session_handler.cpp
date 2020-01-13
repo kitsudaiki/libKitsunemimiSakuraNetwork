@@ -115,8 +115,6 @@ SessionHandler::~SessionHandler()
 void
 SessionHandler::addSession(const uint32_t id, Session* session)
 {
-    //LOG_DEBUG("add session with id: " + std::to_string(id));
-
     while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))
                  ; // spin
 
@@ -140,8 +138,6 @@ SessionHandler::addSession(const uint32_t id, Session* session)
 Session*
 SessionHandler::removeSession(const uint32_t id)
 {
-    //LOG_DEBUG("remove session with id: " + std::to_string(id));
-
     Session* ret = nullptr;
 
     while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))
@@ -203,11 +199,12 @@ SessionHandler::sendHeartBeats()
 }
 
 /**
- * @brief SessionHandler::sendMessage
- * @param session
- * @param header
- * @param data
- * @param size
+ * @brief send message over the socket of the session
+ *
+ * @param session session, where the message should be send
+ * @param header reference to the header of the message
+ * @param data pointer to the data of the complete data
+ * @param size size of the complete data
  */
 void
 SessionHandler::sendMessage(Session* session,
