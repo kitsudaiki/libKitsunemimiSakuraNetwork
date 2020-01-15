@@ -23,19 +23,18 @@
 #ifndef MESSAGE_DEFINITIONS_H
 #define MESSAGE_DEFINITIONS_H
 
+#define DEBUG_MODE false
+
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
 
-#include <network_session/session_handler.h>
 #include <network_session/timer_thread.h>
 
 namespace Kitsunemimi
 {
 namespace Project
-{
-namespace Common
 {
 
 enum types
@@ -83,11 +82,15 @@ enum multiblock_data_subTypes
     DATA_MULTI_INIT_REPLY_SUBTYPE = 5,
     DATA_MULTI_STATIC_SUBTYPE = 6,
     DATA_MULTI_FINISH_SUBTYPE = 7,
-    DATA_MULTI_ABORT_SUBTYPE = 8,
+    DATA_MULTI_ABORT_INIT_SUBTYPE = 8,
+    DATA_MULTI_ABORT_REPLY_SUBTYPE = 9,
 };
 
 //==================================================================================================
 
+/**
+ * @brief CommonMessageHeader
+ */
 struct CommonMessageHeader
 {
     uint8_t version = 0x1;
@@ -106,6 +109,9 @@ struct CommonMessageEnd
 
 //==================================================================================================
 
+/**
+ * @brief Session_Init_Start_Message
+ */
 struct Session_Init_Start_Message
 {
     CommonMessageHeader commonHeader;
@@ -127,6 +133,9 @@ struct Session_Init_Start_Message
     }
 } __attribute__((packed));
 
+/**
+ * @brief Session_Init_Reply_Message
+ */
 struct Session_Init_Reply_Message
 {
     CommonMessageHeader commonHeader;
@@ -149,6 +158,9 @@ struct Session_Init_Reply_Message
 
 //==================================================================================================
 
+/**
+ * @brief Session_Close_Start_Message
+ */
 struct Session_Close_Start_Message
 {
     CommonMessageHeader commonHeader;
@@ -171,6 +183,9 @@ struct Session_Close_Start_Message
     }
 } __attribute__((packed));
 
+/**
+ * @brief Session_Close_Reply_Message
+ */
 struct Session_Close_Reply_Message
 {
     CommonMessageHeader commonHeader;
@@ -191,6 +206,9 @@ struct Session_Close_Reply_Message
 
 //==================================================================================================
 
+/**
+ * @brief Heartbeat_Start_Message
+ */
 struct Heartbeat_Start_Message
 {
     CommonMessageHeader commonHeader;
@@ -209,6 +227,9 @@ struct Heartbeat_Start_Message
     }
 } __attribute__((packed));
 
+/**
+ * @brief Heartbeat_Reply_Message
+ */
 struct Heartbeat_Reply_Message
 {
     CommonMessageHeader commonHeader;
@@ -229,6 +250,9 @@ struct Heartbeat_Reply_Message
 
 //==================================================================================================
 
+/**
+ * @brief Error_FalseVersion_Message
+ */
 struct Error_FalseVersion_Message
 {
     CommonMessageHeader commonHeader;
@@ -255,6 +279,9 @@ struct Error_FalseVersion_Message
     }
 } __attribute__((packed));
 
+/**
+ * @brief Error_UnknownSession_Message
+ */
 struct Error_UnknownSession_Message
 {
     CommonMessageHeader commonHeader;
@@ -281,6 +308,9 @@ struct Error_UnknownSession_Message
     }
 } __attribute__((packed));
 
+/**
+ * @brief Error_InvalidMessage_Message
+ */
 struct Error_InvalidMessage_Message
 {
     CommonMessageHeader commonHeader;
@@ -309,6 +339,9 @@ struct Error_InvalidMessage_Message
 
 //==================================================================================================
 
+/**
+ * @brief Data_SingleStatic_Message
+ */
 struct Data_SingleStatic_Message
 {
     CommonMessageHeader commonHeader;
@@ -332,6 +365,9 @@ struct Data_SingleStatic_Message
     }
 } __attribute__((packed));
 
+/**
+ * @brief Data_SingleDynamic_Header
+ */
 struct Data_SingleDynamic_Header
 {
     CommonMessageHeader commonHeader;
@@ -352,6 +388,9 @@ struct Data_SingleDynamic_Header
     }
 } __attribute__((packed));
 
+/**
+ * @brief Data_SingleReply_Message
+ */
 struct Data_SingleReply_Message
 {
     CommonMessageHeader commonHeader;
@@ -372,6 +411,9 @@ struct Data_SingleReply_Message
 
 //==================================================================================================
 
+/**
+ * @brief Data_MultiInit_Message
+ */
 struct Data_MultiInit_Message
 {
     CommonMessageHeader commonHeader;
@@ -394,6 +436,9 @@ struct Data_MultiInit_Message
     }
 } __attribute__((packed));
 
+/**
+ * @brief Data_MultiInitReply_Message
+ */
 struct Data_MultiInitReply_Message
 {
     enum stati {
@@ -422,6 +467,9 @@ struct Data_MultiInitReply_Message
     }
 } __attribute__((packed));
 
+/**
+ * @brief Data_MultiStatic_Message
+ */
 struct Data_MultiStatic_Message
 {
     CommonMessageHeader commonHeader;
@@ -445,6 +493,9 @@ struct Data_MultiStatic_Message
     }
 } __attribute__((packed));
 
+/**
+ * @brief Data_MultiFinish_Message
+ */
 struct Data_MultiFinish_Message
 {
     CommonMessageHeader commonHeader;
@@ -465,19 +516,45 @@ struct Data_MultiFinish_Message
     }
 } __attribute__((packed));
 
-struct Data_MultiAbort_Message
+/**
+ * @brief Data_MultiAbortInit_Message
+ */
+struct Data_MultiAbortInit_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t multiblockId = 0;
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
 
-    Data_MultiAbort_Message(const uint32_t sessionId,
-                            const uint32_t messageId,
-                            const uint64_t multiblockId)
+    Data_MultiAbortInit_Message(const uint32_t sessionId,
+                                const uint32_t messageId,
+                                const uint64_t multiblockId)
     {
         commonHeader.type = MULTIBLOCK_DATA_TYPE;
-        commonHeader.subType = DATA_MULTI_ABORT_SUBTYPE;
+        commonHeader.subType = DATA_MULTI_ABORT_INIT_SUBTYPE;
+        commonHeader.sessionId = sessionId;
+        commonHeader.messageId = messageId;
+        commonHeader.size = sizeof(*this);
+        this->multiblockId = multiblockId;
+    }
+} __attribute__((packed));
+
+/**
+ * @brief Data_MultiAbortReply_Message
+ */
+struct Data_MultiAbortReply_Message
+{
+    CommonMessageHeader commonHeader;
+    uint64_t multiblockId = 0;
+    uint8_t padding[4];
+    CommonMessageEnd commonEnd;
+
+    Data_MultiAbortReply_Message(const uint32_t sessionId,
+                                 const uint32_t messageId,
+                                 const uint64_t multiblockId)
+    {
+        commonHeader.type = MULTIBLOCK_DATA_TYPE;
+        commonHeader.subType = DATA_MULTI_ABORT_REPLY_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
         commonHeader.size = sizeof(*this);
@@ -487,7 +564,6 @@ struct Data_MultiAbort_Message
 
 //==================================================================================================
 
-} // namespace Common
 } // namespace Project
 } // namespace Kitsunemimi
 

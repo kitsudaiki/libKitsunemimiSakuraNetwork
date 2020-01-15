@@ -31,5 +31,5 @@ int main()
 {
     //initLogger("/tmp", "testlog", true, true);
 
-    Kitsunemimi::Project::Common::Session_Test();
+    Kitsunemimi::Project::Session_Test();
 }

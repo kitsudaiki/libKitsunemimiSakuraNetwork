@@ -24,25 +24,21 @@
 
 #include <network_session/timer_thread.h>
 #include <network_session/session_handler.h>
-#include <network_session/message_definitions.h>
-#include <network_session/internal_session_interface.h>
 
 #include <libKitsunemimiProjectNetwork/network_session/session.h>
 #include <libKitsunemimiProjectNetwork/network_session/session_controller.h>
 
 #include <libKitsunemimiPersistence/logger/logger.h>
+#include <libKitsunemimiNetwork/abstract_socket.h>
 
 namespace Kitsunemimi
 {
 namespace Project
 {
-namespace Common
-{
 
 // init static variables
 TimerThread* SessionHandler::m_timerThread = nullptr;
 SessionHandler* SessionHandler::m_sessionHandler = nullptr;
-InternalSessionInterface* SessionHandler::m_sessionInterface = nullptr;
 
 /**
  * @brief constructor
@@ -56,15 +52,12 @@ SessionHandler::SessionHandler(void* sessionTarget,
                                void (*processError)(void*, Session*,
                                                     const uint8_t, const std::string))
 {
-    if(m_sessionInterface == nullptr)
-    {
-        m_sessionInterface = new InternalSessionInterface(sessionTarget,
-                                                          processSession,
-                                                          dataTarget,
-                                                          processData,
-                                                          errorTarget,
-                                                          processError);
-    }
+    m_sessionTarget = sessionTarget;
+    m_processSession = processSession;
+    m_dataTarget = dataTarget;
+    m_processData = processData;
+    m_errorTarget = errorTarget;
+    m_processError = processError;
 
     if(m_timerThread == nullptr)
     {
@@ -89,7 +82,7 @@ SessionHandler::SessionHandler(void* sessionTarget,
     assert(sizeof(Data_MultiInitReply_Message) % 8 == 0);
     assert(sizeof(Data_MultiStatic_Message) % 8 == 0);
     assert(sizeof(Data_MultiFinish_Message) % 8 == 0);
-    assert(sizeof(Data_MultiAbort_Message) % 8 == 0);
+    assert(sizeof(Data_MultiAbortInit_Message) % 8 == 0);
 }
 
 /**
@@ -105,12 +98,6 @@ SessionHandler::~SessionHandler()
     m_servers.clear();
 
     m_sessionMap_lock.clear(std::memory_order_release);
-
-    if(m_sessionInterface != nullptr)
-    {
-        delete m_sessionInterface;
-        m_sessionInterface = nullptr;
-    }
 
     if(m_timerThread != nullptr)
     {
@@ -128,10 +115,15 @@ SessionHandler::~SessionHandler()
 void
 SessionHandler::addSession(const uint32_t id, Session* session)
 {
-    LOG_DEBUG("add session with id: " + std::to_string(id));
-
     while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))
                  ; // spin
+
+    session->m_sessionTarget = m_sessionTarget;
+    session->m_processSession = m_processSession;
+    session->m_dataTarget = m_dataTarget;
+    session->m_processData = m_processData;
+    session->m_errorTarget = m_errorTarget;
+    session->m_processError = m_processError;
 
     m_sessions.insert(std::pair<uint32_t, Session*>(id, session));
 
@@ -146,8 +138,6 @@ SessionHandler::addSession(const uint32_t id, Session* session)
 Session*
 SessionHandler::removeSession(const uint32_t id)
 {
-    LOG_DEBUG("remove session with id: " + std::to_string(id));
-
     Session* ret = nullptr;
 
     while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))
@@ -198,14 +188,40 @@ SessionHandler::sendHeartBeats()
                  ; // spin
 
     std::map<uint32_t, Session*>::iterator it;
-    for(it = m_sessions.begin(); it != m_sessions.end(); it++)
+    for(it = m_sessions.begin();
+        it != m_sessions.end();
+        it++)
     {
-        m_sessionInterface->sendHeartbeat(it->second);
+        it->second->sendHeartbeat();
     }
 
     m_sessionMap_lock.clear(std::memory_order_release);
 }
 
-} // namespace Common
+/**
+ * @brief send message over the socket of the session
+ *
+ * @param session session, where the message should be send
+ * @param header reference to the header of the message
+ * @param data pointer to the data of the complete data
+ * @param size size of the complete data
+ */
+void
+SessionHandler::sendMessage(Session* session,
+                            const CommonMessageHeader &header,
+                            const void* data,
+                            const uint64_t size)
+{
+    if(header.flags == 0x1)
+    {
+        SessionHandler::m_timerThread->addMessage(header.type,
+                                                  header.sessionId,
+                                                  header.messageId,
+                                                  session);
+    }
+
+    session->m_socket->sendMessage(data, size);
+}
+
 } // namespace Project
 } // namespace Kitsunemimi

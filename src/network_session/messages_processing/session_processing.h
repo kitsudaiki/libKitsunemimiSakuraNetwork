@@ -25,7 +25,7 @@
 
 #include <network_session/message_definitions.h>
 #include <network_session/session_handler.h>
-#include <network_session/internal_session_interface.h>
+#include <network_session/multiblock_io.h>
 
 #include <libKitsunemimiNetwork/abstract_socket.h>
 
@@ -41,8 +41,6 @@ using Kitsunemimi::Network::getObjectFromBuffer;
 namespace Kitsunemimi
 {
 namespace Project
-{
-namespace Common
 {
 
 /**
@@ -62,10 +60,10 @@ send_Session_Init_Start(Session* session,
                                        session->increaseMessageIdCounter(),
                                        sessionIdentifier);
 
-    SessionHandler::m_sessionInterface->sendMessage(session,
-                                                    message.commonHeader,
-                                                    &message,
-                                                    sizeof(message));
+    SessionHandler::m_sessionHandler->sendMessage(session,
+                                                  message.commonHeader,
+                                                  &message,
+                                                  sizeof(message));
 }
 
 /**
@@ -88,10 +86,10 @@ send_Session_Init_Reply(Session* session,
     message.completeSessionId = completeSessionId;
     message.clientSessionId = initialSessionId;
 
-    SessionHandler::m_sessionInterface->sendMessage(session,
-                                                    message.commonHeader,
-                                                    &message,
-                                                    sizeof(message));
+    SessionHandler::m_sessionHandler->sendMessage(session,
+                                                  message.commonHeader,
+                                                  &message,
+                                                  sizeof(message));
 }
 
 /**
@@ -110,10 +108,10 @@ send_Session_Close_Start(Session* session,
                                         session->increaseMessageIdCounter(),
                                         replyExpected);
 
-    SessionHandler::m_sessionInterface->sendMessage(session,
-                                                    message.commonHeader,
-                                                    &message,
-                                                    sizeof(message));
+    SessionHandler::m_sessionHandler->sendMessage(session,
+                                                  message.commonHeader,
+                                                  &message,
+                                                  sizeof(message));
 }
 
 /**
@@ -130,10 +128,10 @@ send_Session_Close_Reply(Session* session,
 
     Session_Close_Reply_Message message(session->sessionId(), messageId);
 
-    SessionHandler::m_sessionInterface->sendMessage(session,
-                                                    message.commonHeader,
-                                                    &message,
-                                                    sizeof(message));
+    SessionHandler::m_sessionHandler->sendMessage(session,
+                                                  message.commonHeader,
+                                                  &message,
+                                                  sizeof(message));
 }
 
 /**
@@ -156,8 +154,8 @@ process_Session_Init_Start(Session* session,
 
     // create new session and make it ready
     SessionHandler::m_sessionHandler->addSession(sessionId, session);
-    SessionHandler::m_sessionInterface->connectiSession(session, sessionId, false);
-    SessionHandler::m_sessionInterface->makeSessionReady(session, sessionId, sessionIdentifier);
+    session->connectiSession(sessionId, false);
+    session->makeSessionReady(sessionId, sessionIdentifier);
 
     // confirm id
     send_Session_Init_Reply(session,
@@ -185,7 +183,7 @@ process_Session_Init_Reply(Session* session,
     SessionHandler::m_sessionHandler->removeSession(initialId);
     SessionHandler::m_sessionHandler->addSession(completeSessionId, session);
     // TODO: handle return-value of makeSessionReady
-    SessionHandler::m_sessionInterface->makeSessionReady(session, completeSessionId, 0);
+    session->makeSessionReady(completeSessionId, 0);
 }
 
 /**
@@ -205,8 +203,8 @@ process_Session_Close_Start(Session* session,
 
     // close session and disconnect session
     SessionHandler::m_sessionHandler->removeSession(message->sessionId);
-    SessionHandler::m_sessionInterface->endSession(session);
-    SessionHandler::m_sessionInterface->disconnectSession(session);
+    session->endSession();
+    session->disconnectSession();
 }
 
 /**
@@ -223,7 +221,7 @@ process_Session_Close_Reply(Session* session,
 
     // disconnect session
     SessionHandler::m_sessionHandler->removeSession(message->sessionId);
-    SessionHandler::m_sessionInterface->disconnectSession(session);
+    session->disconnectSession();
 }
 
 /**
@@ -298,7 +296,6 @@ process_Session_Type(Session* session,
     return 0;
 }
 
-} // namespace Common
 } // namespace Project
 } // namespace Kitsunemimi
 

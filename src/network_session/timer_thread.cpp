@@ -22,7 +22,6 @@
 
 #include <network_session/timer_thread.h>
 #include <network_session/session_handler.h>
-#include <network_session/internal_session_interface.h>
 
 #include <libKitsunemimiProjectNetwork/network_session/session.h>
 
@@ -32,8 +31,6 @@
 namespace Kitsunemimi
 {
 namespace Project
-{
-namespace Common
 {
 
 /**
@@ -223,12 +220,15 @@ TimerThread::makeTimerStep()
         {
             if(removeMessageFromList(temp->completeMessageId))
             {
-                const std::string err = "TIMEOUT of message: " + std::to_string(temp->completeMessageId)
-                                        + " with type: " + std::to_string(temp->messageType);
+                const std::string err = "TIMEOUT of message: "
+                                        + std::to_string(temp->completeMessageId)
+                                        + " with type: "
+                                        + std::to_string(temp->messageType);
 
-                SessionHandler::m_sessionInterface->receivedError(temp->session,
-                                                                  Session::errorCodes::MESSAGE_TIMEOUT,
-                                                                  err);
+                temp->session->m_processError(temp->session->m_errorTarget,
+                                              temp->session,
+                                              Session::errorCodes::MESSAGE_TIMEOUT,
+                                              err);
                 i--;
             }
         }
@@ -237,6 +237,5 @@ TimerThread::makeTimerStep()
     spinUnlock();
 }
 
-} // namespace Common
 } // namespace Project
 } // namespace Kitsunemimi

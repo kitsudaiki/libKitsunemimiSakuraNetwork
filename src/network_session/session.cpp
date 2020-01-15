@@ -28,6 +28,8 @@
 #include <network_session/messages_processing/singleblock_data_processing.h>
 #include <network_session/messages_processing/multiblock_data_processing.h>
 
+#include <network_session/multiblock_io.h>
+
 #include <libKitsunemimiPersistence/logger/logger.h>
 
 enum statemachineItems {
@@ -41,14 +43,11 @@ enum statemachineItems {
     DISCONNECT = 8,
     START_SESSION = 9,
     STOP_SESSION = 10,
-
 };
 
 namespace Kitsunemimi
 {
 namespace Project
-{
-namespace Common
 {
 
 /**
@@ -58,6 +57,8 @@ namespace Common
  */
 Session::Session(Network::AbstractSocket* socket)
 {
+    m_multiblockIo = new MultiblockIO(this);
+    m_multiblockIo->startThread();
     m_socket = socket;
 
     initStatemachine();
@@ -107,24 +108,31 @@ Session::sendStreamData(const void* data,
  * @param data data-pointer
  * @param size number of bytes
  *
- * @return false if session is NOT ready to send, else true
+ * @return
  */
-bool
-Session::sendStandaloneData(const void* data,
+uint64_t
+Session::sendMultiblockData(const void* data,
                             const uint64_t size)
 {
-    if(m_statemachine.isInState(ACTIVE))
-    {
-        const uint64_t multiblockId = startMultiblockDataTransfer(0, size);
-        if(multiblockId != 0)
-        {
-            SessionHandler::m_sessionInterface->writeDataIntoBuffer(this, multiblockId, data, size);
-            send_Data_Multi_Init(this, multiblockId, size);
-            return true;
-        }
+    if(m_statemachine.isInState(ACTIVE)) {
+        return m_multiblockIo->createOutgoingBuffer(data, size);
     }
 
-    return false;
+    return 0;
+}
+
+/**
+ * @brief abort a multi-block-message
+ *
+ * @param multiblockMessageId id of the multi-block-message, which should be aborted
+ */
+void
+Session::abortMessages(const uint64_t multiblockMessageId)
+{
+    if(m_multiblockIo->removeOutgoingMessage(multiblockMessageId) == false)
+    {
+        send_Data_Multi_Abort_Init(this, multiblockMessageId);
+    }
 }
 
 /**
@@ -140,7 +148,7 @@ Session::closeSession(const bool replyExpected)
 {
     if(m_statemachine.isInState(SESSION_READY))
     {
-        finishMultiblockDataTransfer(true);
+        m_multiblockIo->removeOutgoingMessage(0);
         if(replyExpected)
         {
             send_Session_Close_Start(this, true);
@@ -241,119 +249,6 @@ Session::makeSessionReady(const uint32_t sessionId,
         m_sessionIdentifier = sessionIdentifier;
 
         m_processSession(m_sessionTarget, true, this, m_sessionIdentifier);
-
-        return true;
-    }
-
-    return false;
-}
-
-/**
- * @brief initialize multiblock-message by data-buffer for a new multiblock and bring statemachine
- *        into required state
- *
- * @param size total size of the payload of the message (no header)
- *
- * @return false, if session is already in send/receive of a multiblock-message
- */
-uint64_t
-Session::startMultiblockDataTransfer(const uint64_t multiblockId,
-                                     const uint64_t size)
-{
-    LOG_DEBUG("CALL start multiblock data-transfer: " + std::to_string(m_sessionId));
-
-    if(m_statemachine.isInState(ACTIVE))
-    {
-        const uint32_t numberOfBlocks = static_cast<uint32_t>(size / 4096) + 1;
-
-        // init new multiblock-message
-        MultiblockMessage newMultiblockMessage;
-        newMultiblockMessage.multiBlockBuffer = new Kitsunemimi::Common::DataBuffer(numberOfBlocks);
-        newMultiblockMessage.messageSize = size;
-        newMultiblockMessage.isSource = true;
-
-        // set or create id
-        uint64_t newMultiblockId = multiblockId;
-        if(multiblockId == 0) {
-            newMultiblockId = getRandValue();
-        }
-
-        m_multiBlockMessages.insert(std::pair<uint64_t, MultiblockMessage>(newMultiblockId,
-                                                                           newMultiblockMessage));
-
-        return newMultiblockId;
-    }
-
-    return 0;
-}
-
-/**
- * @brief append data to the data-buffer for the multiblock-message
- *
- * @param multiblockId
- * @param data pointer to the data
- * @param size number of bytes
- *
- * @return false, if session is not in the multiblock-transfer-state
- */
-bool
-Session::writeDataIntoBuffer(const uint64_t multiblockId,
-                             const void* data,
-                             const uint64_t size)
-{
-    if(DEBUG_MODE) {
-        LOG_DEBUG("CALL write data into buffer: " + std::to_string(m_sessionId));
-    }
-
-    if(m_statemachine.isInState(ACTIVE))
-    {
-        std::map<uint64_t, MultiblockMessage>::const_iterator it;
-        it = m_multiBlockMessages.find(multiblockId);
-
-        if(it != m_multiBlockMessages.end())
-        {
-            return Kitsunemimi::Common::addDataToBuffer(it->second.multiBlockBuffer,
-                                                        data,
-                                                        size);
-        }
-    }
-
-    return false;
-}
-
-/**
- * @brief last step of a mutliblock data-transfer by cleaning the buffer. Can also initialize the
- *        abort-process for a multiblock-datatransfer
- *
- * @param multiblockId
- * @param initAbort true to initialize an abort-process
-
- * @return true, if statechange was successful, else false
- */
-bool
-Session::finishMultiblockDataTransfer(const uint64_t multiblockId,
-                                      const bool initAbort)
-{
-    LOG_DEBUG("CALL finish multiblock data-transfer: " + std::to_string(m_sessionId));
-
-    // abort multi-block data-transfer, if one is in progress
-    if(m_statemachine.isInState(ACTIVE))
-    {
-        std::map<uint64_t, MultiblockMessage>::const_iterator it;
-        it = m_multiBlockMessages.find(multiblockId);
-
-        if(it != m_multiBlockMessages.end())
-        {
-            if(initAbort) {
-                send_Data_Multi_Abort(this, multiblockId);
-            }
-
-            if(it->second.multiBlockBuffer != nullptr)
-            {
-                delete it->second.multiBlockBuffer;
-                m_multiBlockMessages.erase(it);
-            }
-        }
 
         return true;
     }
@@ -474,25 +369,5 @@ Session::increaseMessageIdCounter()
     return tempId;
 }
 
-/**
- * @brief Session::getRandValue
- *
- * @return
- */
-uint64_t
-Session::getRandValue()
-{
-    uint64_t newId = 0;
-
-    // 0 is the undefined value and should never be allowed
-    while(newId == 0)
-    {
-        newId = (static_cast<uint64_t>(rand()) << 32) | static_cast<uint64_t>(rand());
-    }
-
-    return newId;
-}
-
-} // namespace Common
 } // namespace Project
 } // namespace Kitsunemimi

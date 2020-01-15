@@ -28,7 +28,6 @@
 #include <atomic>
 
 #include <libKitsunemimiCommon/statemachine.h>
-#include <libKitsunemimiCommon/data_buffer.h>
 
 namespace Kitsunemimi
 {
@@ -37,11 +36,10 @@ class AbstractSocket;
 }
 namespace Project
 {
-namespace Common
-{
 class SessionHandler;
 class SessionController;
 class InternalSessionInterface;
+class MultiblockIO;
 
 class Session
 {
@@ -52,10 +50,12 @@ public:
                         const uint64_t size,
                         const bool dynamic = false,
                         const bool replyExpected = false);
-    bool sendStandaloneData(const void* data,
-                            const uint64_t size);
-    bool closeSession(const bool replyExpected = false);
 
+    uint64_t sendMultiblockData(const void* data,
+                                const uint64_t size);
+    void abortMessages(const uint64_t multiblockMessageId=0);
+
+    bool closeSession(const bool replyExpected = false);
     uint32_t sessionId() const;
     bool isClientSide() const;
 
@@ -70,42 +70,29 @@ public:
     };
 
     uint32_t increaseMessageIdCounter();
-    uint64_t getRandValue();
 
-private:
-    friend InternalSessionInterface;
 
+
+
+    //=====================================================================
+    // ALL BELOW IS INTERNAL AND SHOULD NEVER BE USED BY EXTERNAL METHODS!
+    //=====================================================================
     Session(Network::AbstractSocket* socket);
 
     Kitsunemimi::Common::Statemachine m_statemachine;
     Network::AbstractSocket* m_socket = nullptr;
+    MultiblockIO* m_multiblockIo = nullptr;
     uint32_t m_sessionId = 0;
     uint64_t m_sessionIdentifier = 0;
 
-    // multiblock-message
-    struct MultiblockMessage
-    {
-        bool isSource = false;
-        uint64_t messageSize = 0;
-        Kitsunemimi::Common::DataBuffer* multiBlockBuffer = nullptr;
-    };
-    std::map<uint64_t, MultiblockMessage> m_multiBlockMessages;
-
-    // internal methods triggered by the InternalSessionInterface
+    // init session
     bool connectiSession(const uint32_t sessionId,
                          const uint64_t sessionIdentifier,
                          const bool init = false);
     bool makeSessionReady(const uint32_t sessionId,
                           const uint64_t sessionIdentifier);
-    uint64_t startMultiblockDataTransfer(const uint64_t multiblockId,
-                                         const uint64_t size);
 
-    bool writeDataIntoBuffer(const uint64_t multiblockId,
-                             const void* data,
-                             const uint64_t size);
-
-    bool finishMultiblockDataTransfer(const uint64_t multiblockId,
-                                      const bool initAbort = false);
+    // end session
     bool endSession(const bool init = false);
     bool disconnectSession();
 
@@ -125,7 +112,6 @@ private:
     uint32_t m_messageIdCounter = 0;
 };
 
-} // namespace Common
 } // namespace Project
 } // namespace Kitsunemimi
 

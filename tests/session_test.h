@@ -36,8 +36,6 @@ namespace Kitsunemimi
 {
 namespace Project
 {
-namespace Common
-{
 
 class Session_Test
         : public Kitsunemimi::Common::Test
@@ -62,7 +60,6 @@ public:
     uint32_t m_numberOfEndSessions = 0;
 };
 
-} // namespace Common
 } // namespace Project
 } // namespace Kitsunemimi
 

@@ -41,8 +41,6 @@ namespace Kitsunemimi
 {
 namespace Project
 {
-namespace Common
-{
 
 SessionController* SessionController::m_sessionController = nullptr;
 
@@ -214,8 +212,12 @@ SessionController::cloesAllServers()
 //==================================================================================================
 
 /**
- * @brief SessionHandler::addUnixDomainSocket
- * @param socketFile
+ * @brief start new unix-domain-socket
+ *
+ * @param socketFile socket-file-path, where the unix-domain-socket server is listening
+ * @param sessionIdentifier additional identifier as help for an upper processing-layer
+ *
+ * @return true, if session was successfully created and connected, else false
  */
 bool
 SessionController::startUnixDomainSession(const std::string socketFile,
@@ -226,9 +228,13 @@ SessionController::startUnixDomainSession(const std::string socketFile,
 }
 
 /**
- * @brief SessionHandler::addTcpClient
- * @param address
- * @param port
+ * @brief start new tcp-session
+ *
+ * @param address ip-address of the server
+ * @param port port where the server is listening
+ * @param sessionIdentifier additional identifier as help for an upper processing-layer
+ *
+ * @return true, if session was successfully created and connected, else false
  */
 bool
 SessionController::startTcpSession(const std::string address,
@@ -240,11 +246,15 @@ SessionController::startTcpSession(const std::string address,
 }
 
 /**
- * @brief SessionHandler::addTlsTcpClient
- * @param address
- * @param port
- * @param certFile
- * @param keyFile
+ * @brief start new tls-tcp-session
+ *
+ * @param address ip-address of the server
+ * @param port port where the server is listening
+ * @param certFile path to the certificate-file
+ * @param keyFile path to the key-file
+ * @param sessionIdentifier additional identifier as help for an upper processing-layer
+ *
+ * @return true, if session was successfully created and connected, else false
  */
 bool
 SessionController::startTlsTcpSession(const std::string address,
@@ -261,27 +271,11 @@ SessionController::startTlsTcpSession(const std::string address,
 }
 
 /**
- * @brief SessionHandler::closeSocket
- * @param id
- * @return
- */
-bool
-SessionController::closeSession(const uint32_t id)
-{
-    std::map<uint32_t, Session*>::iterator it;
-    it = SessionHandler::m_sessionHandler->m_sessions.find(id);
-
-    if(it != SessionHandler::m_sessionHandler->m_sessions.end()) {
-        return it->second->closeSession(true);
-    }
-
-    return false;
-}
-
-/**
- * @brief SessionHandler::getSocket
- * @param id
- * @return
+ * @brief get a session by its id
+ *
+ * @param id id of the requested session
+ *
+ * @return pointer to the session, if found, else nullptr
  */
 Session*
 SessionController::getSession(const uint32_t id)
@@ -297,7 +291,27 @@ SessionController::getSession(const uint32_t id)
 }
 
 /**
- * @brief SessionController::closeAllSession
+ * @brief close a specific session
+ *
+ * @param id id of the session, which should be closed
+ *
+ * @return true, if id was found and session-close was successful, else false
+ */
+bool
+SessionController::closeSession(const uint32_t id)
+{
+    std::map<uint32_t, Session*>::iterator it;
+    it = SessionHandler::m_sessionHandler->m_sessions.find(id);
+
+    if(it != SessionHandler::m_sessionHandler->m_sessions.end()) {
+        return it->second->closeSession(true);
+    }
+
+    return false;
+}
+
+/**
+ * @brief close and remove all sessions
  */
 void
 SessionController::closeAllSession()
@@ -309,28 +323,32 @@ SessionController::closeAllSession()
     {
         it->second->closeSession();
     }
+
+    SessionHandler::m_sessionHandler->m_sessions.clear();
 }
 
 /**
- * @brief SessionController::startSession
- * @param socket
- * @param sessionIdentifier
- * @return
+ * @brief start a new session
+ *
+ * @param socket socket of the new session
+ * @param sessionIdentifier additional identifier as help for an upper processing-layer
+ *
+ * @return true, if session was successfully created and connected, else false
  */
 bool
 SessionController::startSession(Network::AbstractSocket *socket,
                                 const uint64_t sessionIdentifier)
 {
-    Session* newSession = SessionHandler::m_sessionInterface->createNewSession(socket);
+    Session* newSession = new Session(socket);
     socket->setMessageCallback(newSession, &processMessage_callback);
 
     const uint32_t newId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
     SessionHandler::m_sessionHandler->addSession(newId, newSession);
-    return SessionHandler::m_sessionInterface->connectiSession(newSession, newId, sessionIdentifier, true);
+
+    return newSession->connectiSession(newId, sessionIdentifier, true);
 }
 
 //==================================================================================================
 
-} // namespace Common
 } // namespace Project
 } // namespace Kitsunemimi

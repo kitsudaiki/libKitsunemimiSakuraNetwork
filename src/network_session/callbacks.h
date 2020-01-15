@@ -44,8 +44,6 @@ namespace Kitsunemimi
 {
 namespace Project
 {
-namespace Common
-{
 
 /**
  * process incoming data
@@ -112,7 +110,12 @@ processMessage(void* target,
 }
 
 /**
- * processMessage_callback
+ * process incoming data
+ *
+ * @param target void-pointer to the session, which had received the message
+ * @param recvBuffer data-buffer with the incoming data
+ *
+ * @return number of bytes, which were taken from the buffer
  */
 uint64_t
 processMessage_callback(void* target,
@@ -123,18 +126,19 @@ processMessage_callback(void* target,
 }
 
 /**
- * processConnection_Callback
+ * @brief triggered for a new incoming connection
+ *
+ * @param socket socket for the new session
  */
 void
 processConnection_Callback(void*,
                            AbstractSocket* socket)
 {
-    Session* newSession = SessionHandler::m_sessionInterface->createNewSession(socket);
+    Session* newSession = new Session(socket);
     socket->setMessageCallback(newSession, &processMessage_callback);
     socket->startThread();
 }
 
-} // namespace Common
 } // namespace Project
 } // namespace Kitsunemimi
 
