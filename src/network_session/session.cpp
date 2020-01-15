@@ -122,22 +122,17 @@ Session::sendMultiblockData(const void* data,
 }
 
 /**
- * @brief Session::abortMessages
+ * @brief abort a multi-block-message
  *
- * @param multiblockMessageId
- *
- * @return
+ * @param multiblockMessageId id of the multi-block-message, which should be aborted
  */
-bool
+void
 Session::abortMessages(const uint64_t multiblockMessageId)
 {
-    if(m_multiblockIo->removeOutgoingMessage(multiblockMessageId))
+    if(m_multiblockIo->removeOutgoingMessage(multiblockMessageId) == false)
     {
-        send_Data_Multi_Abort(this, multiblockMessageId);
-        return true;
+        send_Data_Multi_Abort_Init(this, multiblockMessageId);
     }
-
-    return false;
 }
 
 /**

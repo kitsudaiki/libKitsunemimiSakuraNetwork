@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file       multiblock_data_processing.h
  *
  * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
@@ -125,7 +125,6 @@ send_Data_Multi_Static(Session* session,
 
 /**
  * @brief send_Data_Multi_Finish
- * @param session
  */
 inline void
 send_Data_Multi_Finish(Session* session,
@@ -145,20 +144,44 @@ send_Data_Multi_Finish(Session* session,
 }
 
 /**
- * @brief send_Data_Multi_Abort
- * @param session
+ * @brief send_Data_Multi_Abort_Init
  */
 inline void
-send_Data_Multi_Abort(Session* session,
-                      const uint64_t multiblockId)
+send_Data_Multi_Abort_Init(Session* session,
+                           const uint64_t multiblockId)
 {
     if(DEBUG_MODE) {
-        LOG_DEBUG("SEND data multi abort");
+        LOG_DEBUG("SEND data multi abort init");
     }
 
-    Data_MultiAbort_Message message(session->sessionId(),
-                                    session->increaseMessageIdCounter(),
-                                    multiblockId);
+    Data_MultiAbortInit_Message message(session->sessionId(),
+                                        session->increaseMessageIdCounter(),
+                                        multiblockId);
+    SessionHandler::m_sessionHandler->sendMessage(session,
+                                                  message.commonHeader,
+                                                  &message,
+                                                  sizeof(message));
+}
+
+/**
+ * @brief send_Data_Multi_Abort_Reply
+ */
+inline void
+send_Data_Multi_Abort_Reply(Session* session,
+                            const uint64_t multiblockId,
+                            const uint32_t messageId)
+{
+    if(DEBUG_MODE) {
+        LOG_DEBUG("SEND data multi abort reply");
+    }
+
+    Data_MultiAbortReply_Message message(session->sessionId(),
+                                         messageId,
+                                         multiblockId);
+    SessionHandler::m_sessionHandler->sendMessage(session,
+                                                  message.commonHeader,
+                                                  &message,
+                                                  sizeof(message));
 }
 
 /**
@@ -256,11 +279,29 @@ process_Data_Multi_Finish(Session* session,
  * @brief process_Data_Multi_Abort
  */
 inline void
-process_Data_Multi_Abort(Session* session,
-                         const Data_MultiAbort_Message* message)
+process_Data_Multi_Abort_Init(Session* session,
+                              const Data_MultiAbortInit_Message* message)
 {
     if(DEBUG_MODE) {
-        LOG_DEBUG("process data multi abort");
+        LOG_DEBUG("process data multi abort init");
+    }
+
+    session->m_multiblockIo->removeOutgoingMessage(message->multiblockId);
+
+    send_Data_Multi_Abort_Reply(session,
+                                message->multiblockId,
+                                message->commonHeader.messageId);
+}
+
+/**
+ * @brief process_Data_Multi_Abort
+ */
+inline void
+process_Data_Multi_Abort_Reply(Session* session,
+                               const Data_MultiAbortReply_Message* message)
+{
+    if(DEBUG_MODE) {
+        LOG_DEBUG("process data multi abort reply");
     }
 
     session->m_multiblockIo->removeIncomingMessage(message->multiblockId);
@@ -331,14 +372,25 @@ process_MultiBlock_Data_Type(Session* session,
                 return sizeof(*message);
             }
         //------------------------------------------------------------------------------------------
-        case DATA_MULTI_ABORT_SUBTYPE:
+        case DATA_MULTI_ABORT_INIT_SUBTYPE:
             {
-                const Data_MultiAbort_Message* message =
-                        getObjectFromBuffer<Data_MultiAbort_Message>(recvBuffer);
+                const Data_MultiAbortInit_Message* message =
+                        getObjectFromBuffer<Data_MultiAbortInit_Message>(recvBuffer);
                 if(message == nullptr) {
                     break;
                 }
-                process_Data_Multi_Abort(session, message);
+                process_Data_Multi_Abort_Init(session, message);
+                return sizeof(*message);
+            }
+        //------------------------------------------------------------------------------------------
+        case DATA_MULTI_ABORT_REPLY_SUBTYPE:
+            {
+                const Data_MultiAbortReply_Message* message =
+                        getObjectFromBuffer<Data_MultiAbortReply_Message>(recvBuffer);
+                if(message == nullptr) {
+                    break;
+                }
+                process_Data_Multi_Abort_Reply(session, message);
                 return sizeof(*message);
             }
         //------------------------------------------------------------------------------------------

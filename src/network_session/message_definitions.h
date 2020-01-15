@@ -82,7 +82,8 @@ enum multiblock_data_subTypes
     DATA_MULTI_INIT_REPLY_SUBTYPE = 5,
     DATA_MULTI_STATIC_SUBTYPE = 6,
     DATA_MULTI_FINISH_SUBTYPE = 7,
-    DATA_MULTI_ABORT_SUBTYPE = 8,
+    DATA_MULTI_ABORT_INIT_SUBTYPE = 8,
+    DATA_MULTI_ABORT_REPLY_SUBTYPE = 9,
 };
 
 //==================================================================================================
@@ -516,21 +517,44 @@ struct Data_MultiFinish_Message
 } __attribute__((packed));
 
 /**
- * @brief Data_MultiAbort_Message
+ * @brief Data_MultiAbortInit_Message
  */
-struct Data_MultiAbort_Message
+struct Data_MultiAbortInit_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t multiblockId = 0;
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
 
-    Data_MultiAbort_Message(const uint32_t sessionId,
-                            const uint32_t messageId,
-                            const uint64_t multiblockId)
+    Data_MultiAbortInit_Message(const uint32_t sessionId,
+                                const uint32_t messageId,
+                                const uint64_t multiblockId)
     {
         commonHeader.type = MULTIBLOCK_DATA_TYPE;
-        commonHeader.subType = DATA_MULTI_ABORT_SUBTYPE;
+        commonHeader.subType = DATA_MULTI_ABORT_INIT_SUBTYPE;
+        commonHeader.sessionId = sessionId;
+        commonHeader.messageId = messageId;
+        commonHeader.size = sizeof(*this);
+        this->multiblockId = multiblockId;
+    }
+} __attribute__((packed));
+
+/**
+ * @brief Data_MultiAbortReply_Message
+ */
+struct Data_MultiAbortReply_Message
+{
+    CommonMessageHeader commonHeader;
+    uint64_t multiblockId = 0;
+    uint8_t padding[4];
+    CommonMessageEnd commonEnd;
+
+    Data_MultiAbortReply_Message(const uint32_t sessionId,
+                                 const uint32_t messageId,
+                                 const uint64_t multiblockId)
+    {
+        commonHeader.type = MULTIBLOCK_DATA_TYPE;
+        commonHeader.subType = DATA_MULTI_ABORT_REPLY_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
         commonHeader.size = sizeof(*this);

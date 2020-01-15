@@ -53,7 +53,7 @@ public:
 
     uint64_t sendMultiblockData(const void* data,
                                 const uint64_t size);
-    bool abortMessages(const uint64_t multiblockMessageId=0);
+    void abortMessages(const uint64_t multiblockMessageId=0);
 
     bool closeSession(const bool replyExpected = false);
     uint32_t sessionId() const;

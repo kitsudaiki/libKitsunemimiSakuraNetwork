@@ -48,6 +48,7 @@ public:
     struct MultiblockMessage
     {
         bool isReady = false;
+        bool currentSend = false;
         uint64_t multiblockId = 0;
         uint64_t messageSize = 0;
         uint32_t numberOfPackages = 0;
@@ -85,6 +86,8 @@ protected:
     void run();
 
 private:
+    bool m_aborCurrentMessage = false;
+
     std::atomic_flag m_outgoing_lock = ATOMIC_FLAG_INIT;
     std::deque<MultiblockMessage> m_outgoing;
 

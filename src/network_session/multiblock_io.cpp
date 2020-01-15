@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file       multiblock_io.h
  *
  * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
@@ -155,7 +155,8 @@ MultiblockIO::sendOutgoingData(const MultiblockMessage& messageBuffer)
     const uint32_t totalPartNumber = static_cast<uint32_t>(totalSize / 1000) + 1;
     const uint8_t* dataPointer = messageBuffer.multiBlockBuffer->getBlock(0);
 
-    while(totalSize != 0)
+    while(totalSize != 0
+          && m_aborCurrentMessage == false)
     {
         // get message-size base on the rest
         currentMessageSize = 1000;
@@ -175,9 +176,26 @@ MultiblockIO::sendOutgoingData(const MultiblockMessage& messageBuffer)
         partCounter++;
     }
 
-    // finish multi-block
-    send_Data_Multi_Finish(m_session, messageBuffer.multiblockId);
-    removeOutgoingMessage(messageBuffer.multiblockId);
+    // send final message to other side
+    if(m_aborCurrentMessage == false)
+    {
+        send_Data_Multi_Finish(m_session,
+                               messageBuffer.multiblockId);
+    }
+    else
+    {
+        send_Data_Multi_Abort_Reply(m_session,
+                                    messageBuffer.multiblockId,
+                                    m_session->increaseMessageIdCounter());
+    }
+    m_aborCurrentMessage = false;
+
+    // remove message from outgoing buffer
+    while(m_outgoing_lock.test_and_set(std::memory_order_acquire))
+                 ; // spin
+    delete messageBuffer.multiBlockBuffer;
+    m_outgoing.pop_front();
+    m_outgoing_lock.clear(std::memory_order_release);
 
     return true;
 }
@@ -263,9 +281,13 @@ MultiblockIO::removeOutgoingMessage(const uint64_t multiblockId)
     {
         if(it->multiblockId == multiblockId)
         {
-            m_outgoing.erase(it);
-            delete it->multiBlockBuffer;
-            result = true;
+            if(it->currentSend) {
+                m_aborCurrentMessage = true;
+            } else {
+                m_outgoing.erase(it);
+                delete it->multiBlockBuffer;
+                result = true;
+            }
         }
     }
 
@@ -295,7 +317,11 @@ MultiblockIO::removeIncomingMessage(const uint64_t multiblockId)
 
     if(it != m_incoming.end())
     {
-        m_incoming.erase(it);
+        if(it->second.currentSend) {
+            m_aborCurrentMessage = true;
+        } else {
+            m_incoming.erase(it);
+        }
         result = true;
     }
 
@@ -340,9 +366,18 @@ MultiblockIO::run()
 
         if(m_outgoing.empty() == false)
         {
-            // if a message is in the buffer, then take it from the buffer
             tempBuffer = m_outgoing.front();
-            m_outgoing.pop_front();
+
+            if(tempBuffer.isReady)
+            {
+                tempBuffer.currentSend = true;
+            }
+            else
+            {
+                m_outgoing.pop_front();
+                m_outgoing.push_back(tempBuffer);
+            }
+
             m_outgoing_lock.clear(std::memory_order_release);
         }
         else
