@@ -361,8 +361,10 @@ uint32_t
 Session::increaseMessageIdCounter()
 {
     uint32_t tempId = 0;
-    while (m_messageIdCounter_lock.test_and_set(std::memory_order_acquire)) 
-                 ; // spin
+    while (m_messageIdCounter_lock.test_and_set(std::memory_order_acquire))  {
+        asm("");
+    }
+
     m_messageIdCounter++;
     tempId = m_messageIdCounter;
     m_messageIdCounter_lock.clear(std::memory_order_release);

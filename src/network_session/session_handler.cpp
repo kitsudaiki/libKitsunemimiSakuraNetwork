@@ -162,8 +162,9 @@ SessionHandler::increaseSessionIdCounter()
 {
     uint16_t tempId = 0;
 
-    while (m_sessionIdCounter_lock.test_and_set(std::memory_order_acquire))
-                 ; // spin
+    while (m_sessionIdCounter_lock.test_and_set(std::memory_order_acquire)) {
+        asm("");
+    }
 
     m_sessionIdCounter++;
     tempId = m_sessionIdCounter;
@@ -179,8 +180,9 @@ SessionHandler::increaseSessionIdCounter()
 void
 SessionHandler::lockSessionMap()
 {
-    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))
-                 ; // spin
+    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire)) {
+        asm("");
+    }
 }
 
 /**
@@ -198,8 +200,9 @@ SessionHandler::unlockSessionMap()
 void
 SessionHandler::lockServerMap()
 {
-    while (m_serverMap_lock.test_and_set(std::memory_order_acquire))
-                 ; // spin
+    while (m_serverMap_lock.test_and_set(std::memory_order_acquire)) {
+        asm("");
+    }
 }
 
 /**
