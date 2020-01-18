@@ -90,14 +90,13 @@ SessionHandler::SessionHandler(void* sessionTarget,
  */
 SessionHandler::~SessionHandler()
 {
-    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))
-                 ; // spin
-
-    // clear maps
-    m_sessions.clear();
+    lockServerMap();
     m_servers.clear();
+    unlockServerMap();
 
-    m_sessionMap_lock.clear(std::memory_order_release);
+    lockSessionMap();
+    m_sessions.clear();
+    unlockSessionMap();
 
     if(m_timerThread != nullptr)
     {
@@ -115,9 +114,6 @@ SessionHandler::~SessionHandler()
 void
 SessionHandler::addSession(const uint32_t id, Session* session)
 {
-    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))
-                 ; // spin
-
     session->m_sessionTarget = m_sessionTarget;
     session->m_processSession = m_processSession;
     session->m_dataTarget = m_dataTarget;
@@ -125,9 +121,9 @@ SessionHandler::addSession(const uint32_t id, Session* session)
     session->m_errorTarget = m_errorTarget;
     session->m_processError = m_processError;
 
+    lockSessionMap();
     m_sessions.insert(std::pair<uint32_t, Session*>(id, session));
-
-    m_sessionMap_lock.clear(std::memory_order_release);
+    unlockSessionMap();
 }
 
 /**
@@ -140,8 +136,7 @@ SessionHandler::removeSession(const uint32_t id)
 {
     Session* ret = nullptr;
 
-    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))
-                 ; // spin
+    lockSessionMap();
 
     std::map<uint32_t, Session*>::iterator it;
     it = m_sessions.find(id);
@@ -152,7 +147,7 @@ SessionHandler::removeSession(const uint32_t id)
         m_sessions.erase(it);
     }
 
-    m_sessionMap_lock.clear(std::memory_order_release);
+    unlockSessionMap();
 
     return ret;
 }
@@ -167,8 +162,9 @@ SessionHandler::increaseSessionIdCounter()
 {
     uint16_t tempId = 0;
 
-    while (m_sessionIdCounter_lock.test_and_set(std::memory_order_acquire))
-                 ; // spin
+    while (m_sessionIdCounter_lock.test_and_set(std::memory_order_acquire)) {
+        asm("");
+    }
 
     m_sessionIdCounter++;
     tempId = m_sessionIdCounter;
@@ -179,13 +175,52 @@ SessionHandler::increaseSessionIdCounter()
 }
 
 /**
+ * @brief SessionHandler::lockSessionMap
+ */
+void
+SessionHandler::lockSessionMap()
+{
+    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire)) {
+        asm("");
+    }
+}
+
+/**
+ * @brief SessionHandler::unlockSessionMap
+ */
+void
+SessionHandler::unlockSessionMap()
+{
+    m_sessionMap_lock.clear(std::memory_order_release);
+}
+
+/**
+ * @brief SessionHandler::lockServerMap
+ */
+void
+SessionHandler::lockServerMap()
+{
+    while (m_serverMap_lock.test_and_set(std::memory_order_acquire)) {
+        asm("");
+    }
+}
+
+/**
+ * @brief SessionHandler::unlockServerMap
+ */
+void
+SessionHandler::unlockServerMap()
+{
+    m_serverMap_lock.clear(std::memory_order_release);
+}
+
+/**
  * @brief send a heartbeat to all registered sessions
  */
 void
 SessionHandler::sendHeartBeats()
 {
-    while (m_sessionMap_lock.test_and_set(std::memory_order_acquire))
-                 ; // spin
+    lockSessionMap();
 
     std::map<uint32_t, Session*>::iterator it;
     for(it = m_sessions.begin();
@@ -195,7 +230,7 @@ SessionHandler::sendHeartBeats()
         it->second->sendHeartbeat();
     }
 
-    m_sessionMap_lock.clear(std::memory_order_release);
+    unlockSessionMap();
 }
 
 /**

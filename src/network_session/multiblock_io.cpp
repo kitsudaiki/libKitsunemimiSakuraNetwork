@@ -66,8 +66,10 @@ MultiblockIO::createOutgoingBuffer(const void* data,
 
     // TODO: check if its really possible and if the memory can not be allocated, return 0
 
-    while(m_outgoing_lock.test_and_set(std::memory_order_acquire))
-                 ; // spin
+    while(m_outgoing_lock.test_and_set(std::memory_order_acquire)) {
+        asm("");
+    }
+
     m_outgoing.push_back(newMultiblockMessage);
     m_outgoing_lock.clear(std::memory_order_release);
 
@@ -96,8 +98,10 @@ MultiblockIO::createIncomingBuffer(const uint64_t multiblockId,
 
     // TODO: check if its really possible and if the memory can not be allocated, return false
 
-    while(m_incoming_lock.test_and_set(std::memory_order_acquire))
-                 ; // spin
+    while(m_incoming_lock.test_and_set(std::memory_order_acquire)) {
+        asm("");
+    }
+
     m_incoming.insert(std::pair<uint64_t, MultiblockMessage>(multiblockId, newMultiblockMessage));
     m_incoming_lock.clear(std::memory_order_release);
 
@@ -114,8 +118,9 @@ MultiblockIO::makeOutgoingReady(const uint64_t multiblockId)
 {
     bool found = false;
 
-    while(m_outgoing_lock.test_and_set(std::memory_order_acquire))
-                 ; // spin
+    while(m_outgoing_lock.test_and_set(std::memory_order_acquire)) {
+        asm("");
+    }
 
     std::deque<MultiblockMessage>::iterator it;
     for(it = m_outgoing.begin();
@@ -191,8 +196,10 @@ MultiblockIO::sendOutgoingData(const MultiblockMessage& messageBuffer)
     m_aborCurrentMessage = false;
 
     // remove message from outgoing buffer
-    while(m_outgoing_lock.test_and_set(std::memory_order_acquire))
-                 ; // spin
+    while(m_outgoing_lock.test_and_set(std::memory_order_acquire)) {
+        asm("");
+    }
+
     delete messageBuffer.multiBlockBuffer;
     m_outgoing.pop_front();
     m_outgoing_lock.clear(std::memory_order_release);
@@ -211,8 +218,9 @@ MultiblockIO::getIncomingBuffer(const uint64_t multiblockId)
 {
     MultiblockMessage tempBuffer;
 
-    while(m_incoming_lock.test_and_set(std::memory_order_acquire))
-                 ; // spin
+    while(m_incoming_lock.test_and_set(std::memory_order_acquire)) {
+        asm("");
+    }
 
     std::map<uint64_t, MultiblockMessage>::iterator it;
     it = m_incoming.find(multiblockId);
@@ -241,8 +249,9 @@ MultiblockIO::writeIntoIncomingBuffer(const uint64_t multiblockId,
                                       const uint64_t size)
 {
     bool result = false;
-    while(m_incoming_lock.test_and_set(std::memory_order_acquire))
-                 ; // spin
+    while(m_incoming_lock.test_and_set(std::memory_order_acquire)) {
+        asm("");
+    }
 
     std::map<uint64_t, MultiblockMessage>::iterator it;
     it = m_incoming.find(multiblockId);
@@ -271,8 +280,9 @@ MultiblockIO::removeOutgoingMessage(const uint64_t multiblockId)
 {
     bool result = false;
 
-    while(m_outgoing_lock.test_and_set(std::memory_order_acquire))
-                 ; // spin
+    while(m_outgoing_lock.test_and_set(std::memory_order_acquire)) {
+        asm("");
+    }
 
     std::deque<MultiblockMessage>::iterator it;
     for(it = m_outgoing.begin();
@@ -309,8 +319,9 @@ MultiblockIO::removeIncomingMessage(const uint64_t multiblockId)
 {
     bool result = false;
 
-    while(m_incoming_lock.test_and_set(std::memory_order_acquire))
-                 ; // spin
+    while(m_incoming_lock.test_and_set(std::memory_order_acquire)) {
+        asm("");
+    }
 
     std::map<uint64_t, MultiblockMessage>::iterator it;
     it = m_incoming.find(multiblockId);
@@ -361,8 +372,9 @@ MultiblockIO::run()
     {
         MultiblockMessage tempBuffer;
 
-        while(m_outgoing_lock.test_and_set(std::memory_order_acquire))
-                     ; // spin
+        while(m_outgoing_lock.test_and_set(std::memory_order_acquire)) {
+            asm("");
+        }
 
         if(m_outgoing.empty() == false)
         {
