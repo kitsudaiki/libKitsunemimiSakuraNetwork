@@ -270,7 +270,7 @@ process_Data_Multi_Finish(Session* session,
     session->m_processData(session->m_dataTarget,
                            session,
                            false,
-                           buffer.multiBlockBuffer->getBlock(0),
+                           getBlock(buffer.multiBlockBuffer, 0),
                            buffer.messageSize);
     session->m_multiblockIo->removeIncomingMessage(message->multiblockId);
 }

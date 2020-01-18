@@ -79,7 +79,7 @@ public:
     //=====================================================================
     Session(Network::AbstractSocket* socket);
 
-    Kitsunemimi::Common::Statemachine m_statemachine;
+    Kitsunemimi::Statemachine m_statemachine;
     Network::AbstractSocket* m_socket = nullptr;
     MultiblockIO* m_multiblockIo = nullptr;
     uint32_t m_sessionId = 0;

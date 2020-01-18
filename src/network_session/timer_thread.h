@@ -34,7 +34,7 @@ namespace Project
 {
 class Session;
 
-class TimerThread : public Kitsunemimi::Common::Thread
+class TimerThread : public Kitsunemimi::Thread
 {
 public:
     TimerThread();

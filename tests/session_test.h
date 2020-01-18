@@ -38,7 +38,7 @@ namespace Project
 {
 
 class Session_Test
-        : public Kitsunemimi::Common::Test
+        : public Kitsunemimi::Test
 {
 public:
     Session_Test();

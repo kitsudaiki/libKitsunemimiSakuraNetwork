@@ -41,7 +41,7 @@ namespace Project
 class Session;
 
 class MultiblockIO
-        : public Kitsunemimi::Common::Thread
+        : public Kitsunemimi::Thread
 {
 public:
     // multiblock-message
@@ -53,7 +53,7 @@ public:
         uint64_t messageSize = 0;
         uint32_t numberOfPackages = 0;
         uint32_t courrentPackage = 0;
-        Kitsunemimi::Common::DataBuffer* multiBlockBuffer = nullptr;
+        Kitsunemimi::DataBuffer* multiBlockBuffer = nullptr;
     };
 
     MultiblockIO(Session* session);

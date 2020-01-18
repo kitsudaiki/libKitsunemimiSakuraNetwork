@@ -82,9 +82,9 @@ send_ErrorMessage(Session* session,
                     session->increaseMessageIdCounter(),
                     message);
             SessionHandler::m_sessionHandler->sendMessage(session,
-                                                            errorMessage.commonHeader,
-                                                            &errorMessage,
-                                                            sizeof(errorMessage));
+                                                          errorMessage.commonHeader,
+                                                          &errorMessage,
+                                                          sizeof(errorMessage));
             break;
         }
         //------------------------------------------------------------------------------------------
@@ -95,9 +95,9 @@ send_ErrorMessage(Session* session,
                     session->increaseMessageIdCounter(),
                     message);
             SessionHandler::m_sessionHandler->sendMessage(session,
-                                                            errorMessage.commonHeader,
-                                                            &errorMessage,
-                                                            sizeof(errorMessage));
+                                                          errorMessage.commonHeader,
+                                                          &errorMessage,
+                                                          sizeof(errorMessage));
             break;
         }
         //------------------------------------------------------------------------------------------

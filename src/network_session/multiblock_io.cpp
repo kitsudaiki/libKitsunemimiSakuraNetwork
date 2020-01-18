@@ -32,7 +32,7 @@ namespace Project
 {
 
 MultiblockIO::MultiblockIO(Session* session)
-    : Kitsunemimi::Common::Thread()
+    : Kitsunemimi::Thread()
 {
     m_session = session;
 }
@@ -56,11 +56,11 @@ MultiblockIO::createOutgoingBuffer(const void* data,
 
     // init new multiblock-message
     MultiblockMessage newMultiblockMessage;
-    newMultiblockMessage.multiBlockBuffer = new Kitsunemimi::Common::DataBuffer(numberOfBlocks);
+    newMultiblockMessage.multiBlockBuffer = new Kitsunemimi::DataBuffer(numberOfBlocks);
     newMultiblockMessage.messageSize = size;
     newMultiblockMessage.multiblockId = newMultiblockId;
 
-    Kitsunemimi::Common::addDataToBuffer(newMultiblockMessage.multiBlockBuffer,
+    Kitsunemimi::addDataToBuffer(newMultiblockMessage.multiBlockBuffer,
                                          data,
                                          size);
 
@@ -90,7 +90,7 @@ MultiblockIO::createIncomingBuffer(const uint64_t multiblockId,
 
     // init new multiblock-message
     MultiblockMessage newMultiblockMessage;
-    newMultiblockMessage.multiBlockBuffer = new Kitsunemimi::Common::DataBuffer(numberOfBlocks);
+    newMultiblockMessage.multiBlockBuffer = new Kitsunemimi::DataBuffer(numberOfBlocks);
     newMultiblockMessage.messageSize = size;
     newMultiblockMessage.multiblockId = multiblockId;
 
@@ -153,7 +153,7 @@ MultiblockIO::sendOutgoingData(const MultiblockMessage& messageBuffer)
 
     // static values
     const uint32_t totalPartNumber = static_cast<uint32_t>(totalSize / 1000) + 1;
-    const uint8_t* dataPointer = messageBuffer.multiBlockBuffer->getBlock(0);
+    const uint8_t* dataPointer = getBlock(messageBuffer.multiBlockBuffer, 0);
 
     while(totalSize != 0
           && m_aborCurrentMessage == false)
@@ -249,7 +249,7 @@ MultiblockIO::writeIntoIncomingBuffer(const uint64_t multiblockId,
 
     if(it != m_incoming.end())
     {
-        result = Kitsunemimi::Common::addDataToBuffer(it->second.multiBlockBuffer,
+        result = Kitsunemimi::addDataToBuffer(it->second.multiBlockBuffer,
                                                       data,
                                                       size);
     }

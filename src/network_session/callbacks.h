@@ -38,7 +38,7 @@
 
 using Kitsunemimi::Network::MessageRingBuffer;
 using Kitsunemimi::Network::AbstractSocket;
-using Kitsunemimi::Common::DataBuffer;
+using Kitsunemimi::DataBuffer;
 
 namespace Kitsunemimi
 {

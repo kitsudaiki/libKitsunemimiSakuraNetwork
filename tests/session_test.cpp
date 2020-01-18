@@ -121,7 +121,7 @@ void sessionCallback(void* target,
 }
 
 Session_Test::Session_Test() :
-    Kitsunemimi::Common::Test("Session_Test")
+    Kitsunemimi::Test("Session_Test")
 {
     initTestCase();
     runTest();
