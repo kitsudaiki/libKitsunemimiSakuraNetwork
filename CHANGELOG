@@ -1,0 +1,11 @@
+# Changelog
+
+## [0.1.0] - 2020-01-18
+
+### Added
+- first implementation of the protocol with:
+	- session start and end
+	- stream-messages
+	- multiblock-messages with separate send-thread and message-queue
+	- heartbeat-messsages
+	- some error-messages
