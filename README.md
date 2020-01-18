@@ -8,7 +8,7 @@
 
 ## Description
 
-This is a small library for network connections. It provides servers and clients for unix-domain-sockets, tcp-sockets and ssl encrypted tcp-sockets. 
+This library provides a simple session-layer-protocol, which I created for data-transfers in my projects. 
 
 ## Common Information aboud my projects
 
@@ -69,7 +69,7 @@ Repository-Name | Version-Tag | Download-Path
 --- | --- | ---
 libKitsunemimiCommon | v0.10.1 |  https://github.com/tobiasanker/libKitsunemimiCommon.git
 libKitsunemimiPersistence | v0.7.0 |  https://github.com/tobiasanker/libKitsunemimiPersistence.git
-libKitsunemimiPersistence | v0.5.3 |  https://github.com/tobiasanker/libKitsunemimiPersistence.git
+libKitsunemimiNetwork | v0.5.3 |  https://github.com/tobiasanker/libKitsunemimiNetwork.git
 
 ### build library
 
