@@ -25,9 +25,9 @@
 
 #include <iostream>
 #include <libKitsunemimiPersistence/logger/logger.h>
-#include <libKitsunemimiProjectNetwork/network_session/session_controller.h>
-#include <network_session/session_handler.h>
-#include <libKitsunemimiProjectNetwork/network_session/session.h>
+#include <libKitsunemimiProjectNetwork/session_controller.h>
+#include <session_handler.h>
+#include <libKitsunemimiProjectNetwork/session.h>
 #include <libKitsunemimiNetwork/abstract_socket.h>
 
 #include <libKitsunemimiCommon/test.h>

@@ -27,7 +27,7 @@
 #include <vector>
 #include <map>
 #include <atomic>
-#include <network_session/message_definitions.h>
+#include <message_definitions.h>
 
 namespace Kitsunemimi
 {

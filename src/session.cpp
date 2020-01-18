@@ -20,15 +20,15 @@
  *      limitations under the License.
  */
 
-#include <libKitsunemimiProjectNetwork/network_session/session.h>
+#include <libKitsunemimiProjectNetwork/session.h>
 #include <libKitsunemimiNetwork/abstract_socket.h>
 
-#include <network_session/messages_processing/session_processing.h>
-#include <network_session/messages_processing/heartbeat_processing.h>
-#include <network_session/messages_processing/singleblock_data_processing.h>
-#include <network_session/messages_processing/multiblock_data_processing.h>
+#include <messages_processing/session_processing.h>
+#include <messages_processing/heartbeat_processing.h>
+#include <messages_processing/singleblock_data_processing.h>
+#include <messages_processing/multiblock_data_processing.h>
 
-#include <network_session/multiblock_io.h>
+#include <multiblock_io.h>
 
 #include <libKitsunemimiPersistence/logger/logger.h>
 

@@ -26,24 +26,24 @@ INCLUDEPATH += $$PWD \
                $$PWD/../include
 
 HEADERS += \
-    ../include/libKitsunemimiProjectNetwork/network_session/session.h \
-    network_session/timer_thread.h \
-    network_session/callbacks.h \
-    network_session/message_definitions.h \
-    network_session/messages_processing/session_processing.h \
-    network_session/messages_processing/heartbeat_processing.h \
-    network_session/messages_processing/error_processing.h \
-    ../include/libKitsunemimiProjectNetwork/network_session/session_controller.h \
-    network_session/internal_session_interface.h \
-    network_session/session_handler.h \
-    network_session/messages_processing/multiblock_data_processing.h \
-    network_session/messages_processing/singleblock_data_processing.h \
-    network_session/multiblock_io.h
+    ../include/libKitsunemimiProjectNetwork/session.h \
+    ../include/libKitsunemimiProjectNetwork/session_controller.h \
+    timer_thread.h \
+    callbacks.h \
+    message_definitions.h \
+    messages_processing/session_processing.h \
+    messages_processing/heartbeat_processing.h \
+    messages_processing/error_processing.h \
+    internal_session_interface.h \
+    session_handler.h \
+    messages_processing/multiblock_data_processing.h \
+    messages_processing/singleblock_data_processing.h \
+    multiblock_io.h
 
 SOURCES += \
-    network_session/timer_thread.cpp \
-    network_session/session.cpp \
-    network_session/session_constroller.cpp \
-    network_session/session_handler.cpp \
-    network_session/multiblock_io.cpp
+    timer_thread.cpp \
+    session.cpp \
+    session_constroller.cpp \
+    session_handler.cpp \
+    multiblock_io.cpp
 

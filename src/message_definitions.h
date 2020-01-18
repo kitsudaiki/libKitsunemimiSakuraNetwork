@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include <network_session/timer_thread.h>
+#include <timer_thread.h>
 
 namespace Kitsunemimi
 {

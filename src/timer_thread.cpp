@@ -20,10 +20,10 @@
  *      limitations under the License.
  */
 
-#include <network_session/timer_thread.h>
-#include <network_session/session_handler.h>
+#include <timer_thread.h>
+#include <session_handler.h>
 
-#include <libKitsunemimiProjectNetwork/network_session/session.h>
+#include <libKitsunemimiProjectNetwork/session.h>
 
 #include <libKitsunemimiNetwork/abstract_socket.h>
 #include <libKitsunemimiPersistence/logger/logger.h>

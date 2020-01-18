@@ -20,11 +20,11 @@
  *      limitations under the License.
  */
 
-#include <libKitsunemimiProjectNetwork/network_session/session_controller.h>
+#include <libKitsunemimiProjectNetwork/session_controller.h>
 
-#include <network_session/timer_thread.h>
-#include <network_session/session_handler.h>
-#include <network_session/callbacks.h>
+#include <timer_thread.h>
+#include <session_handler.h>
+#include <callbacks.h>
 
 #include <libKitsunemimiNetwork/tcp/tcp_server.h>
 #include <libKitsunemimiNetwork/tcp/tcp_socket.h>

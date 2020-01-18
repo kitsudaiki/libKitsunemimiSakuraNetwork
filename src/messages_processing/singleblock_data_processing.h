@@ -23,15 +23,15 @@
 #ifndef SINGLE_DATA_PROCESSING_H
 #define SINGLE_DATA_PROCESSING_H
 
-#include <network_session/message_definitions.h>
-#include <network_session/session_handler.h>
-#include <network_session/multiblock_io.h>
+#include <message_definitions.h>
+#include <session_handler.h>
+#include <multiblock_io.h>
 
 #include <libKitsunemimiNetwork/abstract_socket.h>
 #include <libKitsunemimiNetwork/message_ring_buffer.h>
 
-#include <libKitsunemimiProjectNetwork/network_session/session_controller.h>
-#include <libKitsunemimiProjectNetwork/network_session/session.h>
+#include <libKitsunemimiProjectNetwork/session_controller.h>
+#include <libKitsunemimiProjectNetwork/session.h>
 
 #include <libKitsunemimiPersistence/logger/logger.h>
 

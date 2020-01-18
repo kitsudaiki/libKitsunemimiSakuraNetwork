@@ -22,9 +22,9 @@
 
 #include "multiblock_io.h"
 
-#include <libKitsunemimiProjectNetwork/network_session/session.h>
+#include <libKitsunemimiProjectNetwork/session.h>
 #include <libKitsunemimiPersistence/logger/logger.h>
-#include <network_session/messages_processing/multiblock_data_processing.h>
+#include <messages_processing/multiblock_data_processing.h>
 
 namespace Kitsunemimi
 {
