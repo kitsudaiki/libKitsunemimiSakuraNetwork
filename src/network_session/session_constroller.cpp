@@ -111,8 +111,10 @@ SessionController::addUnixDomainServer(const std::string socketFile)
 
     SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
     m_serverIdCounter++;
+    sessionHandler->lockServerMap();
     sessionHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
                                      m_serverIdCounter, server));
+    sessionHandler->unlockServerMap();
 
     return m_serverIdCounter;
 }
@@ -134,8 +136,10 @@ SessionController::addTcpServer(const uint16_t port)
 
     SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
     m_serverIdCounter++;
+    sessionHandler->lockServerMap();
     sessionHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
                                      m_serverIdCounter, server));
+    sessionHandler->unlockServerMap();
 
     return m_serverIdCounter;
 }
@@ -163,8 +167,10 @@ SessionController::addTlsTcpServer(const uint16_t port,
 
     SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
     m_serverIdCounter++;
+    sessionHandler->lockServerMap();
     sessionHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
                                      m_serverIdCounter, server));
+    sessionHandler->unlockServerMap();
 
     return m_serverIdCounter;
 }
@@ -179,17 +185,23 @@ SessionController::addTlsTcpServer(const uint16_t port,
 bool
 SessionController::closeServer(const uint32_t id)
 {
-    std::map<uint32_t, Network::AbstractServer*>::iterator it;
-    it = SessionHandler::m_sessionHandler->m_servers.find(id);
+    SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
+    sessionHandler->lockServerMap();
 
-    if(it != SessionHandler::m_sessionHandler->m_servers.end())
+    std::map<uint32_t, Network::AbstractServer*>::iterator it;
+    it = sessionHandler->m_servers.find(id);
+
+    if(it != sessionHandler->m_servers.end())
     {
         Network::AbstractServer* server = it->second;
         server->closeServer();
         delete server;
-        SessionHandler::m_sessionHandler->m_servers.erase(it);
+        sessionHandler->m_servers.erase(it);
+        sessionHandler->unlockServerMap();
         return true;
     }
+
+    sessionHandler->unlockServerMap();
 
     return false;
 }
@@ -200,13 +212,18 @@ SessionController::closeServer(const uint32_t id)
 void
 SessionController::cloesAllServers()
 {
+    SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
+    sessionHandler->lockServerMap();
+
     std::map<uint32_t, Network::AbstractServer*>::iterator it;
-    for(it = SessionHandler::m_sessionHandler->m_servers.begin();
-        it != SessionHandler::m_sessionHandler->m_servers.end();
+    for(it = sessionHandler->m_servers.begin();
+        it != sessionHandler->m_servers.end();
         it++)
     {
         it->second->closeServer();
     }
+
+    sessionHandler->unlockServerMap();
 }
 
 //==================================================================================================
@@ -280,12 +297,20 @@ SessionController::startTlsTcpSession(const std::string address,
 Session*
 SessionController::getSession(const uint32_t id)
 {
-    std::map<uint32_t, Session*>::iterator it;
-    it = SessionHandler::m_sessionHandler->m_sessions.find(id);
+    SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
+    sessionHandler->lockSessionMap();
 
-    if(it != SessionHandler::m_sessionHandler->m_sessions.end()) {
-        return it->second;
+    std::map<uint32_t, Session*>::iterator it;
+    it = sessionHandler->m_sessions.find(id);
+
+    if(it != sessionHandler->m_sessions.end())
+    {
+        Session* session = it->second;
+        sessionHandler->unlockSessionMap();
+        return session;
     }
+
+    sessionHandler->unlockSessionMap();
 
     return nullptr;
 }
@@ -300,12 +325,19 @@ SessionController::getSession(const uint32_t id)
 bool
 SessionController::closeSession(const uint32_t id)
 {
+    SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
+    sessionHandler->lockSessionMap();
+
     std::map<uint32_t, Session*>::iterator it;
     it = SessionHandler::m_sessionHandler->m_sessions.find(id);
 
-    if(it != SessionHandler::m_sessionHandler->m_sessions.end()) {
+    if(it != SessionHandler::m_sessionHandler->m_sessions.end())
+    {
+        sessionHandler->unlockSessionMap();
         return it->second->closeSession(true);
     }
+
+    sessionHandler->unlockSessionMap();
 
     return false;
 }
@@ -316,6 +348,9 @@ SessionController::closeSession(const uint32_t id)
 void
 SessionController::closeAllSession()
 {
+    SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
+    sessionHandler->lockSessionMap();
+
     std::map<uint32_t, Session*>::iterator it;
     for(it = SessionHandler::m_sessionHandler->m_sessions.begin();
         it != SessionHandler::m_sessionHandler->m_sessions.end();
@@ -325,6 +360,8 @@ SessionController::closeAllSession()
     }
 
     SessionHandler::m_sessionHandler->m_sessions.clear();
+
+    sessionHandler->unlockSessionMap();
 }
 
 /**

@@ -64,8 +64,12 @@ public:
     // counter
     uint16_t increaseSessionIdCounter();
 
+    void lockSessionMap();
+    void unlockSessionMap();
+    void lockServerMap();
+    void unlockServerMap();
+
     // object-holder
-    std::atomic_flag m_sessionMap_lock = ATOMIC_FLAG_INIT;
     std::map<uint32_t, Session*> m_sessions;
     std::map<uint32_t, Network::AbstractServer*> m_servers;
 
@@ -75,8 +79,10 @@ public:
                      const uint64_t size);
 private:
     // counter
-    std::atomic_flag m_sessionIdCounter_lock = ATOMIC_FLAG_INIT;
     uint16_t m_sessionIdCounter = 0;
+    std::atomic_flag m_sessionMap_lock = ATOMIC_FLAG_INIT;
+    std::atomic_flag m_serverMap_lock = ATOMIC_FLAG_INIT;
+    std::atomic_flag m_sessionIdCounter_lock = ATOMIC_FLAG_INIT;
 
     // callbacks
     void* m_sessionTarget = nullptr;
