@@ -96,7 +96,7 @@ struct CommonMessageHeader
     uint8_t version = 0x1;
     uint8_t type = 0;
     uint8_t subType = 0;
-    uint8_t flags = 0;   // 0x1 = reply required; 0x2 = is reply
+    uint8_t flags = 0;   // 0x1 = reply required; 0x2 = is reply; // 0x4 = answer required; 0x8 = is answer
     uint32_t messageId = 0;
     uint32_t sessionId = 0;
     uint32_t size = 0;
@@ -352,7 +352,9 @@ struct Data_SingleStatic_Message
 
     Data_SingleStatic_Message(const uint32_t sessionId,
                               const uint32_t messageId,
-                              const bool replyExpected)
+                              const bool replyExpected,
+                              const bool answerExpected,
+                              const bool isAnswer)
     {
         commonHeader.type = SINGLEBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_SINGLE_STATIC_SUBTYPE;
@@ -360,7 +362,13 @@ struct Data_SingleStatic_Message
         commonHeader.messageId = messageId;
         commonHeader.size = sizeof(*this);
         if(replyExpected) {
-            commonHeader.flags = 0x1;
+            commonHeader.flags |= 0x1;
+        }
+        if(answerExpected) {
+            commonHeader.flags |= 0x4;
+        }
+        if(isAnswer) {
+            commonHeader.flags |= 0x8;
         }
     }
 } __attribute__((packed));
@@ -374,8 +382,10 @@ struct Data_SingleDynamic_Header
     uint64_t payloadSize = 0;
 
     Data_SingleDynamic_Header(const uint32_t sessionId,
-                               const uint32_t messageId,
-                               const bool replyExpected)
+                              const uint32_t messageId,
+                              const bool replyExpected,
+                              const bool answerExpected,
+                              const bool isAnswer)
     {
         commonHeader.type = SINGLEBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_SINGLE_DYNAMIC_SUBTYPE;
@@ -383,7 +393,13 @@ struct Data_SingleDynamic_Header
         commonHeader.messageId = messageId;
         commonHeader.size = sizeof(*this);
         if(replyExpected) {
-            commonHeader.flags = 0x1;
+            commonHeader.flags |= 0x1;
+        }
+        if(answerExpected) {
+            commonHeader.flags |= 0x4;
+        }
+        if(isAnswer) {
+            commonHeader.flags |= 0x8;
         }
     }
 } __attribute__((packed));
@@ -424,13 +440,21 @@ struct Data_MultiInit_Message
 
     Data_MultiInit_Message(const uint32_t sessionId,
                            const uint32_t messageId,
-                           const uint64_t multiblockId)
+                           const uint64_t multiblockId,
+                           const bool answerExpected,
+                           const bool isAnswer)
     {
         commonHeader.type = MULTIBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_MULTI_INIT_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
         commonHeader.flags = 0x1;
+        if(answerExpected) {
+            commonHeader.flags |= 0x4;
+        }
+        if(isAnswer) {
+            commonHeader.flags |= 0x8;
+        }
         commonHeader.size = sizeof(*this);
         this->multiblockId = multiblockId;
     }

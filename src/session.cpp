@@ -86,14 +86,29 @@ bool
 Session::sendStreamData(const void* data,
                         const uint64_t size,
                         const bool dynamic,
-                        const bool replyExpected)
+                        const bool replyExpected,
+                        const bool answerExpected,
+                        const bool isAnswer)
 {
     if(m_statemachine.isInState(ACTIVE))
     {
-        if(dynamic) {
-            send_Data_Single_Dynamic(this, data, size, replyExpected);
-        } else {
-            send_Data_Single_Static(this, data, size, replyExpected);
+        if(dynamic)
+        {
+            send_Data_Single_Dynamic(this,
+                                     data,
+                                     size,
+                                     replyExpected,
+                                     answerExpected,
+                                     isAnswer);
+        }
+        else
+        {
+            send_Data_Single_Static(this,
+                                    data,
+                                    size,
+                                    replyExpected,
+                                    answerExpected,
+                                    isAnswer);
         }
 
         return true;
@@ -112,10 +127,16 @@ Session::sendStreamData(const void* data,
  */
 uint64_t
 Session::sendMultiblockData(const void* data,
-                            const uint64_t size)
+                            const uint64_t size,
+                            const bool answerExpected,
+                            const bool isAnswer)
 {
-    if(m_statemachine.isInState(ACTIVE)) {
-        return m_multiblockIo->createOutgoingBuffer(data, size);
+    if(m_statemachine.isInState(ACTIVE))
+    {
+        return m_multiblockIo->createOutgoingBuffer(data,
+                                                    size,
+                                                    answerExpected,
+                                                    isAnswer);
     }
 
     return 0;

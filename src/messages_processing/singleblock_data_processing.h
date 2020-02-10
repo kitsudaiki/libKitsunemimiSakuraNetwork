@@ -52,7 +52,9 @@ inline void
 send_Data_Single_Static(Session* session,
                         const void* data,
                         uint64_t size,
-                        const bool replyExpected)
+                        const bool replyExpected,
+                        const bool answerExpected,
+                        const bool isAnswer)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("SEND data single static");
@@ -60,7 +62,9 @@ send_Data_Single_Static(Session* session,
 
     Data_SingleStatic_Message message(session->sessionId(),
                                       session->increaseMessageIdCounter(),
-                                      replyExpected);
+                                      replyExpected,
+                                      answerExpected,
+                                      isAnswer);
 
     memcpy(message.payload, data, size);
     message.payloadSize = size;
@@ -78,7 +82,9 @@ inline void
 send_Data_Single_Dynamic(Session* session,
                          const void* data,
                          const uint64_t dataSize,
-                         const bool replyExpected)
+                         const bool replyExpected,
+                         const bool answerExpected,
+                         const bool isAnswer)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("SEND data single dynamic");
@@ -97,7 +103,9 @@ send_Data_Single_Dynamic(Session* session,
     // create header- and end-part of the message
     Data_SingleDynamic_Header header(session->sessionId(),
                                      session->increaseMessageIdCounter(),
-                                     replyExpected);
+                                     replyExpected,
+                                     answerExpected,
+                                     isAnswer);
     header.commonHeader.size = static_cast<uint32_t>(totalMessageSizeAligned);
     header.payloadSize = dataSize;
     CommonMessageEnd end;

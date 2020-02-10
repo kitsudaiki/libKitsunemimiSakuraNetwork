@@ -62,7 +62,9 @@ public:
 
     // create
     uint64_t createOutgoingBuffer(const void* data,
-                                  const uint64_t size);
+                                  const uint64_t size,
+                                  const bool answerExpected,
+                                  const bool isAnswer);
     bool createIncomingBuffer(const uint64_t multiblockId,
                               const uint64_t size);
 

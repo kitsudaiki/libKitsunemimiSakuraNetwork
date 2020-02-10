@@ -47,7 +47,9 @@ MultiblockIO::MultiblockIO(Session* session)
  */
 uint64_t
 MultiblockIO::createOutgoingBuffer(const void* data,
-                                  const uint64_t size)
+                                   const uint64_t size,
+                                   const bool answerExpected,
+                                   const bool isAnswer)
 {
     const uint32_t numberOfBlocks = static_cast<uint32_t>(size / 4096) + 1;
 
@@ -73,7 +75,7 @@ MultiblockIO::createOutgoingBuffer(const void* data,
     m_outgoing.push_back(newMultiblockMessage);
     m_outgoing_lock.clear(std::memory_order_release);
 
-    send_Data_Multi_Init(m_session, newMultiblockId, size);
+    send_Data_Multi_Init(m_session, newMultiblockId, size, answerExpected, isAnswer);
 
     return newMultiblockId;
 }

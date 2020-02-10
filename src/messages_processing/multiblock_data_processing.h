@@ -51,7 +51,9 @@ namespace Project
 inline void
 send_Data_Multi_Init(Session* session,
                      const uint64_t multiblockId,
-                     const uint64_t requestedSize)
+                     const uint64_t requestedSize,
+                     const bool answerExpected,
+                     const bool isAnswer)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("SEND data multi init");
@@ -59,7 +61,9 @@ send_Data_Multi_Init(Session* session,
 
     Data_MultiInit_Message message(session->sessionId(),
                                    session->increaseMessageIdCounter(),
-                                   multiblockId);
+                                   multiblockId,
+                                   answerExpected,
+                                   isAnswer);
     message.totalSize = requestedSize;
 
     SessionHandler::m_sessionHandler->sendMessage(session,

@@ -49,10 +49,14 @@ public:
     bool sendStreamData(const void* data,
                         const uint64_t size,
                         const bool dynamic = false,
-                        const bool replyExpected = false);
+                        const bool replyExpected = false,
+                        const bool answerExpected = false,
+                        const bool isAnswer = false);
 
     uint64_t sendMultiblockData(const void* data,
-                                const uint64_t size);
+                                const uint64_t size,
+                                const bool answerExpected = false,
+                                const bool isAnswer = false);
     void abortMessages(const uint64_t multiblockMessageId=0);
 
     bool closeSession(const bool replyExpected = false);
