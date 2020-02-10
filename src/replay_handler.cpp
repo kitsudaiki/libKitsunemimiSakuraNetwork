@@ -43,7 +43,9 @@ ReplyHandler::ReplyHandler() {}
  */
 ReplyHandler::~ReplyHandler()
 {
+    spinLock();
     m_messageList.clear();
+    spinUnlock();
 }
 
 /**
@@ -56,9 +58,9 @@ ReplyHandler::~ReplyHandler()
  */
 void
 ReplyHandler::addMessage(const uint8_t messageType,
-                        const uint32_t sessionId,
-                        const uint64_t messageId,
-                        Session* session)
+                         const uint32_t sessionId,
+                         const uint64_t messageId,
+                         Session* session)
 {
     addMessage(messageType, (messageId << 32) + sessionId, session);
 }
@@ -72,8 +74,8 @@ ReplyHandler::addMessage(const uint8_t messageType,
  */
 void
 ReplyHandler::addMessage(const uint8_t messageType,
-                        const uint64_t completeMessageId,
-                        Session* session)
+                         const uint64_t completeMessageId,
+                         Session* session)
 {
     MessageTime messageTime;
     messageTime.completeMessageId = completeMessageId;
@@ -95,7 +97,7 @@ ReplyHandler::addMessage(const uint8_t messageType,
  */
 bool
 ReplyHandler::removeMessage(const uint32_t sessionId,
-                           const uint64_t messageId)
+                            const uint64_t messageId)
 {
     return removeMessage((messageId << 32) + sessionId);
 }
@@ -153,7 +155,9 @@ bool
 ReplyHandler::removeMessageFromList(const uint64_t completeMessageId)
 {
     std::vector<MessageTime>::iterator it;
-    for(it = m_messageList.begin(); it != m_messageList.end(); it++)
+    for(it = m_messageList.begin();
+        it != m_messageList.end();
+        it++)
     {
         if(it->completeMessageId == completeMessageId)
         {

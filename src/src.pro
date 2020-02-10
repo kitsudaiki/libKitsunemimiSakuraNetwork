@@ -38,12 +38,14 @@ HEADERS += \
     messages_processing/multiblock_data_processing.h \
     messages_processing/singleblock_data_processing.h \
     multiblock_io.h \
-    reply_handler.h
+    reply_handler.h \
+    answer_handler.h
 
 SOURCES += \
     session.cpp \
     session_constroller.cpp \
     session_handler.cpp \
     multiblock_io.cpp \
-    replay_handler.cpp
+    replay_handler.cpp \
+    answer_handler.cpp
 
