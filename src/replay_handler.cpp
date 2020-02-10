@@ -1,5 +1,5 @@
 /**
- * @file       timer_thread.cpp
+ * @file       reply_handler.cpp
  *
  * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
@@ -20,7 +20,7 @@
  *      limitations under the License.
  */
 
-#include <timer_thread.h>
+#include <reply_handler.h>
 #include <session_handler.h>
 
 #include <libKitsunemimiProjectNetwork/session.h>
@@ -36,12 +36,12 @@ namespace Project
 /**
  * @brief constructor
  */
-TimerThread::TimerThread() {}
+ReplyHandler::ReplyHandler() {}
 
 /**
  * @brief destructor
  */
-TimerThread::~TimerThread()
+ReplyHandler::~ReplyHandler()
 {
     m_messageList.clear();
 }
@@ -55,7 +55,7 @@ TimerThread::~TimerThread()
  * @param session pointer to the session-object, which had sended the message
  */
 void
-TimerThread::addMessage(const uint8_t messageType,
+ReplyHandler::addMessage(const uint8_t messageType,
                         const uint32_t sessionId,
                         const uint64_t messageId,
                         Session* session)
@@ -71,7 +71,7 @@ TimerThread::addMessage(const uint8_t messageType,
  * @param session pointer to the session-object, which had sended the message
  */
 void
-TimerThread::addMessage(const uint8_t messageType,
+ReplyHandler::addMessage(const uint8_t messageType,
                         const uint64_t completeMessageId,
                         Session* session)
 {
@@ -94,7 +94,7 @@ TimerThread::addMessage(const uint8_t messageType,
  * @return false, if message-id doesn't exist in the list, else true
  */
 bool
-TimerThread::removeMessage(const uint32_t sessionId,
+ReplyHandler::removeMessage(const uint32_t sessionId,
                            const uint64_t messageId)
 {
     return removeMessage((messageId << 32) + sessionId);
@@ -108,7 +108,7 @@ TimerThread::removeMessage(const uint32_t sessionId,
  * @return false, if message-id doesn't exist in the list, else true
  */
 bool
-TimerThread::removeMessage(const uint64_t completeMessageId)
+ReplyHandler::removeMessage(const uint64_t completeMessageId)
 {
     bool result = false;
 
@@ -125,7 +125,7 @@ TimerThread::removeMessage(const uint64_t completeMessageId)
  * @param sessionId id of the session
  */
 void
-TimerThread::removeAllOfSession(const uint32_t sessionId)
+ReplyHandler::removeAllOfSession(const uint32_t sessionId)
 {
     spinLock();
 
@@ -150,7 +150,7 @@ TimerThread::removeAllOfSession(const uint32_t sessionId)
  * @return false, if message-id doesn't exist in the list, else true
  */
 bool
-TimerThread::removeMessageFromList(const uint64_t completeMessageId)
+ReplyHandler::removeMessageFromList(const uint64_t completeMessageId)
 {
     std::vector<MessageTime>::iterator it;
     for(it = m_messageList.begin(); it != m_messageList.end(); it++)
@@ -180,7 +180,7 @@ TimerThread::removeMessageFromList(const uint64_t completeMessageId)
  * @brief endless thread-loop the time timer
  */
 void
-TimerThread::run()
+ReplyHandler::run()
 {
     uint32_t counter = 0;
 
@@ -207,7 +207,7 @@ TimerThread::run()
  * @brief Increase the timer of all messages and handle timeouts
  */
 void
-TimerThread::makeTimerStep()
+ReplyHandler::makeTimerStep()
 {
     spinLock();
 

@@ -37,14 +37,14 @@ class AbstractServer;
 namespace Project
 {
 class Session;
-class TimerThread;
+class ReplyHandler;
 class SessionController;
 
 class SessionHandler
 {
 public:
 
-    static Kitsunemimi::Project::TimerThread* m_timerThread;
+    static Kitsunemimi::Project::ReplyHandler* m_timerThread;
     static Kitsunemimi::Project::SessionController* m_sessionController;
     static Kitsunemimi::Project::SessionHandler* m_sessionHandler;
 

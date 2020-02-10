@@ -22,7 +22,7 @@
 
 #include "session_handler.h"
 
-#include <timer_thread.h>
+#include <reply_handler.h>
 #include <session_handler.h>
 
 #include <libKitsunemimiProjectNetwork/session.h>
@@ -37,7 +37,7 @@ namespace Project
 {
 
 // init static variables
-TimerThread* SessionHandler::m_timerThread = nullptr;
+ReplyHandler* SessionHandler::m_timerThread = nullptr;
 SessionHandler* SessionHandler::m_sessionHandler = nullptr;
 
 /**
@@ -61,7 +61,7 @@ SessionHandler::SessionHandler(void* sessionTarget,
 
     if(m_timerThread == nullptr)
     {
-        m_timerThread = new TimerThread();
+        m_timerThread = new ReplyHandler();
         m_timerThread->startThread();
     }
 

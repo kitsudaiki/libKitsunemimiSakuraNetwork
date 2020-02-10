@@ -1,5 +1,5 @@
 /**
- * @file       timer_thread.h
+ * @file       reply_handler.h
  *
  * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
@@ -34,11 +34,11 @@ namespace Project
 {
 class Session;
 
-class TimerThread : public Kitsunemimi::Thread
+class ReplyHandler : public Kitsunemimi::Thread
 {
 public:
-    TimerThread();
-    ~TimerThread();
+    ReplyHandler();
+    ~ReplyHandler();
 
     // add
     void addMessage(const uint8_t messageType,
