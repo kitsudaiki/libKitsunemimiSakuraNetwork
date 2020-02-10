@@ -23,6 +23,7 @@
 #include "session_handler.h"
 
 #include <reply_handler.h>
+#include <answer_handler.h>
 #include <session_handler.h>
 
 #include <libKitsunemimiProjectNetwork/session.h>
@@ -37,7 +38,8 @@ namespace Project
 {
 
 // init static variables
-ReplyHandler* SessionHandler::m_timerThread = nullptr;
+ReplyHandler* SessionHandler::m_replyHandler = nullptr;
+AnswerHandler* SessionHandler::m_answerHandler = nullptr;
 SessionHandler* SessionHandler::m_sessionHandler = nullptr;
 
 /**
@@ -59,10 +61,14 @@ SessionHandler::SessionHandler(void* sessionTarget,
     m_errorTarget = errorTarget;
     m_processError = processError;
 
-    if(m_timerThread == nullptr)
+    if(m_replyHandler == nullptr)
     {
-        m_timerThread = new ReplyHandler();
-        m_timerThread->startThread();
+        m_replyHandler = new ReplyHandler();
+        m_replyHandler->startThread();
+    }
+
+    if(m_answerHandler == nullptr) {
+        m_answerHandler = new AnswerHandler();
     }
 
     // check if messages have the size of a multiple of 8
@@ -98,10 +104,10 @@ SessionHandler::~SessionHandler()
     m_sessions.clear();
     unlockSessionMap();
 
-    if(m_timerThread != nullptr)
+    if(m_replyHandler != nullptr)
     {
-        delete m_timerThread;
-        m_timerThread = nullptr;
+        delete m_replyHandler;
+        m_replyHandler = nullptr;
     }
 }
 
@@ -247,15 +253,21 @@ SessionHandler::sendMessage(Session* session,
                             const void* data,
                             const uint64_t size)
 {
-    if(header.flags == 0x1)
+    if(header.flags & 0x1)
     {
-        SessionHandler::m_timerThread->addMessage(header.type,
-                                                  header.sessionId,
-                                                  header.messageId,
-                                                  session);
+        SessionHandler::m_replyHandler->addMessage(header.type,
+                                                   header.sessionId,
+                                                   header.messageId,
+                                                   session);
     }
 
     session->m_socket->sendMessage(data, size);
+
+    if(header.flags & 0x4)
+    {
+        SessionHandler::m_answerHandler->addMessage(header.sessionId,
+                                                    header.messageId);
+    }
 }
 
 } // namespace Project

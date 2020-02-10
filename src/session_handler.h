@@ -38,13 +38,15 @@ namespace Project
 {
 class Session;
 class ReplyHandler;
+class AnswerHandler;
 class SessionController;
 
 class SessionHandler
 {
 public:
 
-    static Kitsunemimi::Project::ReplyHandler* m_timerThread;
+    static Kitsunemimi::Project::ReplyHandler* m_replyHandler;
+    static Kitsunemimi::Project::AnswerHandler* m_answerHandler;
     static Kitsunemimi::Project::SessionController* m_sessionController;
     static Kitsunemimi::Project::SessionHandler* m_sessionHandler;
 

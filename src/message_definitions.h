@@ -31,6 +31,7 @@
 #include <assert.h>
 
 #include <reply_handler.h>
+#include <answer_handler.h>
 
 namespace Kitsunemimi
 {

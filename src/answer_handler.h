@@ -46,6 +46,8 @@ public:
     void addMessage(const uint64_t completeMessageId);
 
     // remove
+    bool removeMessage(const uint32_t sessionId,
+                       const uint64_t messageId);
     bool removeMessage(const uint64_t completeMessageId);
 
 protected:

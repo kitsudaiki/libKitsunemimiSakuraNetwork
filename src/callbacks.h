@@ -82,11 +82,18 @@ processMessage(void* target,
         return 0;
     }
 
-    // remove from timer-thread if message is reply
-    if(header->flags == 0x2)
+    // remove from reply-handler if message is reply
+    if(header->flags & 0x2)
     {
-        SessionHandler::m_timerThread->removeMessage(header->sessionId,
-                                                     header->messageId);
+        SessionHandler::m_replyHandler->removeMessage(header->sessionId,
+                                                      header->messageId);
+    }
+
+    // remove from answer-handler
+    if(header->flags & 0x4)
+    {
+        SessionHandler::m_answerHandler->removeMessage(header->sessionId,
+                                                       header->messageId);
     }
 
     // process message by type

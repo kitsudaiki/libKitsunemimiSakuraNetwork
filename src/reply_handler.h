@@ -20,8 +20,8 @@
  *      limitations under the License.
  */
 
-#ifndef TIMER_THREAD_H
-#define TIMER_THREAD_H
+#ifndef REPLY_HANDLER_H
+#define REPLY_HANDLER_H
 
 #include <vector>
 #include <iostream>
@@ -77,4 +77,4 @@ private:
 } // namespace Project
 } // namespace Kitsunemimi
 
-#endif // TIMER_THREAD_H
+#endif // REPLY_HANDLER_H
