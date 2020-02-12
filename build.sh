@@ -23,7 +23,7 @@ function build_kitsune_lib_repo () {
     cd $REPO_DIR
 
     # build repo library with qmake
-    /usr/lib/x86_64-linux-gnu/qt5/bin/qmake "$PARENT_DIR/$REPO_NAME/$REPO_NAME.pro" -spec linux-g++ "CONFIG += optimize_full"
+    /usr/lib/x86_64-linux-gnu/qt5/bin/qmake "$PARENT_DIR/$REPO_NAME/$REPO_NAME.pro" -spec linux-g++ "CONFIG += optimize_full staticlib"
     /usr/bin/make -j4
 
     # copy build-result and include-files into the result-directory
@@ -45,7 +45,7 @@ function get_required_kitsune_lib_repo () {
 
 #-----------------------------------------------------------------------------------------------------------------
 
-get_required_kitsune_lib_repo "libKitsunemimiCommon" "v0.10.0"
+get_required_kitsune_lib_repo "libKitsunemimiCommon" "v0.10.1"
 
 get_required_kitsune_lib_repo "libKitsunemimiPersistence" "v0.7.0"
 
