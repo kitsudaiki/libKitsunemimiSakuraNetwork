@@ -1,8 +1,15 @@
-#include "test_session.h"
+﻿#include "test_session.h"
 
 #include <libKitsunemimiProjectNetwork/session.h>
 #include <libKitsunemimiProjectNetwork/session_controller.h>
 
+/**
+ * @brief dataCallback
+ * @param target
+ * @param isStream
+ * @param data
+ * @param dataSize
+ */
 void dataCallback(void* target,
                   Kitsunemimi::Project::Session*,
                   const bool isStream,
@@ -11,11 +18,16 @@ void dataCallback(void* target,
 {
     const char* message = static_cast<const char*>(data);
     const std::string stringMessage = std::string(message, dataSize);
+    std::cout<<"+++++++++++++++++++++++++++++++++++++++++++++++++"<<std::endl;
     std::cout<<"message: "<<std::endl;
     std::cout<<stringMessage<<std::endl;
     std::cout<<""<<std::endl;
+    std::cout<<"-------------------------------------------------"<<std::endl;
 }
 
+/**
+ * @brief errorCallback
+ */
 void errorCallback(void*,
                    Kitsunemimi::Project::Session*,
                    const uint8_t,
@@ -23,6 +35,12 @@ void errorCallback(void*,
 {
 }
 
+/**
+ * @brief sessionCallback
+ * @param target
+ * @param isInit
+ * @param session
+ */
 void sessionCallback(void* target,
                      bool isInit,
                      Kitsunemimi::Project::Session* session,
@@ -34,15 +52,20 @@ void sessionCallback(void* target,
     if(isInit)
     {
         std::cout<<"init session"<<std::endl;
-        testClass->m_sessioin = session;
+        testClass->m_session = session;
     }
     else
     {
         std::cout<<"end session"<<std::endl;
-        testClass->m_sessioin = nullptr;
+        testClass->m_session = nullptr;
     }
 }
 
+/**
+ * @brief TestSession::TestSession
+ * @param address
+ * @param port
+ */
 TestSession::TestSession(const std::string &address,
                          const uint16_t port)
 {
@@ -50,10 +73,35 @@ TestSession::TestSession(const std::string &address,
                                                                this, &dataCallback,
                                                                this, &errorCallback);
 
-    m_controller->addTcpServer(port);
-
-    if(address != "") {
+    if(address != "")
+    {
+        m_isClient = true;
         m_controller->startTcpSession(address, port);
     }
+    else
+    {
+        m_controller->addTcpServer(port);
+    }
+}
 
+/**
+ * @brief TestSession::sendLoop
+ */
+void
+TestSession::sendLoop()
+{
+    while(true)
+    {
+        while(m_session == nullptr) {
+            usleep(10000);
+        }
+
+        std::cout<<"ready for input:"<<std::endl;
+        std::string message = "";
+        std::cin >> message;
+
+        if(m_session != nullptr) {
+            m_session->sendMultiblockData(message.c_str(), message.size(), m_isClient, !m_isClient);
+        }
+    }
 }

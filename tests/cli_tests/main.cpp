@@ -64,14 +64,14 @@ int main(int argc, char *argv[])
     if(vm.count("address")) {
         address = vm["address"].as<std::string>();
     }
-    if(vm.count("ports")) {
+    if(vm.count("port")) {
         port = vm["port"].as<uint16_t>();
     }
 
+    std::cout<<"address: "<<address<<std::endl;
+    std::cout<<"port: "<<(int)port<<std::endl;
+
     TestSession testSession(address, port);
 
-    while(true)
-    {
-
-    }
+    testSession.sendLoop();
 }
