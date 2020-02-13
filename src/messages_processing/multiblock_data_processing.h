@@ -271,11 +271,10 @@ process_Data_Multi_Finish(Session* session,
     MultiblockIO::MultiblockMessage buffer =
             session->m_multiblockIo->getIncomingBuffer(message->multiblockId);
 
-    session->m_processData(session->m_dataTarget,
-                           session,
-                           false,
-                           getBlock(buffer.multiBlockBuffer, 0),
-                           buffer.messageSize);
+    session->m_processStandaloneData(session->m_standaloneDataTarget,
+                                     session,
+                                     getBlock(buffer.multiBlockBuffer, 0),
+                                     buffer.messageSize);
     session->m_multiblockIo->removeIncomingMessage(message->multiblockId);
 }
 

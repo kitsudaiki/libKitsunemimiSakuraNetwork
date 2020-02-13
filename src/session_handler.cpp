@@ -47,17 +47,22 @@ SessionHandler* SessionHandler::m_sessionHandler = nullptr;
  */
 SessionHandler::SessionHandler(void* sessionTarget,
                                void (*processSession)(void*, bool, Session*, const uint64_t),
-                               void* dataTarget,
-                               void (*processData)(void*, Session*, const bool,
-                                                   const void*, const uint64_t),
+                               void* streamDataTarget,
+                               void (*processStreamData)(void*, Session*,
+                                                         const void*, const uint64_t),
+                               void* standaloneDataTarget,
+                               void (*processStandaloneData)(void*, Session*,
+                                                             const void*, const uint64_t),
                                void* errorTarget,
                                void (*processError)(void*, Session*,
                                                     const uint8_t, const std::string))
 {
     m_sessionTarget = sessionTarget;
     m_processSession = processSession;
-    m_dataTarget = dataTarget;
-    m_processData = processData;
+    m_streamDataTarget = streamDataTarget;
+    m_processStreamData = processStreamData;
+    m_standaloneDataTarget = standaloneDataTarget;
+    m_processStandaloneData = processStandaloneData;
     m_errorTarget = errorTarget;
     m_processError = processError;
 
@@ -122,8 +127,10 @@ SessionHandler::addSession(const uint32_t id, Session* session)
 {
     session->m_sessionTarget = m_sessionTarget;
     session->m_processSession = m_processSession;
-    session->m_dataTarget = m_dataTarget;
-    session->m_processData = m_processData;
+    session->m_streamDataTarget = m_streamDataTarget;
+    session->m_processStreamData = m_processStreamData;
+    session->m_standaloneDataTarget = m_standaloneDataTarget;
+    session->m_processStandaloneData = m_processStandaloneData;
     session->m_errorTarget = m_errorTarget;
     session->m_processError = m_processError;
 

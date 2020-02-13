@@ -52,9 +52,7 @@ inline void
 send_Data_Single_Static(Session* session,
                         const void* data,
                         uint64_t size,
-                        const bool replyExpected,
-                        const bool answerExpected,
-                        const bool isAnswer)
+                        const bool replyExpected)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("SEND data single static");
@@ -62,9 +60,7 @@ send_Data_Single_Static(Session* session,
 
     Data_SingleStatic_Message message(session->sessionId(),
                                       session->increaseMessageIdCounter(),
-                                      replyExpected,
-                                      answerExpected,
-                                      isAnswer);
+                                      replyExpected);
 
     memcpy(message.payload, data, size);
     message.payloadSize = size;
@@ -82,9 +78,7 @@ inline void
 send_Data_Single_Dynamic(Session* session,
                          const void* data,
                          const uint64_t dataSize,
-                         const bool replyExpected,
-                         const bool answerExpected,
-                         const bool isAnswer)
+                         const bool replyExpected)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("SEND data single dynamic");
@@ -103,9 +97,7 @@ send_Data_Single_Dynamic(Session* session,
     // create header- and end-part of the message
     Data_SingleDynamic_Header header(session->sessionId(),
                                      session->increaseMessageIdCounter(),
-                                     replyExpected,
-                                     answerExpected,
-                                     isAnswer);
+                                     replyExpected);
     header.commonHeader.size = static_cast<uint32_t>(totalMessageSizeAligned);
     header.payloadSize = dataSize;
     CommonMessageEnd end;
@@ -155,11 +147,10 @@ process_Data_Single_Static(Session* session,
         LOG_DEBUG("process data single static");
     }
 
-    session->m_processData(session->m_dataTarget,
-                               session,
-                               true,
-                               static_cast<const void*>(message->payload),
-                               message->payloadSize);
+    session->m_processStreamData(session->m_streamDataTarget,
+                                 session,
+                                 static_cast<const void*>(message->payload),
+                                 message->payloadSize);
     send_Data_Single_Reply(session, message->commonHeader.messageId);
 }
 
@@ -181,11 +172,10 @@ process_Data_Single_Dynamic(Session* session,
     }
 
     const void* payload = completeMessage + sizeof(Data_SingleDynamic_Header);
-    session->m_processData(session->m_dataTarget,
-                               session,
-                               true,
-                               payload,
-                               message->payloadSize);
+    session->m_processStreamData(session->m_streamDataTarget,
+                                 session,
+                                 payload,
+                                 message->payloadSize);
     send_Data_Single_Reply(session, message->commonHeader.messageId);
 
     return message->commonHeader.size;

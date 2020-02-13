@@ -49,9 +49,7 @@ public:
     bool sendStreamData(const void* data,
                         const uint64_t size,
                         const bool dynamic = false,
-                        const bool replyExpected = false,
-                        const bool answerExpected = false,
-                        const bool isAnswer = false);
+                        const bool replyExpected = false);
 
     uint64_t sendMultiblockData(const void* data,
                                 const uint64_t size,
@@ -106,8 +104,10 @@ public:
     // callbacks
     void* m_sessionTarget = nullptr;
     void (*m_processSession)(void*, bool, Session*, const uint64_t);
-    void* m_dataTarget = nullptr;
-    void (*m_processData)(void*, Session*, const bool, const void*, const uint64_t);
+    void* m_streamDataTarget = nullptr;
+    void (*m_processStreamData)(void*, Session*, const void*, const uint64_t);
+    void* m_standaloneDataTarget = nullptr;
+    void (*m_processStandaloneData)(void*, Session*, const void*, const uint64_t);
     void* m_errorTarget = nullptr;
     void (*m_processError)(void*, Session*, const uint8_t, const std::string);
 

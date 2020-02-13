@@ -92,8 +92,7 @@ processMessage(void* target,
     // remove from answer-handler
     if(header->flags & 0x4)
     {
-        SessionHandler::m_answerHandler->removeMessage(header->sessionId,
-                                                       header->messageId);
+        SessionHandler::m_answerHandler->removeMessage(header->messageId);
     }
 
     // process message by type

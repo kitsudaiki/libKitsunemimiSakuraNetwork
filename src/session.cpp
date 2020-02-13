@@ -86,9 +86,7 @@ bool
 Session::sendStreamData(const void* data,
                         const uint64_t size,
                         const bool dynamic,
-                        const bool replyExpected,
-                        const bool answerExpected,
-                        const bool isAnswer)
+                        const bool replyExpected)
 {
     if(m_statemachine.isInState(ACTIVE))
     {
@@ -97,18 +95,14 @@ Session::sendStreamData(const void* data,
             send_Data_Single_Dynamic(this,
                                      data,
                                      size,
-                                     replyExpected,
-                                     answerExpected,
-                                     isAnswer);
+                                     replyExpected);
         }
         else
         {
             send_Data_Single_Static(this,
                                     data,
                                     size,
-                                    replyExpected,
-                                    answerExpected,
-                                    isAnswer);
+                                    replyExpected);
         }
 
         return true;

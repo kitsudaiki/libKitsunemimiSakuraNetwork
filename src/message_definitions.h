@@ -353,9 +353,7 @@ struct Data_SingleStatic_Message
 
     Data_SingleStatic_Message(const uint32_t sessionId,
                               const uint32_t messageId,
-                              const bool replyExpected,
-                              const bool answerExpected,
-                              const bool isAnswer)
+                              const bool replyExpected)
     {
         commonHeader.type = SINGLEBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_SINGLE_STATIC_SUBTYPE;
@@ -364,12 +362,6 @@ struct Data_SingleStatic_Message
         commonHeader.size = sizeof(*this);
         if(replyExpected) {
             commonHeader.flags |= 0x1;
-        }
-        if(answerExpected) {
-            commonHeader.flags |= 0x4;
-        }
-        if(isAnswer) {
-            commonHeader.flags |= 0x8;
         }
     }
 } __attribute__((packed));
@@ -384,9 +376,7 @@ struct Data_SingleDynamic_Header
 
     Data_SingleDynamic_Header(const uint32_t sessionId,
                               const uint32_t messageId,
-                              const bool replyExpected,
-                              const bool answerExpected,
-                              const bool isAnswer)
+                              const bool replyExpected)
     {
         commonHeader.type = SINGLEBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_SINGLE_DYNAMIC_SUBTYPE;
@@ -395,12 +385,6 @@ struct Data_SingleDynamic_Header
         commonHeader.size = sizeof(*this);
         if(replyExpected) {
             commonHeader.flags |= 0x1;
-        }
-        if(answerExpected) {
-            commonHeader.flags |= 0x4;
-        }
-        if(isAnswer) {
-            commonHeader.flags |= 0x8;
         }
     }
 } __attribute__((packed));

@@ -4,17 +4,36 @@
 #include <libKitsunemimiProjectNetwork/session_controller.h>
 
 /**
- * @brief dataCallback
+ * @brief standaloneDataCallback
+ * @param target
+ * @param data
+ * @param dataSize
+ */
+void streamDataCallback(void* target,
+                        Kitsunemimi::Project::Session*,
+                        const void* data,
+                        const uint64_t dataSize)
+{
+    const char* message = static_cast<const char*>(data);
+    const std::string stringMessage = std::string(message, dataSize);
+    std::cout<<"+++++++++++++++++++++++++++++++++++++++++++++++++"<<std::endl;
+    std::cout<<"message: "<<std::endl;
+    std::cout<<stringMessage<<std::endl;
+    std::cout<<""<<std::endl;
+    std::cout<<"-------------------------------------------------"<<std::endl;
+}
+
+/**
+ * @brief standaloneDataCallback
  * @param target
  * @param isStream
  * @param data
  * @param dataSize
  */
-void dataCallback(void* target,
-                  Kitsunemimi::Project::Session*,
-                  const bool isStream,
-                  const void* data,
-                  const uint64_t dataSize)
+void standaloneDataCallback(void* target,
+                            Kitsunemimi::Project::Session*,
+                            const void* data,
+                            const uint64_t dataSize)
 {
     const char* message = static_cast<const char*>(data);
     const std::string stringMessage = std::string(message, dataSize);
@@ -70,7 +89,8 @@ TestSession::TestSession(const std::string &address,
                          const uint16_t port)
 {
     m_controller = new Kitsunemimi::Project::SessionController(this, &sessionCallback,
-                                                               this, &dataCallback,
+                                                               this, &streamDataCallback,
+                                                               this, &standaloneDataCallback,
                                                                this, &errorCallback);
 
     if(address != "")

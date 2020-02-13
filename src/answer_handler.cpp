@@ -69,19 +69,6 @@ AnswerHandler::addMessage(const uint64_t completeMessageId)
 
 /**
  * @brief AnswerHandler::removeMessage
- * @param sessionId
- * @param messageId
- * @return
- */
-bool
-AnswerHandler::removeMessage(const uint32_t sessionId,
-                             const uint64_t messageId)
-{
-    return removeMessage((messageId << 32) + sessionId);
-}
-
-/**
- * @brief AnswerHandler::removeMessage
  * @param completeMessageId
  * @return
  */
