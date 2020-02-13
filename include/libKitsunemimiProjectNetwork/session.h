@@ -54,7 +54,7 @@ public:
     uint64_t sendMultiblockData(const void* data,
                                 const uint64_t size,
                                 const bool answerExpected = false,
-                                const bool isAnswer = false);
+                                const  uint64_t answerId = 0);
     void abortMessages(const uint64_t multiblockMessageId=0);
 
     bool closeSession(const bool replyExpected = false);
@@ -107,7 +107,7 @@ public:
     void* m_streamDataTarget = nullptr;
     void (*m_processStreamData)(void*, Session*, const void*, const uint64_t);
     void* m_standaloneDataTarget = nullptr;
-    void (*m_processStandaloneData)(void*, Session*, const void*, const uint64_t);
+    void (*m_processStandaloneData)(void*, Session*, const uint64_t, const void*, const uint64_t);
     void* m_errorTarget = nullptr;
     void (*m_processError)(void*, Session*, const uint8_t, const std::string);
 

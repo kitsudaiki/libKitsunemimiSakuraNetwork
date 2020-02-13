@@ -67,6 +67,7 @@ void streamDataCallback(void* target,
  */
 void standaloneDataCallback(void* target,
                             Session*,
+                            const uint64_t,
                             const void* data,
                             const uint64_t dataSize)
 {

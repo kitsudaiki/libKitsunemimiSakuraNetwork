@@ -426,8 +426,7 @@ struct Data_MultiInit_Message
     Data_MultiInit_Message(const uint32_t sessionId,
                            const uint32_t messageId,
                            const uint64_t multiblockId,
-                           const bool answerExpected,
-                           const bool isAnswer)
+                           const bool answerExpected)
     {
         commonHeader.type = MULTIBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_MULTI_INIT_SUBTYPE;
@@ -436,9 +435,6 @@ struct Data_MultiInit_Message
         commonHeader.flags = 0x1;
         if(answerExpected) {
             commonHeader.flags |= 0x4;
-        }
-        if(isAnswer) {
-            commonHeader.flags |= 0x8;
         }
         commonHeader.size = sizeof(*this);
         this->multiblockId = multiblockId;
@@ -509,19 +505,27 @@ struct Data_MultiFinish_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t multiblockId = 0;
+    uint64_t answerId = 0;
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
 
     Data_MultiFinish_Message(const uint32_t sessionId,
                              const uint32_t messageId,
-                             const uint64_t multiblockId)
+                             const uint64_t multiblockId,
+                             const uint64_t answerId)
     {
         commonHeader.type = MULTIBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_MULTI_FINISH_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
         commonHeader.size = sizeof(*this);
+
         this->multiblockId = multiblockId;
+        this->answerId = answerId;
+
+        if(answerId != 0) {
+            commonHeader.flags |= 0x8;
+        }
     }
 } __attribute__((packed));
 

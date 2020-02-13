@@ -46,7 +46,8 @@ public:
                       void* streamDataTarget,
                       void (*processStreamData)(void*, Session*, const void*, const uint64_t),
                       void* standaloneDataTarget,
-                      void (*processStandaloneData)(void*, Session*, const void*, const uint64_t),
+                      void (*processStandaloneData)(void*, Session*, const uint64_t,
+                                                    const void*, const uint64_t),
                       void* errorTarget,
                       void (*processError)(void*, Session*, const uint8_t, const std::string));
     ~SessionController();

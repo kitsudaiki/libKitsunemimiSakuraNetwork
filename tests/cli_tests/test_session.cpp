@@ -32,12 +32,14 @@ void streamDataCallback(void* target,
  */
 void standaloneDataCallback(void* target,
                             Kitsunemimi::Project::Session*,
+                            const uint64_t answerId,
                             const void* data,
                             const uint64_t dataSize)
 {
     const char* message = static_cast<const char*>(data);
     const std::string stringMessage = std::string(message, dataSize);
     std::cout<<"+++++++++++++++++++++++++++++++++++++++++++++++++"<<std::endl;
+    std::cout<<"answerId: "<<answerId<<std::endl;
     std::cout<<"message: "<<std::endl;
     std::cout<<stringMessage<<std::endl;
     std::cout<<""<<std::endl;

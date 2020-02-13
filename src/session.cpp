@@ -123,14 +123,14 @@ uint64_t
 Session::sendMultiblockData(const void* data,
                             const uint64_t size,
                             const bool answerExpected,
-                            const bool isAnswer)
+                            const uint64_t answerId)
 {
     if(m_statemachine.isInState(ACTIVE))
     {
         return m_multiblockIo->createOutgoingBuffer(data,
                                                     size,
                                                     answerExpected,
-                                                    isAnswer);
+                                                    answerId);
     }
 
     return 0;
