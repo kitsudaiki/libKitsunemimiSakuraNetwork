@@ -28,7 +28,6 @@ INCLUDEPATH += $$PWD \
 HEADERS += \
     ../include/libKitsunemimiProjectNetwork/session.h \
     ../include/libKitsunemimiProjectNetwork/session_controller.h \
-    timer_thread.h \
     callbacks.h \
     message_definitions.h \
     messages_processing/session_processing.h \
@@ -38,12 +37,15 @@ HEADERS += \
     session_handler.h \
     messages_processing/multiblock_data_processing.h \
     messages_processing/singleblock_data_processing.h \
-    multiblock_io.h
+    multiblock_io.h \
+    reply_handler.h \
+    answer_handler.h
 
 SOURCES += \
-    timer_thread.cpp \
     session.cpp \
     session_constroller.cpp \
     session_handler.cpp \
-    multiblock_io.cpp
+    multiblock_io.cpp \
+    replay_handler.cpp \
+    answer_handler.cpp
 

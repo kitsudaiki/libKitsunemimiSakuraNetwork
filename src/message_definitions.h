@@ -30,7 +30,8 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include <timer_thread.h>
+#include <reply_handler.h>
+#include <answer_handler.h>
 
 namespace Kitsunemimi
 {
@@ -96,7 +97,7 @@ struct CommonMessageHeader
     uint8_t version = 0x1;
     uint8_t type = 0;
     uint8_t subType = 0;
-    uint8_t flags = 0;   // 0x1 = reply required; 0x2 = is reply
+    uint8_t flags = 0;   // 0x1 = reply required; 0x2 = is reply; // 0x4 = answer required; 0x8 = is answer
     uint32_t messageId = 0;
     uint32_t sessionId = 0;
     uint32_t size = 0;
@@ -360,7 +361,7 @@ struct Data_SingleStatic_Message
         commonHeader.messageId = messageId;
         commonHeader.size = sizeof(*this);
         if(replyExpected) {
-            commonHeader.flags = 0x1;
+            commonHeader.flags |= 0x1;
         }
     }
 } __attribute__((packed));
@@ -374,8 +375,8 @@ struct Data_SingleDynamic_Header
     uint64_t payloadSize = 0;
 
     Data_SingleDynamic_Header(const uint32_t sessionId,
-                               const uint32_t messageId,
-                               const bool replyExpected)
+                              const uint32_t messageId,
+                              const bool replyExpected)
     {
         commonHeader.type = SINGLEBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_SINGLE_DYNAMIC_SUBTYPE;
@@ -383,7 +384,7 @@ struct Data_SingleDynamic_Header
         commonHeader.messageId = messageId;
         commonHeader.size = sizeof(*this);
         if(replyExpected) {
-            commonHeader.flags = 0x1;
+            commonHeader.flags |= 0x1;
         }
     }
 } __attribute__((packed));
@@ -424,7 +425,8 @@ struct Data_MultiInit_Message
 
     Data_MultiInit_Message(const uint32_t sessionId,
                            const uint32_t messageId,
-                           const uint64_t multiblockId)
+                           const uint64_t multiblockId,
+                           const bool answerExpected)
     {
         commonHeader.type = MULTIBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_MULTI_INIT_SUBTYPE;
@@ -432,6 +434,10 @@ struct Data_MultiInit_Message
         commonHeader.messageId = messageId;
         commonHeader.flags = 0x1;
         commonHeader.size = sizeof(*this);
+        if(answerExpected) {
+            commonHeader.flags |= 0x4;
+        }
+
         this->multiblockId = multiblockId;
     }
 } __attribute__((packed));
@@ -500,19 +506,27 @@ struct Data_MultiFinish_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t multiblockId = 0;
+    uint64_t answerId = 0;
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
 
     Data_MultiFinish_Message(const uint32_t sessionId,
                              const uint32_t messageId,
-                             const uint64_t multiblockId)
+                             const uint64_t multiblockId,
+                             const uint64_t answerId)
     {
         commonHeader.type = MULTIBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_MULTI_FINISH_SUBTYPE;
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
         commonHeader.size = sizeof(*this);
+
         this->multiblockId = multiblockId;
+        this->answerId = answerId;
+
+        if(answerId != 0) {
+            commonHeader.flags |= 0x8;
+        }
     }
 } __attribute__((packed));
 

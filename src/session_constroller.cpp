@@ -22,7 +22,8 @@
 
 #include <libKitsunemimiProjectNetwork/session_controller.h>
 
-#include <timer_thread.h>
+#include <reply_handler.h>
+#include <answer_handler.h>
 #include <session_handler.h>
 #include <callbacks.h>
 
@@ -52,12 +53,17 @@ SessionController::SessionController(void* sessionTarget,
                                                             bool,
                                                             Session*,
                                                             const uint64_t),
-                                     void* dataTarget,
-                                     void (*processData)(void*,
-                                                         Session*,
-                                                         const bool,
-                                                         const void*,
-                                                         const uint64_t),
+                                     void* streamDataTarget,
+                                     void (*processStreamData)(void*,
+                                                               Session*,
+                                                               const void*,
+                                                               const uint64_t),
+                                     void* standaloneDataTarget,
+                                     void (*processStandaloneData)(void*,
+                                                                   Session*,
+                                                                   const uint64_t,
+                                                                   const void*,
+                                                                   const uint64_t),
                                      void* errorTarget,
                                      void (*processError)(void*,
                                                           Session*,
@@ -70,8 +76,10 @@ SessionController::SessionController(void* sessionTarget,
     {
         SessionHandler::m_sessionHandler = new SessionHandler(sessionTarget,
                                                               processSession,
-                                                              dataTarget,
-                                                              processData,
+                                                              streamDataTarget,
+                                                              processStreamData,
+                                                              standaloneDataTarget,
+                                                              processStandaloneData,
                                                               errorTarget,
                                                               processError);
     }

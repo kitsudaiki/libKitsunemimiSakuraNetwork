@@ -27,41 +27,60 @@ namespace Kitsunemimi
 namespace Project
 {
 
-void dataCallback(void* target,
-                  Session*,
-                  const bool isStream,
-                  const void* data,
-                  const uint64_t dataSize)
+/**
+ * @brief streamDataCallback
+ * @param target
+ * @param data
+ * @param dataSize
+ */
+void streamDataCallback(void* target,
+                        Session*,
+                        const void* data,
+                        const uint64_t dataSize)
 {
     Session_Test* testClass = static_cast<Session_Test*>(target);
 
     std::string receivedMessage(static_cast<const char*>(data), dataSize);
 
-    if(isStream)
+    bool ret = false;
+
+    if(dataSize == testClass->m_staticMessage.size())
     {
-        bool ret = false;
-
-        if(dataSize == testClass->m_staticMessage.size())
-        {
-            ret = true;
-            testClass->compare(receivedMessage, testClass->m_staticMessage);
-        }
-
-        if(dataSize == testClass->m_dynamicMessage.size())
-        {
-            ret = true;
-            testClass->compare(receivedMessage, testClass->m_dynamicMessage);
-        }
-
-        testClass->compare(ret,  true);
+        ret = true;
+        testClass->compare(receivedMessage, testClass->m_staticMessage);
     }
-    else
+
+    if(dataSize == testClass->m_dynamicMessage.size())
     {
-        testClass->compare(dataSize, testClass->m_multiBlockMessage.size());
-        testClass->compare(receivedMessage, testClass->m_multiBlockMessage);
+        ret = true;
+        testClass->compare(receivedMessage, testClass->m_dynamicMessage);
     }
+
+    testClass->compare(ret,  true);
 }
 
+/**
+ * @brief standaloneDataCallback
+ * @param target
+ * @param data
+ * @param dataSize
+ */
+void standaloneDataCallback(void* target,
+                            Session*,
+                            const uint64_t,
+                            const void* data,
+                            const uint64_t dataSize)
+{
+    Session_Test* testClass = static_cast<Session_Test*>(target);
+
+    std::string receivedMessage(static_cast<const char*>(data), dataSize);
+    testClass->compare(dataSize, testClass->m_multiBlockMessage.size());
+    testClass->compare(receivedMessage, testClass->m_multiBlockMessage);
+}
+
+/**
+ * @brief errorCallback
+ */
 void errorCallback(void*,
                    Session*,
                    const uint8_t,
@@ -69,6 +88,13 @@ void errorCallback(void*,
 {
 }
 
+/**
+ * @brief sessionCallback
+ * @param target
+ * @param isInit
+ * @param session
+ * @param sessionIdentifier
+ */
 void sessionCallback(void* target,
                      bool isInit,
                      Kitsunemimi::Project::Session* session,
@@ -120,6 +146,9 @@ void sessionCallback(void* target,
     }
 }
 
+/**
+ * @brief Session_Test::Session_Test
+ */
 Session_Test::Session_Test() :
     Kitsunemimi::Test("Session_Test")
 {
@@ -156,7 +185,8 @@ void
 Session_Test::runTest()
 {
     SessionController* m_controller = new SessionController(this, &sessionCallback,
-                                                            this, &dataCallback,
+                                                            this, &streamDataCallback,
+                                                            this, &standaloneDataCallback,
                                                             this, &errorCallback);
 
     TEST_EQUAL(m_controller->addTcpServer(1234), 1);

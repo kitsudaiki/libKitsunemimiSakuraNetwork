@@ -37,21 +37,26 @@ class AbstractServer;
 namespace Project
 {
 class Session;
-class TimerThread;
+class ReplyHandler;
+class AnswerHandler;
 class SessionController;
 
 class SessionHandler
 {
 public:
 
-    static Kitsunemimi::Project::TimerThread* m_timerThread;
+    static Kitsunemimi::Project::ReplyHandler* m_replyHandler;
+    static Kitsunemimi::Project::AnswerHandler* m_answerHandler;
     static Kitsunemimi::Project::SessionController* m_sessionController;
     static Kitsunemimi::Project::SessionHandler* m_sessionHandler;
 
     SessionHandler(void* sessionTarget,
                    void (*processSession)(void*, bool, Session*, const uint64_t),
-                   void* dataTarget,
-                   void (*processData)(void*, Session*, const bool, const void*, const uint64_t),
+                   void* streamDataTarget,
+                   void (*processStreamData)(void*, Session*, const void*, const uint64_t),
+                   void* standaloneDataTarget,
+                   void (*processData)(void*, Session*, const uint64_t,
+                                       const void*, const uint64_t),
                    void* errorTarget,
                    void (*processError)(void*, Session*, const uint8_t, const std::string));
     ~SessionHandler();
@@ -87,8 +92,10 @@ private:
     // callbacks
     void* m_sessionTarget = nullptr;
     void (*m_processSession)(void*, bool, Session*, const uint64_t);
-    void* m_dataTarget = nullptr;
-    void (*m_processData)(void*, Session*, const bool, const void*, const uint64_t);
+    void* m_streamDataTarget = nullptr;
+    void (*m_processStreamData)(void*, Session*, const void*, const uint64_t);
+    void* m_standaloneDataTarget = nullptr;
+    void (*m_processStandaloneData)(void*, Session*, const uint64_t, const void*, const uint64_t);
     void* m_errorTarget = nullptr;
     void (*m_processError)(void*, Session*, const uint8_t, const std::string);
 };

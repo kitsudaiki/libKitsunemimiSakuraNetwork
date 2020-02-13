@@ -22,7 +22,8 @@
 
 #include "session_handler.h"
 
-#include <timer_thread.h>
+#include <reply_handler.h>
+#include <answer_handler.h>
 #include <session_handler.h>
 
 #include <libKitsunemimiProjectNetwork/session.h>
@@ -37,7 +38,8 @@ namespace Project
 {
 
 // init static variables
-TimerThread* SessionHandler::m_timerThread = nullptr;
+ReplyHandler* SessionHandler::m_replyHandler = nullptr;
+AnswerHandler* SessionHandler::m_answerHandler = nullptr;
 SessionHandler* SessionHandler::m_sessionHandler = nullptr;
 
 /**
@@ -45,24 +47,33 @@ SessionHandler* SessionHandler::m_sessionHandler = nullptr;
  */
 SessionHandler::SessionHandler(void* sessionTarget,
                                void (*processSession)(void*, bool, Session*, const uint64_t),
-                               void* dataTarget,
-                               void (*processData)(void*, Session*, const bool,
-                                                   const void*, const uint64_t),
+                               void* streamDataTarget,
+                               void (*processStreamData)(void*, Session*,
+                                                         const void*, const uint64_t),
+                               void* standaloneDataTarget,
+                               void (*processStandaloneData)(void*, Session*, const uint64_t,
+                                                             const void*, const uint64_t),
                                void* errorTarget,
                                void (*processError)(void*, Session*,
                                                     const uint8_t, const std::string))
 {
     m_sessionTarget = sessionTarget;
     m_processSession = processSession;
-    m_dataTarget = dataTarget;
-    m_processData = processData;
+    m_streamDataTarget = streamDataTarget;
+    m_processStreamData = processStreamData;
+    m_standaloneDataTarget = standaloneDataTarget;
+    m_processStandaloneData = processStandaloneData;
     m_errorTarget = errorTarget;
     m_processError = processError;
 
-    if(m_timerThread == nullptr)
+    if(m_replyHandler == nullptr)
     {
-        m_timerThread = new TimerThread();
-        m_timerThread->startThread();
+        m_replyHandler = new ReplyHandler();
+        m_replyHandler->startThread();
+    }
+
+    if(m_answerHandler == nullptr) {
+        m_answerHandler = new AnswerHandler();
     }
 
     // check if messages have the size of a multiple of 8
@@ -98,10 +109,10 @@ SessionHandler::~SessionHandler()
     m_sessions.clear();
     unlockSessionMap();
 
-    if(m_timerThread != nullptr)
+    if(m_replyHandler != nullptr)
     {
-        delete m_timerThread;
-        m_timerThread = nullptr;
+        delete m_replyHandler;
+        m_replyHandler = nullptr;
     }
 }
 
@@ -116,8 +127,10 @@ SessionHandler::addSession(const uint32_t id, Session* session)
 {
     session->m_sessionTarget = m_sessionTarget;
     session->m_processSession = m_processSession;
-    session->m_dataTarget = m_dataTarget;
-    session->m_processData = m_processData;
+    session->m_streamDataTarget = m_streamDataTarget;
+    session->m_processStreamData = m_processStreamData;
+    session->m_standaloneDataTarget = m_standaloneDataTarget;
+    session->m_processStandaloneData = m_processStandaloneData;
     session->m_errorTarget = m_errorTarget;
     session->m_processError = m_processError;
 
@@ -247,12 +260,12 @@ SessionHandler::sendMessage(Session* session,
                             const void* data,
                             const uint64_t size)
 {
-    if(header.flags == 0x1)
+    if(header.flags & 0x1)
     {
-        SessionHandler::m_timerThread->addMessage(header.type,
-                                                  header.sessionId,
-                                                  header.messageId,
-                                                  session);
+        SessionHandler::m_replyHandler->addMessage(header.type,
+                                                   header.sessionId,
+                                                   header.messageId,
+                                                   session);
     }
 
     session->m_socket->sendMessage(data, size);

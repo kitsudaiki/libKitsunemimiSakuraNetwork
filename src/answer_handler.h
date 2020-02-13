@@ -1,5 +1,5 @@
 /**
- * @file       timer_thread.h
+ * @file       answer_handler.h
  *
  * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
@@ -20,8 +20,8 @@
  *      limitations under the License.
  */
 
-#ifndef TIMER_THREAD_H
-#define TIMER_THREAD_H
+#ifndef ANSWER_HANDLER_H
+#define ANSWER_HANDLER_H
 
 #include <vector>
 #include <iostream>
@@ -34,47 +34,34 @@ namespace Project
 {
 class Session;
 
-class TimerThread : public Kitsunemimi::Thread
+class AnswerHandler : public Kitsunemimi::Thread
 {
 public:
-    TimerThread();
-    ~TimerThread();
+    AnswerHandler();
+    ~AnswerHandler();
 
-    // add
-    void addMessage(const uint8_t messageType,
-                    const uint32_t sessionId,
-                    const uint64_t messageId,
-                    Session* session);
-    void addMessage(const uint8_t messageType,
-                    const uint64_t completeMessageId,
-                    Session* session);
-
-    // remove
-    bool removeMessage(const uint32_t sessionId,
-                       const uint64_t messageId);
+    void addMessage(const uint64_t completeMessageId);
     bool removeMessage(const uint64_t completeMessageId);
-    void removeAllOfSession(const uint32_t sessionId);
 
 protected:
     void run();
 
 private:
-    struct MessageTime
+    struct MessageBlocker
     {
         uint64_t completeMessageId = 0;
         float timer = 0;
-        uint8_t messageType = 0;
-        Session* session = nullptr;
+        std::mutex cvMutex;
+        std::condition_variable cv;
     };
 
-    float m_timeoutValue = 2.0f;
-    std::vector<MessageTime> m_messageList;
+    std::vector<MessageBlocker*> m_messageList;
 
-    void makeTimerStep();
     bool removeMessageFromList(const uint64_t completeMessageId);
+    void clearList();
 };
 
 } // namespace Project
 } // namespace Kitsunemimi
 
-#endif // TIMER_THREAD_H
+#endif // ANSWER_HANDLER_H

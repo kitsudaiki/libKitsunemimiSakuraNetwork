@@ -49,6 +49,8 @@ public:
     {
         bool isReady = false;
         bool currentSend = false;
+        uint64_t answerId = 0;
+        bool answerExpected = false;
         uint64_t multiblockId = 0;
         uint64_t messageSize = 0;
         uint32_t numberOfPackages = 0;
@@ -62,7 +64,9 @@ public:
 
     // create
     uint64_t createOutgoingBuffer(const void* data,
-                                  const uint64_t size);
+                                  const uint64_t size,
+                                  const bool answerExpected,
+                                  const uint64_t answerId);
     bool createIncomingBuffer(const uint64_t multiblockId,
                               const uint64_t size);
 

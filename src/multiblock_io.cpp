@@ -47,7 +47,9 @@ MultiblockIO::MultiblockIO(Session* session)
  */
 uint64_t
 MultiblockIO::createOutgoingBuffer(const void* data,
-                                  const uint64_t size)
+                                   const uint64_t size,
+                                   const bool answerExpected,
+                                   const uint64_t answerId)
 {
     const uint32_t numberOfBlocks = static_cast<uint32_t>(size / 4096) + 1;
 
@@ -59,6 +61,8 @@ MultiblockIO::createOutgoingBuffer(const void* data,
     newMultiblockMessage.multiBlockBuffer = new Kitsunemimi::DataBuffer(numberOfBlocks);
     newMultiblockMessage.messageSize = size;
     newMultiblockMessage.multiblockId = newMultiblockId;
+    newMultiblockMessage.answerExpected = answerExpected;
+    newMultiblockMessage.answerId = answerId;
 
     Kitsunemimi::addDataToBuffer(newMultiblockMessage.multiBlockBuffer,
                                          data,
@@ -73,7 +77,7 @@ MultiblockIO::createOutgoingBuffer(const void* data,
     m_outgoing.push_back(newMultiblockMessage);
     m_outgoing_lock.clear(std::memory_order_release);
 
-    send_Data_Multi_Init(m_session, newMultiblockId, size);
+    send_Data_Multi_Init(m_session, newMultiblockId, size, answerExpected);
 
     return newMultiblockId;
 }
@@ -185,7 +189,8 @@ MultiblockIO::sendOutgoingData(const MultiblockMessage& messageBuffer)
     if(m_aborCurrentMessage == false)
     {
         send_Data_Multi_Finish(m_session,
-                               messageBuffer.multiblockId);
+                               messageBuffer.multiblockId,
+                               messageBuffer.answerId);
     }
     else
     {
