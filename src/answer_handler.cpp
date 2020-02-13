@@ -39,18 +39,6 @@ AnswerHandler::~AnswerHandler()
 
 /**
  * @brief AnswerHandler::addMessage
- * @param sessionId
- * @param messageId
- */
-void
-AnswerHandler::addMessage(const uint32_t sessionId,
-                          const uint64_t messageId)
-{
-    addMessage((messageId << 32) + sessionId);
-}
-
-/**
- * @brief AnswerHandler::addMessage
  * @param completeMessageId
  */
 void

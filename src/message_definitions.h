@@ -433,10 +433,11 @@ struct Data_MultiInit_Message
         commonHeader.sessionId = sessionId;
         commonHeader.messageId = messageId;
         commonHeader.flags = 0x1;
+        commonHeader.size = sizeof(*this);
         if(answerExpected) {
             commonHeader.flags |= 0x4;
         }
-        commonHeader.size = sizeof(*this);
+
         this->multiblockId = multiblockId;
     }
 } __attribute__((packed));

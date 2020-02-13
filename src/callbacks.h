@@ -89,12 +89,6 @@ processMessage(void* target,
                                                       header->messageId);
     }
 
-    // remove from answer-handler
-    if(header->flags & 0x4)
-    {
-        SessionHandler::m_answerHandler->removeMessage(header->messageId);
-    }
-
     // process message by type
     switch(header->type)
     {

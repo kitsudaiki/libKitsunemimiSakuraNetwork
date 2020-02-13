@@ -269,12 +269,6 @@ SessionHandler::sendMessage(Session* session,
     }
 
     session->m_socket->sendMessage(data, size);
-
-    if(header.flags & 0x4)
-    {
-        SessionHandler::m_answerHandler->addMessage(header.sessionId,
-                                                    header.messageId);
-    }
 }
 
 } // namespace Project

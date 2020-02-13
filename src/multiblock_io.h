@@ -50,6 +50,7 @@ public:
         bool isReady = false;
         bool currentSend = false;
         uint64_t answerId = 0;
+        bool answerExpected = false;
         uint64_t multiblockId = 0;
         uint64_t messageSize = 0;
         uint32_t numberOfPackages = 0;

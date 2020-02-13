@@ -2,6 +2,7 @@
 
 #include <libKitsunemimiProjectNetwork/session.h>
 #include <libKitsunemimiProjectNetwork/session_controller.h>
+#include <libKitsunemimiCommon/common_methods/string_methods.h>
 
 /**
  * @brief standaloneDataCallback
@@ -122,8 +123,23 @@ TestSession::sendLoop()
         std::string message = "";
         std::cin >> message;
 
-        if(m_session != nullptr) {
-            m_session->sendMultiblockData(message.c_str(), message.size(), m_isClient, !m_isClient);
+        if(m_session != nullptr)
+        {
+            if(m_isClient)
+            {
+                m_session->sendMultiblockData(message.c_str(), message.size(), true);
+            }
+            else
+            {
+                std::vector<std::string> splitted;
+                Kitsunemimi::splitStringByDelimiter(splitted, message, '-');
+                long length = strtol(splitted.at(1).c_str(), NULL, 10);
+                m_session->sendMultiblockData(splitted.at(0).c_str(),
+                                              splitted.at(0).size(),
+                                              false,
+                                              length);
+            }
+
         }
     }
 }

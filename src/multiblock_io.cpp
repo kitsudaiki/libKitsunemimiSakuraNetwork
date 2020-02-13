@@ -61,6 +61,7 @@ MultiblockIO::createOutgoingBuffer(const void* data,
     newMultiblockMessage.multiBlockBuffer = new Kitsunemimi::DataBuffer(numberOfBlocks);
     newMultiblockMessage.messageSize = size;
     newMultiblockMessage.multiblockId = newMultiblockId;
+    newMultiblockMessage.answerExpected = answerExpected;
     newMultiblockMessage.answerId = answerId;
 
     Kitsunemimi::addDataToBuffer(newMultiblockMessage.multiBlockBuffer,
