@@ -11,17 +11,20 @@
  * @param dataSize
  */
 void streamDataCallback(void* target,
-                        Kitsunemimi::Project::Session*,
+                        Kitsunemimi::Project::Session* session,
                         const void* data,
                         const uint64_t dataSize)
 {
     const char* message = static_cast<const char*>(data);
     const std::string stringMessage = std::string(message, dataSize);
-    std::cout<<"+++++++++++++++++++++++++++++++++++++++++++++++++"<<std::endl;
-    std::cout<<"message: "<<std::endl;
-    std::cout<<stringMessage<<std::endl;
-    std::cout<<""<<std::endl;
-    std::cout<<"-------------------------------------------------"<<std::endl;
+    if(session->isClientSide() == false)
+    {
+        std::cout<<"+++++++++++++++++++++++++++++++++++++++++++++++++"<<std::endl;
+        std::cout<<"message: "<<std::endl;
+        std::cout<<stringMessage<<std::endl;
+        std::cout<<""<<std::endl;
+        std::cout<<"-------------------------------------------------"<<std::endl;
+    }
 }
 
 /**
@@ -32,19 +35,22 @@ void streamDataCallback(void* target,
  * @param dataSize
  */
 void standaloneDataCallback(void* target,
-                            Kitsunemimi::Project::Session*,
-                            const uint64_t answerId,
+                            Kitsunemimi::Project::Session* session,
+                            const uint64_t blockerId,
                             const void* data,
                             const uint64_t dataSize)
 {
     const char* message = static_cast<const char*>(data);
     const std::string stringMessage = std::string(message, dataSize);
-    std::cout<<"+++++++++++++++++++++++++++++++++++++++++++++++++"<<std::endl;
-    std::cout<<"answerId: "<<answerId<<std::endl;
-    std::cout<<"message: "<<std::endl;
-    std::cout<<stringMessage<<std::endl;
-    std::cout<<""<<std::endl;
-    std::cout<<"-------------------------------------------------"<<std::endl;
+    if(session->isClientSide() == false)
+    {
+        std::cout<<"+++++++++++++++++++++++++++++++++++++++++++++++++"<<std::endl;
+        std::cout<<"blockerId: "<<blockerId<<std::endl;
+        std::cout<<"message: "<<std::endl;
+        std::cout<<stringMessage<<std::endl;
+        std::cout<<""<<std::endl;
+        std::cout<<"-------------------------------------------------"<<std::endl;
+    }
 }
 
 /**
@@ -53,8 +59,9 @@ void standaloneDataCallback(void* target,
 void errorCallback(void*,
                    Kitsunemimi::Project::Session*,
                    const uint8_t,
-                   const std::string)
+                   const std::string message)
 {
+    std::cout<<"ERROR: "<<message<<std::endl;
 }
 
 /**
@@ -127,17 +134,27 @@ TestSession::sendLoop()
         {
             if(m_isClient)
             {
-                m_session->sendMultiblockData(message.c_str(), message.size(), true);
+                std::pair<void*, uint64_t> data = m_session->sendRequest(message.c_str(),
+                                                                         message.size(),
+                                                                         10);
+
+                const char* message = static_cast<const char*>(data.first);
+                const std::string stringMessage = std::string(message, data.second);
+
+                std::cout<<"#################################################"<<std::endl;
+                std::cout<<"message: "<<std::endl;
+                std::cout<<stringMessage<<std::endl;
+                std::cout<<""<<std::endl;
+                std::cout<<"================================================="<<std::endl;
             }
             else
             {
                 std::vector<std::string> splitted;
                 Kitsunemimi::splitStringByDelimiter(splitted, message, '-');
-                long length = strtol(splitted.at(1).c_str(), NULL, 10);
-                m_session->sendMultiblockData(splitted.at(0).c_str(),
-                                              splitted.at(0).size(),
-                                              false,
-                                              length);
+                long id = strtol(splitted.at(1).c_str(), NULL, 10);
+                m_session->sendResponse(splitted.at(0).c_str(),
+                                        splitted.at(0).size(),
+                                        id);
             }
 
         }

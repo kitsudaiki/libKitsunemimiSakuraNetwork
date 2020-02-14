@@ -135,7 +135,7 @@ void sessionCallback(void* target,
 
             // multiblock
             const std::string multiblockTestString = testClass->m_multiBlockMessage;
-            ret = session->sendMultiblockData(multiblockTestString.c_str(),
+            ret = session->sendStandaloneData(multiblockTestString.c_str(),
                                               multiblockTestString.size());
             testClass->compare(ret,  true);
         }

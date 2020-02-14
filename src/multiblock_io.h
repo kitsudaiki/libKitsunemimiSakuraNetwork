@@ -49,7 +49,7 @@ public:
     {
         bool isReady = false;
         bool currentSend = false;
-        uint64_t answerId = 0;
+        uint64_t blockerId = 0;
         bool answerExpected = false;
         uint64_t multiblockId = 0;
         uint64_t messageSize = 0;
@@ -63,10 +63,11 @@ public:
     Session* m_session = nullptr;
 
     // create
-    uint64_t createOutgoingBuffer(const void* data,
-                                  const uint64_t size,
-                                  const bool answerExpected,
-                                  const uint64_t answerId);
+    const std::pair<void*, uint64_t> createOutgoingBuffer(const void* data,
+                                                          const uint64_t size,
+                                                          const bool answerExpected=false,
+                                                          const uint64_t blockerTimeout=0,
+                                                          const uint64_t blockerId=0);
     bool createIncomingBuffer(const uint64_t multiblockId,
                               const uint64_t size);
 

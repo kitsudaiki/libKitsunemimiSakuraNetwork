@@ -120,17 +120,69 @@ Session::sendStreamData(const void* data,
  * @return
  */
 uint64_t
-Session::sendMultiblockData(const void* data,
-                            const uint64_t size,
-                            const bool answerExpected,
-                            const uint64_t answerId)
+Session::sendStandaloneData(const void* data,
+                            const uint64_t size)
+{
+    if(m_statemachine.isInState(ACTIVE))
+    {
+        std::pair<void*, uint64_t> result;
+        result = m_multiblockIo->createOutgoingBuffer(data,
+                                                      size,
+                                                      false,
+                                                      0);
+        return result.second;
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Session::sendRequest
+ * @param data
+ * @param size
+ * @param timeout
+ * @return
+ */
+const std::pair<void*, uint64_t>
+Session::sendRequest(const void *data,
+                     const uint64_t size,
+                     const uint64_t timeout)
 {
     if(m_statemachine.isInState(ACTIVE))
     {
         return m_multiblockIo->createOutgoingBuffer(data,
                                                     size,
-                                                    answerExpected,
-                                                    answerId);
+                                                    true,
+                                                    timeout);
+    }
+
+    std::pair<void *, uint64_t> emptyResult;
+    emptyResult.first = nullptr;
+    emptyResult.second = 0;
+
+    return emptyResult;
+}
+
+/**
+ * @brief Session::sendResponse
+ * @param data
+ * @param size
+ * @param blockerId
+ * @return
+ */
+uint64_t
+Session::sendResponse(const void *data,
+                      const uint64_t size,
+                      const uint64_t blockerId)
+{
+    if(m_statemachine.isInState(ACTIVE))
+    {
+        std::pair<void*, uint64_t> result;
+        result = m_multiblockIo->createOutgoingBuffer(data,
+                                                      size,
+                                                      false,
+                                                      blockerId);
+        return result.second;
     }
 
     return 0;

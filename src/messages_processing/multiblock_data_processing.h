@@ -68,10 +68,6 @@ send_Data_Multi_Init(Session* session,
                                                   message.commonHeader,
                                                   &message,
                                                   sizeof(message));
-
-    if(message.commonHeader.flags & 0x4) {
-        SessionHandler::m_answerHandler->addMessage(multiblockId);
-    }
 }
 
 /**
@@ -135,7 +131,7 @@ send_Data_Multi_Static(Session* session,
 inline void
 send_Data_Multi_Finish(Session* session,
                        const uint64_t multiblockId,
-                       const uint64_t answerId)
+                       const uint64_t blockerId)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("SEND data multi finish");
@@ -144,7 +140,7 @@ send_Data_Multi_Finish(Session* session,
     Data_MultiFinish_Message message(session->sessionId(),
                                      session->increaseMessageIdCounter(),
                                      multiblockId,
-                                     answerId);
+                                     blockerId);
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -275,11 +271,22 @@ process_Data_Multi_Finish(Session* session,
     MultiblockIO::MultiblockMessage buffer =
             session->m_multiblockIo->getIncomingBuffer(message->multiblockId);
 
-    session->m_processStandaloneData(session->m_standaloneDataTarget,
-                                     session,
-                                     message->multiblockId,
-                                     getBlock(buffer.multiBlockBuffer, 0),
-                                     buffer.messageSize);
+    // remove from answer-handler
+    if(message->commonHeader.flags & 0x8)
+    {
+        SessionHandler::m_blockerHandler->releaseMessage(message->blockerId,
+                                                        getBlock(buffer.multiBlockBuffer, 0),
+                                                        buffer.messageSize);
+    }
+    else
+    {
+        session->m_processStandaloneData(session->m_standaloneDataTarget,
+                                         session,
+                                         message->multiblockId,
+                                         getBlock(buffer.multiBlockBuffer, 0),
+                                         buffer.messageSize);
+    }
+
     session->m_multiblockIo->removeIncomingMessage(message->multiblockId);
 }
 
@@ -375,11 +382,6 @@ process_MultiBlock_Data_Type(Session* session,
                         getObjectFromBuffer<Data_MultiFinish_Message>(recvBuffer);
                 if(message == nullptr) {
                     break;
-                }
-                // remove from answer-handler
-                if(header->flags & 0x8)
-                {
-                    SessionHandler::m_answerHandler->removeMessage(message->answerId);
                 }
                 process_Data_Multi_Finish(session, message);
                 return sizeof(*message);

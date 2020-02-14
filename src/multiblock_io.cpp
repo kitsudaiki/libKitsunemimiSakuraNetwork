@@ -45,11 +45,12 @@ MultiblockIO::MultiblockIO(Session* session)
  *
  * @return false, if session is already in send/receive of a multiblock-message
  */
-uint64_t
+const std::pair<void*, uint64_t>
 MultiblockIO::createOutgoingBuffer(const void* data,
                                    const uint64_t size,
                                    const bool answerExpected,
-                                   const uint64_t answerId)
+                                   const uint64_t blockerTimeout,
+                                   const uint64_t blockerId)
 {
     const uint32_t numberOfBlocks = static_cast<uint32_t>(size / 4096) + 1;
 
@@ -62,7 +63,7 @@ MultiblockIO::createOutgoingBuffer(const void* data,
     newMultiblockMessage.messageSize = size;
     newMultiblockMessage.multiblockId = newMultiblockId;
     newMultiblockMessage.answerExpected = answerExpected;
-    newMultiblockMessage.answerId = answerId;
+    newMultiblockMessage.blockerId = blockerId;
 
     Kitsunemimi::addDataToBuffer(newMultiblockMessage.multiBlockBuffer,
                                          data,
@@ -79,7 +80,18 @@ MultiblockIO::createOutgoingBuffer(const void* data,
 
     send_Data_Multi_Init(m_session, newMultiblockId, size, answerExpected);
 
-    return newMultiblockId;
+    if(answerExpected)
+    {
+        return SessionHandler::m_blockerHandler->blockMessage(newMultiblockId,
+                                                             blockerTimeout,
+                                                             m_session);
+    }
+
+    std::pair<void*, uint64_t> result;
+    result.first = nullptr;
+    result.second = newMultiblockId;
+
+    return result;
 }
 
 /**
@@ -190,7 +202,7 @@ MultiblockIO::sendOutgoingData(const MultiblockMessage& messageBuffer)
     {
         send_Data_Multi_Finish(m_session,
                                messageBuffer.multiblockId,
-                               messageBuffer.answerId);
+                               messageBuffer.blockerId);
     }
     else
     {
@@ -264,8 +276,8 @@ MultiblockIO::writeIntoIncomingBuffer(const uint64_t multiblockId,
     if(it != m_incoming.end())
     {
         result = Kitsunemimi::addDataToBuffer(it->second.multiBlockBuffer,
-                                                      data,
-                                                      size);
+                                              data,
+                                              size);
     }
 
     m_incoming_lock.clear(std::memory_order_release);
@@ -296,9 +308,12 @@ MultiblockIO::removeOutgoingMessage(const uint64_t multiblockId)
     {
         if(it->multiblockId == multiblockId)
         {
-            if(it->currentSend) {
+            if(it->currentSend)
+            {
                 m_aborCurrentMessage = true;
-            } else {
+            }
+            else
+            {
                 m_outgoing.erase(it);
                 delete it->multiBlockBuffer;
                 result = true;

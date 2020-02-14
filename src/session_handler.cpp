@@ -23,7 +23,7 @@
 #include "session_handler.h"
 
 #include <reply_handler.h>
-#include <answer_handler.h>
+#include <message_blocker_handler.h>
 #include <session_handler.h>
 
 #include <libKitsunemimiProjectNetwork/session.h>
@@ -39,7 +39,7 @@ namespace Project
 
 // init static variables
 ReplyHandler* SessionHandler::m_replyHandler = nullptr;
-AnswerHandler* SessionHandler::m_answerHandler = nullptr;
+MessageBlockerHandler* SessionHandler::m_blockerHandler = nullptr;
 SessionHandler* SessionHandler::m_sessionHandler = nullptr;
 
 /**
@@ -72,8 +72,10 @@ SessionHandler::SessionHandler(void* sessionTarget,
         m_replyHandler->startThread();
     }
 
-    if(m_answerHandler == nullptr) {
-        m_answerHandler = new AnswerHandler();
+    if(m_blockerHandler == nullptr)
+    {
+        m_blockerHandler = new MessageBlockerHandler();
+        m_blockerHandler->startThread();
     }
 
     // check if messages have the size of a multiple of 8

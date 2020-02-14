@@ -31,7 +31,7 @@
 #include <assert.h>
 
 #include <reply_handler.h>
-#include <answer_handler.h>
+#include <message_blocker_handler.h>
 
 namespace Kitsunemimi
 {
@@ -506,14 +506,14 @@ struct Data_MultiFinish_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t multiblockId = 0;
-    uint64_t answerId = 0;
+    uint64_t blockerId = 0;
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
 
     Data_MultiFinish_Message(const uint32_t sessionId,
                              const uint32_t messageId,
                              const uint64_t multiblockId,
-                             const uint64_t answerId)
+                             const uint64_t blockerId)
     {
         commonHeader.type = MULTIBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_MULTI_FINISH_SUBTYPE;
@@ -522,9 +522,9 @@ struct Data_MultiFinish_Message
         commonHeader.size = sizeof(*this);
 
         this->multiblockId = multiblockId;
-        this->answerId = answerId;
+        this->blockerId = blockerId;
 
-        if(answerId != 0) {
+        if(blockerId != 0) {
             commonHeader.flags |= 0x8;
         }
     }

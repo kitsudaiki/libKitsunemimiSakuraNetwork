@@ -1,5 +1,5 @@
 /**
- * @file       answer_handler.h
+ * @file       message_blocker_handler.h
  *
  * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
@@ -20,8 +20,8 @@
  *      limitations under the License.
  */
 
-#ifndef ANSWER_HANDLER_H
-#define ANSWER_HANDLER_H
+#ifndef MESSAGE_BLOCKER_HANDLER_H
+#define MESSAGE_BLOCKER_HANDLER_H
 
 #include <vector>
 #include <iostream>
@@ -34,14 +34,18 @@ namespace Project
 {
 class Session;
 
-class AnswerHandler : public Kitsunemimi::Thread
+class MessageBlockerHandler : public Kitsunemimi::Thread
 {
 public:
-    AnswerHandler();
-    ~AnswerHandler();
+    MessageBlockerHandler();
+    ~MessageBlockerHandler();
 
-    void addMessage(const uint64_t completeMessageId);
-    bool removeMessage(const uint64_t completeMessageId);
+    const std::pair<void*, uint64_t> blockMessage(const uint64_t completeMessageId,
+                                                  const uint64_t blockerTimeout,
+                                                  Session* session);
+    bool releaseMessage(const uint64_t completeMessageId,
+                        void* data,
+                        const uint64_t dataSize);
 
 protected:
     void run();
@@ -49,19 +53,26 @@ protected:
 private:
     struct MessageBlocker
     {
+        Session* session = nullptr;
         uint64_t completeMessageId = 0;
-        float timer = 0;
+        uint64_t timer = 0;
         std::mutex cvMutex;
         std::condition_variable cv;
+        void* responseData = nullptr;
+        uint64_t responseDataSize = 0;
     };
 
     std::vector<MessageBlocker*> m_messageList;
 
-    bool removeMessageFromList(const uint64_t completeMessageId);
+    bool releaseMessageInList(const uint64_t completeMessageId,
+                              void* data,
+                              const uint64_t dataSize);
+    const std::pair<void *, uint64_t> removeMessageFromList(const uint64_t completeMessageId);
     void clearList();
+    void makeTimerStep();
 };
 
 } // namespace Project
 } // namespace Kitsunemimi
 
-#endif // ANSWER_HANDLER_H
+#endif // MESSAGE_BLOCKER_HANDLER_H
