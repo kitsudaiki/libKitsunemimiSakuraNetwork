@@ -36,7 +36,7 @@ void streamDataCallback(void* target,
  */
 void standaloneDataCallback(void* target,
                             Kitsunemimi::Project::Session* session,
-                            const uint64_t answerId,
+                            const uint64_t blockerId,
                             const void* data,
                             const uint64_t dataSize)
 {
@@ -45,7 +45,7 @@ void standaloneDataCallback(void* target,
     if(session->isClientSide() == false)
     {
         std::cout<<"+++++++++++++++++++++++++++++++++++++++++++++++++"<<std::endl;
-        std::cout<<"answerId: "<<answerId<<std::endl;
+        std::cout<<"blockerId: "<<blockerId<<std::endl;
         std::cout<<"message: "<<std::endl;
         std::cout<<stringMessage<<std::endl;
         std::cout<<""<<std::endl;

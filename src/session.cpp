@@ -167,13 +167,13 @@ Session::sendRequest(const void *data,
  * @brief Session::sendResponse
  * @param data
  * @param size
- * @param answerId
+ * @param blockerId
  * @return
  */
 uint64_t
 Session::sendResponse(const void *data,
                       const uint64_t size,
-                      const uint64_t answerId)
+                      const uint64_t blockerId)
 {
     if(m_statemachine.isInState(ACTIVE))
     {
@@ -181,7 +181,7 @@ Session::sendResponse(const void *data,
         result = m_multiblockIo->createOutgoingBuffer(data,
                                                       size,
                                                       false,
-                                                      answerId);
+                                                      blockerId);
         return result.second;
     }
 

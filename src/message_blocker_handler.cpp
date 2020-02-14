@@ -1,5 +1,5 @@
 /**
- * @file       answer_handler.cpp
+ * @file       message_blocker_handler.cpp
  *
  * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
@@ -20,19 +20,19 @@
  *      limitations under the License.
  */
 
-#include "answer_handler.h"
+#include "message_blocker_handler.h"
 
 namespace Kitsunemimi
 {
 namespace Project
 {
 
-AnswerHandler::AnswerHandler()
+MessageBlockerHandler::MessageBlockerHandler()
 {
 
 }
 
-AnswerHandler::~AnswerHandler()
+MessageBlockerHandler::~MessageBlockerHandler()
 {
     clearList();
 }
@@ -42,7 +42,7 @@ AnswerHandler::~AnswerHandler()
  * @param completeMessageId
  */
 const std::pair<void*, uint64_t>
-AnswerHandler::blockMessage(const uint64_t completeMessageId)
+MessageBlockerHandler::blockMessage(const uint64_t completeMessageId)
 {
     MessageBlocker* messageBlocker = new MessageBlocker();
     messageBlocker->completeMessageId = completeMessageId;
@@ -71,9 +71,9 @@ AnswerHandler::blockMessage(const uint64_t completeMessageId)
  * @return
  */
 bool
-AnswerHandler::releaseMessage(const uint64_t completeMessageId,
-                              void* data,
-                              const uint64_t dataSize)
+MessageBlockerHandler::releaseMessage(const uint64_t completeMessageId,
+                                      void* data,
+                                      const uint64_t dataSize)
 {
     bool result = false;
 
@@ -100,7 +100,7 @@ AnswerHandler::releaseMessage(const uint64_t completeMessageId,
  * @brief AnswerHandler::run
  */
 void
-AnswerHandler::run()
+MessageBlockerHandler::run()
 {
 
 }
@@ -111,7 +111,7 @@ AnswerHandler::run()
  * @return
  */
 const std::pair<void*, uint64_t>
-AnswerHandler::removeMessageFromList(const uint64_t completeMessageId)
+MessageBlockerHandler::removeMessageFromList(const uint64_t completeMessageId)
 {
     std::pair<void*, uint64_t> result;
 
@@ -153,7 +153,7 @@ AnswerHandler::removeMessageFromList(const uint64_t completeMessageId)
  * @brief AnswerHandler::clearList
  */
 void
-AnswerHandler::clearList()
+MessageBlockerHandler::clearList()
 {
     spinLock();
 

@@ -1,5 +1,5 @@
 /**
- * @file       answer_handler.h
+ * @file       message_blocker_handler.h
  *
  * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
@@ -20,8 +20,8 @@
  *      limitations under the License.
  */
 
-#ifndef ANSWER_HANDLER_H
-#define ANSWER_HANDLER_H
+#ifndef MESSAGE_BLOCKER_HANDLER_H
+#define MESSAGE_BLOCKER_HANDLER_H
 
 #include <vector>
 #include <iostream>
@@ -34,11 +34,11 @@ namespace Project
 {
 class Session;
 
-class AnswerHandler : public Kitsunemimi::Thread
+class MessageBlockerHandler : public Kitsunemimi::Thread
 {
 public:
-    AnswerHandler();
-    ~AnswerHandler();
+    MessageBlockerHandler();
+    ~MessageBlockerHandler();
 
     const std::pair<void*, uint64_t> blockMessage(const uint64_t completeMessageId);
     bool releaseMessage(const uint64_t completeMessageId,
@@ -68,4 +68,4 @@ private:
 } // namespace Project
 } // namespace Kitsunemimi
 
-#endif // ANSWER_HANDLER_H
+#endif // MESSAGE_BLOCKER_HANDLER_H

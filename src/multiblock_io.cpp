@@ -49,7 +49,7 @@ const std::pair<void*, uint64_t>
 MultiblockIO::createOutgoingBuffer(const void* data,
                                    const uint64_t size,
                                    const bool answerExpected,
-                                   const uint64_t answerId)
+                                   const uint64_t blockerId)
 {
     const uint32_t numberOfBlocks = static_cast<uint32_t>(size / 4096) + 1;
 
@@ -62,7 +62,7 @@ MultiblockIO::createOutgoingBuffer(const void* data,
     newMultiblockMessage.messageSize = size;
     newMultiblockMessage.multiblockId = newMultiblockId;
     newMultiblockMessage.answerExpected = answerExpected;
-    newMultiblockMessage.answerId = answerId;
+    newMultiblockMessage.blockerId = blockerId;
 
     Kitsunemimi::addDataToBuffer(newMultiblockMessage.multiBlockBuffer,
                                          data,
@@ -199,7 +199,7 @@ MultiblockIO::sendOutgoingData(const MultiblockMessage& messageBuffer)
     {
         send_Data_Multi_Finish(m_session,
                                messageBuffer.multiblockId,
-                               messageBuffer.answerId);
+                               messageBuffer.blockerId);
     }
     else
     {

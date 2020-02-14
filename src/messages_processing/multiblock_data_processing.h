@@ -131,7 +131,7 @@ send_Data_Multi_Static(Session* session,
 inline void
 send_Data_Multi_Finish(Session* session,
                        const uint64_t multiblockId,
-                       const uint64_t answerId)
+                       const uint64_t blockerId)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("SEND data multi finish");
@@ -140,7 +140,7 @@ send_Data_Multi_Finish(Session* session,
     Data_MultiFinish_Message message(session->sessionId(),
                                      session->increaseMessageIdCounter(),
                                      multiblockId,
-                                     answerId);
+                                     blockerId);
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -274,7 +274,7 @@ process_Data_Multi_Finish(Session* session,
     // remove from answer-handler
     if(message->commonHeader.flags & 0x8)
     {
-        SessionHandler::m_answerHandler->releaseMessage(message->answerId,
+        SessionHandler::m_answerHandler->releaseMessage(message->blockerId,
                                                         getBlock(buffer.multiBlockBuffer, 0),
                                                         buffer.messageSize);
     }

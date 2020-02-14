@@ -59,7 +59,7 @@ public:
                                                  const uint64_t timeout);
     uint64_t sendResponse(const void* data,
                           const uint64_t size,
-                          const uint64_t answerId);
+                          const uint64_t blockerId);
 
     void abortMessages(const uint64_t multiblockMessageId=0);
 

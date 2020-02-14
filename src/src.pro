@@ -39,7 +39,7 @@ HEADERS += \
     messages_processing/singleblock_data_processing.h \
     multiblock_io.h \
     reply_handler.h \
-    answer_handler.h
+    message_blocker_handler.h
 
 SOURCES += \
     session.cpp \
@@ -47,5 +47,5 @@ SOURCES += \
     session_handler.cpp \
     multiblock_io.cpp \
     replay_handler.cpp \
-    answer_handler.cpp
+    message_blocker_handler.cpp
 
