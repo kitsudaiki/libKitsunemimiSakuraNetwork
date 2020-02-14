@@ -40,8 +40,10 @@ public:
     AnswerHandler();
     ~AnswerHandler();
 
-    void addMessage(const uint64_t completeMessageId);
-    bool removeMessage(const uint64_t completeMessageId);
+    const std::pair<void*, uint64_t> blockMessage(const uint64_t completeMessageId);
+    bool releaseMessage(const uint64_t completeMessageId,
+                        void* data,
+                        const uint64_t dataSize);
 
 protected:
     void run();
@@ -53,11 +55,13 @@ private:
         float timer = 0;
         std::mutex cvMutex;
         std::condition_variable cv;
+        void* responseData = nullptr;
+        uint64_t responseDataSize = 0;
     };
 
     std::vector<MessageBlocker*> m_messageList;
 
-    bool removeMessageFromList(const uint64_t completeMessageId);
+    const std::pair<void *, uint64_t> removeMessageFromList(const uint64_t completeMessageId);
     void clearList();
 };
 

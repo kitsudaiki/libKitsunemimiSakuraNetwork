@@ -51,10 +51,16 @@ public:
                         const bool dynamic = false,
                         const bool replyExpected = false);
 
-    uint64_t sendMultiblockData(const void* data,
-                                const uint64_t size,
-                                const bool answerExpected = false,
-                                const  uint64_t answerId = 0);
+    uint64_t sendStandaloneData(const void* data,
+                                const uint64_t size);
+
+    const std::pair<void*, uint64_t> sendRequest(const void* data,
+                                                 const uint64_t size,
+                                                 const uint64_t timeout);
+    uint64_t sendResponse(const void* data,
+                          const uint64_t size,
+                          const uint64_t answerId);
+
     void abortMessages(const uint64_t multiblockMessageId=0);
 
     bool closeSession(const bool replyExpected = false);

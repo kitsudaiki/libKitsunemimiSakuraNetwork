@@ -41,18 +41,28 @@ AnswerHandler::~AnswerHandler()
  * @brief AnswerHandler::addMessage
  * @param completeMessageId
  */
-void
-AnswerHandler::addMessage(const uint64_t completeMessageId)
+const std::pair<void*, uint64_t>
+AnswerHandler::blockMessage(const uint64_t completeMessageId)
 {
     MessageBlocker* messageBlocker = new MessageBlocker();
     messageBlocker->completeMessageId = completeMessageId;
 
+    // add to waiting-list
     spinLock();
     m_messageList.push_back(messageBlocker);
     spinUnlock();
 
+    // release thread
     std::unique_lock<std::mutex> lock(messageBlocker->cvMutex);
     messageBlocker->cv.wait(lock);
+
+    // remove from list and return result
+    std::pair<void*, uint64_t> result;
+    spinLock();
+    result = removeMessageFromList(completeMessageId);
+    spinUnlock();
+
+    return result;
 }
 
 /**
@@ -61,12 +71,26 @@ AnswerHandler::addMessage(const uint64_t completeMessageId)
  * @return
  */
 bool
-AnswerHandler::removeMessage(const uint64_t completeMessageId)
+AnswerHandler::releaseMessage(const uint64_t completeMessageId,
+                              void* data,
+                              const uint64_t dataSize)
 {
     bool result = false;
 
     spinLock();
-    result = removeMessageFromList(completeMessageId);
+    std::vector<MessageBlocker*>::iterator it;
+    for(it = m_messageList.begin();
+        it != m_messageList.end();
+        it++)
+    {
+        MessageBlocker* tempItem = *it;
+        if(tempItem->completeMessageId == completeMessageId)
+        {
+            tempItem->responseData = data;
+            tempItem->responseDataSize = dataSize;
+            tempItem->cv.notify_one();
+        }
+    }
     spinUnlock();
 
     return result;
@@ -86,9 +110,11 @@ AnswerHandler::run()
  * @param completeMessageId
  * @return
  */
-bool
+const std::pair<void*, uint64_t>
 AnswerHandler::removeMessageFromList(const uint64_t completeMessageId)
 {
+    std::pair<void*, uint64_t> result;
+
     std::vector<MessageBlocker*>::iterator it;
     for(it = m_messageList.begin();
         it != m_messageList.end();
@@ -109,15 +135,18 @@ AnswerHandler::removeMessageFromList(const uint64_t completeMessageId)
                 m_messageList.clear();
             }
 
-            // release thread and free memory
-            tempItem->cv.notify_one();
-            delete tempItem;
+            result.first = tempItem->responseData;
+            result.second = tempItem->responseDataSize;
 
-            return true;
+            delete tempItem;
+            return result;
         }
     }
 
-    return false;
+    result.first = nullptr;
+    result.second = 0;
+
+    return result;
 }
 
 /**
