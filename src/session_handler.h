@@ -46,7 +46,7 @@ class SessionHandler
 public:
 
     static Kitsunemimi::Project::ReplyHandler* m_replyHandler;
-    static Kitsunemimi::Project::MessageBlockerHandler* m_answerHandler;
+    static Kitsunemimi::Project::MessageBlockerHandler* m_blockerHandler;
     static Kitsunemimi::Project::SessionController* m_sessionController;
     static Kitsunemimi::Project::SessionHandler* m_sessionHandler;
 

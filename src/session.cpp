@@ -153,7 +153,7 @@ Session::sendRequest(const void *data,
         return m_multiblockIo->createOutgoingBuffer(data,
                                                     size,
                                                     true,
-                                                    0);
+                                                    timeout);
     }
 
     std::pair<void *, uint64_t> emptyResult;

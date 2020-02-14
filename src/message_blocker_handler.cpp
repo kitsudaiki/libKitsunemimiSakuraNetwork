@@ -21,6 +21,7 @@
  */
 
 #include "message_blocker_handler.h"
+#include <libKitsunemimiProjectNetwork/session.h>
 
 namespace Kitsunemimi
 {
@@ -42,10 +43,14 @@ MessageBlockerHandler::~MessageBlockerHandler()
  * @param completeMessageId
  */
 const std::pair<void*, uint64_t>
-MessageBlockerHandler::blockMessage(const uint64_t completeMessageId)
+MessageBlockerHandler::blockMessage(const uint64_t completeMessageId,
+                                    const uint64_t blockerTimeout,
+                                    Session* session)
 {
     MessageBlocker* messageBlocker = new MessageBlocker();
     messageBlocker->completeMessageId = completeMessageId;
+    messageBlocker->timer = blockerTimeout;
+    messageBlocker->session = session;
 
     // add to waiting-list
     spinLock();
@@ -78,19 +83,7 @@ MessageBlockerHandler::releaseMessage(const uint64_t completeMessageId,
     bool result = false;
 
     spinLock();
-    std::vector<MessageBlocker*>::iterator it;
-    for(it = m_messageList.begin();
-        it != m_messageList.end();
-        it++)
-    {
-        MessageBlocker* tempItem = *it;
-        if(tempItem->completeMessageId == completeMessageId)
-        {
-            tempItem->responseData = data;
-            tempItem->responseDataSize = dataSize;
-            tempItem->cv.notify_one();
-        }
-    }
+    result = releaseMessageInList(completeMessageId, data, dataSize);
     spinUnlock();
 
     return result;
@@ -102,7 +95,46 @@ MessageBlockerHandler::releaseMessage(const uint64_t completeMessageId,
 void
 MessageBlockerHandler::run()
 {
+    while(!m_abort)
+    {
+        sleepThread(1000000);
 
+        if(m_abort) {
+            break;
+        }
+
+        makeTimerStep();
+    }
+}
+
+/**
+ * @brief MessageBlockerHandler::releaseMessageInList
+ * @param completeMessageId
+ * @param data
+ * @param dataSize
+ * @return
+ */
+bool
+MessageBlockerHandler::releaseMessageInList(const uint64_t completeMessageId,
+                                            void* data,
+                                            const uint64_t dataSize)
+{
+    std::vector<MessageBlocker*>::iterator it;
+    for(it = m_messageList.begin();
+        it != m_messageList.end();
+        it++)
+    {
+        MessageBlocker* tempItem = *it;
+        if(tempItem->completeMessageId == completeMessageId)
+        {
+            tempItem->responseData = data;
+            tempItem->responseDataSize = dataSize;
+            tempItem->cv.notify_one();
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -170,6 +202,37 @@ MessageBlockerHandler::clearList()
 
     // clear list
     m_messageList.clear();
+
+    spinUnlock();
+}
+
+/**
+ * @brief MessageBlockerHandler::makeTimerStep
+ */
+void
+MessageBlockerHandler::makeTimerStep()
+{
+    spinLock();
+
+    for(uint64_t i = 0; i < m_messageList.size(); i++)
+    {
+        MessageBlocker* temp = m_messageList[i];
+        temp->timer -= 1;
+
+        if(temp->timer == 0)
+        {
+            removeMessageFromList(temp->completeMessageId);
+            releaseMessageInList(temp->completeMessageId, nullptr, 0);
+
+            const std::string err = "TIMEOUT of request: "
+                                    + std::to_string(temp->completeMessageId);
+
+            temp->session->m_processError(temp->session->m_errorTarget,
+                                          temp->session,
+                                          Session::errorCodes::MESSAGE_TIMEOUT,
+                                          err);
+        }
+    }
 
     spinUnlock();
 }

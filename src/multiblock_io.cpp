@@ -49,6 +49,7 @@ const std::pair<void*, uint64_t>
 MultiblockIO::createOutgoingBuffer(const void* data,
                                    const uint64_t size,
                                    const bool answerExpected,
+                                   const uint64_t blockerTimeout,
                                    const uint64_t blockerId)
 {
     const uint32_t numberOfBlocks = static_cast<uint32_t>(size / 4096) + 1;
@@ -81,7 +82,9 @@ MultiblockIO::createOutgoingBuffer(const void* data,
 
     if(answerExpected)
     {
-        return SessionHandler::m_answerHandler->blockMessage(newMultiblockId);
+        return SessionHandler::m_blockerHandler->blockMessage(newMultiblockId,
+                                                             blockerTimeout,
+                                                             m_session);
     }
 
     std::pair<void*, uint64_t> result;

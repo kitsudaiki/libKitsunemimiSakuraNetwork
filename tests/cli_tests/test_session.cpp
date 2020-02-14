@@ -59,8 +59,9 @@ void standaloneDataCallback(void* target,
 void errorCallback(void*,
                    Kitsunemimi::Project::Session*,
                    const uint8_t,
-                   const std::string)
+                   const std::string message)
 {
+    std::cout<<"ERROR: "<<message<<std::endl;
 }
 
 /**

@@ -274,7 +274,7 @@ process_Data_Multi_Finish(Session* session,
     // remove from answer-handler
     if(message->commonHeader.flags & 0x8)
     {
-        SessionHandler::m_answerHandler->releaseMessage(message->blockerId,
+        SessionHandler::m_blockerHandler->releaseMessage(message->blockerId,
                                                         getBlock(buffer.multiBlockBuffer, 0),
                                                         buffer.messageSize);
     }

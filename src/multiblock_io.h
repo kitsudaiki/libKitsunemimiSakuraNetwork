@@ -65,8 +65,9 @@ public:
     // create
     const std::pair<void*, uint64_t> createOutgoingBuffer(const void* data,
                                                           const uint64_t size,
-                                                          const bool answerExpected,
-                                                          const uint64_t blockerId);
+                                                          const bool answerExpected=false,
+                                                          const uint64_t blockerTimeout=0,
+                                                          const uint64_t blockerId=0);
     bool createIncomingBuffer(const uint64_t multiblockId,
                               const uint64_t size);
 
