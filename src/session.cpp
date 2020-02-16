@@ -176,6 +176,7 @@ Session::sendResponse(const void *data,
         result = m_multiblockIo->createOutgoingBuffer(data,
                                                       size,
                                                       false,
+                                                      0,
                                                       blockerId);
         return result.second;
     }
