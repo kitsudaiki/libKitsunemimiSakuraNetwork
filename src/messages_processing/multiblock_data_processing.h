@@ -58,10 +58,12 @@ send_Data_Multi_Init(Session* session,
         LOG_DEBUG("SEND data multi init");
     }
 
-    Data_MultiInit_Message message(session->sessionId(),
-                                   session->increaseMessageIdCounter(),
-                                   multiblockId,
-                                   answerExpected);
+    Data_MultiInit_Message message;
+    create_Data_MultiInit_Message(message,
+                                  session->sessionId(),
+                                  session->increaseMessageIdCounter(),
+                                  multiblockId,
+                                  answerExpected);
     message.totalSize = requestedSize;
 
     SessionHandler::m_sessionHandler->sendMessage(session,
@@ -83,9 +85,11 @@ send_Data_Multi_Init_Reply(Session* session,
         LOG_DEBUG("SEND data multi init reply");
     }
 
-    Data_MultiInitReply_Message message(session->sessionId(),
-                                        messageId,
-                                        multiblockId);
+    Data_MultiInitReply_Message message;
+    create_Data_MultiInitReply_Message(message,
+                                       session->sessionId(),
+                                       messageId,
+                                       multiblockId);
     message.status = status;
 
     SessionHandler::m_sessionHandler->sendMessage(session,
@@ -109,9 +113,11 @@ send_Data_Multi_Static(Session* session,
         LOG_DEBUG("SEND data multi static");
     }
 
-    Data_MultiStatic_Message message(session->sessionId(),
-                                     session->increaseMessageIdCounter(),
-                                     multiblockId);
+    Data_MultiStatic_Message message;
+    create_Data_MultiStatic_Message(message,
+                                    session->sessionId(),
+                                    session->increaseMessageIdCounter(),
+                                    multiblockId);
 
     message.totalPartNumber = totalPartNumber;
     message.partId = partId;
@@ -137,10 +143,12 @@ send_Data_Multi_Finish(Session* session,
         LOG_DEBUG("SEND data multi finish");
     }
 
-    Data_MultiFinish_Message message(session->sessionId(),
-                                     session->increaseMessageIdCounter(),
-                                     multiblockId,
-                                     blockerId);
+    Data_MultiFinish_Message message;
+    create_Data_MultiFinish_Message(message,
+                                    session->sessionId(),
+                                    session->increaseMessageIdCounter(),
+                                    multiblockId,
+                                    blockerId);
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -158,9 +166,11 @@ send_Data_Multi_Abort_Init(Session* session,
         LOG_DEBUG("SEND data multi abort init");
     }
 
-    Data_MultiAbortInit_Message message(session->sessionId(),
-                                        session->increaseMessageIdCounter(),
-                                        multiblockId);
+    Data_MultiAbortInit_Message message;
+    create_Data_MultiAbortInit_Message(message,
+                                       session->sessionId(),
+                                       session->increaseMessageIdCounter(),
+                                       multiblockId);
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -179,9 +189,11 @@ send_Data_Multi_Abort_Reply(Session* session,
         LOG_DEBUG("SEND data multi abort reply");
     }
 
-    Data_MultiAbortReply_Message message(session->sessionId(),
-                                         messageId,
-                                         multiblockId);
+    Data_MultiAbortReply_Message message;
+    create_Data_MultiAbortReply_Message(message,
+                                        session->sessionId(),
+                                        messageId,
+                                        multiblockId);
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
