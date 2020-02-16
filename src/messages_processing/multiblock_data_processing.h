@@ -274,8 +274,9 @@ process_Data_Multi_Finish(Session* session,
     // remove from answer-handler
     if(message->commonHeader.flags & 0x8)
     {
-        SessionHandler::m_blockerHandler->releaseMessage(message->blockerId,
-                                                         buffer.multiBlockBuffer);
+        bool found = SessionHandler::m_blockerHandler->releaseMessage(message->blockerId,
+                                                                      buffer.multiBlockBuffer);
+        assert(found);
     }
     else
     {

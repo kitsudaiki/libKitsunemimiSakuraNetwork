@@ -59,6 +59,7 @@ send_Session_Init_Start(Session* session,
     Session_Init_Start_Message message(session->sessionId(),
                                        session->increaseMessageIdCounter(),
                                        sessionIdentifier);
+    message.clientSessionId = session->sessionId();
 
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,

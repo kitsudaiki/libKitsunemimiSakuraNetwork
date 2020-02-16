@@ -81,10 +81,11 @@ void standaloneDataCallback(void* target,
  * @brief errorCallback
  */
 void errorCallback(void*,
-                   Session*,
+                   Kitsunemimi::Project::Session*,
                    const uint8_t,
-                   const std::string)
+                   const std::string message)
 {
+    std::cout<<"ERROR: "<<message<<std::endl;
 }
 
 /**
@@ -102,7 +103,7 @@ void sessionCallback(void* target,
 
     Session_Test* testClass = static_cast<Session_Test*>(target);
 
-    testClass->compare(session->sessionId(), (uint32_t)131072);
+    testClass->compare(session->sessionId(), (uint32_t)131073);
 
     if(isInit)
     {
@@ -193,8 +194,8 @@ Session_Test::runTest()
 
     sleep(3);
 
-    TEST_EQUAL(m_controller->getSession(131072)->closeSession(), true);
-    const bool isNull = m_controller->getSession(131072) == nullptr;
+    TEST_EQUAL(m_controller->getSession(131073)->closeSession(), true);
+    const bool isNull = m_controller->getSession(131073) == nullptr;
     TEST_EQUAL(isNull, true);
 
     usleep(100000);
