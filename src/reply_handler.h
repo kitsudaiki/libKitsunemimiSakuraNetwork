@@ -62,7 +62,7 @@ private:
     struct MessageTime
     {
         uint64_t completeMessageId = 0;
-        float timer = 0;
+        float timer = 0.0f;
         uint8_t messageType = 0;
         Session* session = nullptr;
     };
