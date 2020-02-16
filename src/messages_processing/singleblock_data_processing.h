@@ -58,9 +58,11 @@ send_Data_Single_Static(Session* session,
         LOG_DEBUG("SEND data single static");
     }
 
-    Data_SingleStatic_Message message(session->sessionId(),
-                                      session->increaseMessageIdCounter(),
-                                      replyExpected);
+    Data_SingleStatic_Message message;
+    create_Data_SingleStatic_Message(message,
+                                     session->sessionId(),
+                                     session->increaseMessageIdCounter(),
+                                     replyExpected);
 
     memcpy(message.payload, data, size);
     message.payloadSize = size;
@@ -95,7 +97,9 @@ send_Data_Single_Dynamic(Session* session,
     uint8_t* completeMessage = new uint8_t[totalMessageSizeAligned];
 
     // create header- and end-part of the message
-    Data_SingleDynamic_Header header(session->sessionId(),
+    Data_SingleDynamic_Header header;
+    create_Data_SingleDynamic_Header(header,
+                                     session->sessionId(),
                                      session->increaseMessageIdCounter(),
                                      replyExpected);
     header.commonHeader.size = static_cast<uint32_t>(totalMessageSizeAligned);
@@ -129,7 +133,8 @@ send_Data_Single_Reply(Session* session,
         LOG_DEBUG("SEND data single reply");
     }
 
-    Data_SingleReply_Message message(session->sessionId(), messageId);
+    Data_SingleReply_Message message;
+    create_Data_SingleReply_Message(message, session->sessionId(), messageId);
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,

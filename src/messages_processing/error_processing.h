@@ -55,7 +55,7 @@ namespace Project
 inline void
 send_ErrorMessage(Session* session,
                   const uint8_t errorCode,
-                  const std::string &message)
+                  const std::string &errorMessage)
 {
     LOG_DEBUG("SEND error message");
 
@@ -64,40 +64,43 @@ send_ErrorMessage(Session* session,
         //------------------------------------------------------------------------------------------
         case Session::errorCodes::FALSE_VERSION:
         {
-            Error_FalseVersion_Message errorMessage(
-                    session->sessionId(),
-                    session->increaseMessageIdCounter(),
-                    message);
+            Error_FalseVersion_Message message;
+            create_Error_FalseVersion_Message(message,
+                                              session->sessionId(),
+                                              session->increaseMessageIdCounter(),
+                                              errorMessage);
             SessionHandler::m_sessionHandler->sendMessage(session,
-                                                          errorMessage.commonHeader,
-                                                          &errorMessage,
-                                                          sizeof(errorMessage));
+                                                          message.commonHeader,
+                                                          &message,
+                                                          sizeof(message));
             break;
         }
         //------------------------------------------------------------------------------------------
         case Session::errorCodes::UNKNOWN_SESSION:
         {
-            Error_UnknownSession_Message errorMessage(
-                    session->sessionId(),
-                    session->increaseMessageIdCounter(),
-                    message);
+            Error_UnknownSession_Message message;
+            create_Error_UnknownSession_Message(message,
+                                                session->sessionId(),
+                                                session->increaseMessageIdCounter(),
+                                                errorMessage);
             SessionHandler::m_sessionHandler->sendMessage(session,
-                                                          errorMessage.commonHeader,
-                                                          &errorMessage,
-                                                          sizeof(errorMessage));
+                                                          message.commonHeader,
+                                                          &message,
+                                                          sizeof(message));
             break;
         }
         //------------------------------------------------------------------------------------------
         case Session::errorCodes::INVALID_MESSAGE_SIZE:
         {
-            Error_InvalidMessage_Message errorMessage(
-                    session->sessionId(),
-                    session->increaseMessageIdCounter(),
-                    message);
+            Error_InvalidMessage_Message message;
+            create_Error_InvalidMessage_Message(message,
+                                                session->sessionId(),
+                                                session->increaseMessageIdCounter(),
+                                                errorMessage);
             SessionHandler::m_sessionHandler->sendMessage(session,
-                                                          errorMessage.commonHeader,
-                                                          &errorMessage,
-                                                          sizeof(errorMessage));
+                                                          message.commonHeader,
+                                                          &message,
+                                                          sizeof(message));
             break;
         }
         //------------------------------------------------------------------------------------------

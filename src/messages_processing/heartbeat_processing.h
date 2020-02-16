@@ -58,8 +58,10 @@ send_Heartbeat_Start(Session* session)
         LOG_DEBUG("SEND heartbeat start");
     }
 
-    Heartbeat_Start_Message message(session->sessionId(),
-                                    session->increaseMessageIdCounter());
+    Heartbeat_Start_Message message;
+    create_Heartbeat_Start_Message(message,
+                                   session->sessionId(),
+                                   session->increaseMessageIdCounter());
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -80,8 +82,10 @@ send_Heartbeat_Reply(Session* session,
         LOG_DEBUG("SEND heartbeat reply");
     }
 
-    Heartbeat_Reply_Message message(session->sessionId(),
-                                    messageId);
+    Heartbeat_Reply_Message message;
+    create_Heartbeat_Reply_Message(message,
+                                   session->sessionId(),
+                                   messageId);
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
