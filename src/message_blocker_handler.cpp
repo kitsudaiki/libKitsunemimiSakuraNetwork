@@ -42,7 +42,7 @@ MessageBlockerHandler::~MessageBlockerHandler()
  * @brief AnswerHandler::addMessage
  * @param completeMessageId
  */
-const std::pair<void*, uint64_t>
+DataBuffer*
 MessageBlockerHandler::blockMessage(const uint64_t completeMessageId,
                                     const uint64_t blockerTimeout,
                                     Session* session)
@@ -62,9 +62,8 @@ MessageBlockerHandler::blockMessage(const uint64_t completeMessageId,
     messageBlocker->cv.wait(lock);
 
     // remove from list and return result
-    std::pair<void*, uint64_t> result;
     spinLock();
-    result = removeMessageFromList(completeMessageId);
+    DataBuffer* result = removeMessageFromList(completeMessageId);
     spinUnlock();
 
     return result;
@@ -77,13 +76,12 @@ MessageBlockerHandler::blockMessage(const uint64_t completeMessageId,
  */
 bool
 MessageBlockerHandler::releaseMessage(const uint64_t completeMessageId,
-                                      void* data,
-                                      const uint64_t dataSize)
+                                      DataBuffer* data)
 {
     bool result = false;
 
     spinLock();
-    result = releaseMessageInList(completeMessageId, data, dataSize);
+    result = releaseMessageInList(completeMessageId, data);
     spinUnlock();
 
     return result;
@@ -116,8 +114,7 @@ MessageBlockerHandler::run()
  */
 bool
 MessageBlockerHandler::releaseMessageInList(const uint64_t completeMessageId,
-                                            void* data,
-                                            const uint64_t dataSize)
+                                            DataBuffer* data)
 {
     std::vector<MessageBlocker*>::iterator it;
     for(it = m_messageList.begin();
@@ -128,7 +125,6 @@ MessageBlockerHandler::releaseMessageInList(const uint64_t completeMessageId,
         if(tempItem->completeMessageId == completeMessageId)
         {
             tempItem->responseData = data;
-            tempItem->responseDataSize = dataSize;
             tempItem->cv.notify_one();
             return true;
         }
@@ -142,11 +138,9 @@ MessageBlockerHandler::releaseMessageInList(const uint64_t completeMessageId,
  * @param completeMessageId
  * @return
  */
-const std::pair<void*, uint64_t>
+DataBuffer*
 MessageBlockerHandler::removeMessageFromList(const uint64_t completeMessageId)
 {
-    std::pair<void*, uint64_t> result;
-
     std::vector<MessageBlocker*>::iterator it;
     for(it = m_messageList.begin();
         it != m_messageList.end();
@@ -167,18 +161,16 @@ MessageBlockerHandler::removeMessageFromList(const uint64_t completeMessageId)
                 m_messageList.clear();
             }
 
-            result.first = tempItem->responseData;
-            result.second = tempItem->responseDataSize;
+            DataBuffer* result = tempItem->responseData;
 
+            tempItem->responseData = nullptr;
             delete tempItem;
+
             return result;
         }
     }
 
-    result.first = nullptr;
-    result.second = 0;
-
-    return result;
+    return nullptr;
 }
 
 /**
@@ -222,7 +214,7 @@ MessageBlockerHandler::makeTimerStep()
         if(temp->timer == 0)
         {
             removeMessageFromList(temp->completeMessageId);
-            releaseMessageInList(temp->completeMessageId, nullptr, 0);
+            releaseMessageInList(temp->completeMessageId, nullptr);
 
             const std::string err = "TIMEOUT of request: "
                                     + std::to_string(temp->completeMessageId);

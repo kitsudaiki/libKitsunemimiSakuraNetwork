@@ -28,9 +28,11 @@
 #include <atomic>
 
 #include <libKitsunemimiCommon/statemachine.h>
+#include <libKitsunemimiCommon/data_buffer.h>
 
 namespace Kitsunemimi
 {
+struct DataBuffer;
 namespace Network {
 class AbstractSocket;
 }
@@ -54,9 +56,9 @@ public:
     uint64_t sendStandaloneData(const void* data,
                                 const uint64_t size);
 
-    const std::pair<void*, uint64_t> sendRequest(const void* data,
-                                                 const uint64_t size,
-                                                 const uint64_t timeout);
+    DataBuffer* sendRequest(const void* data,
+                            const uint64_t size,
+                            const uint64_t timeout);
     uint64_t sendResponse(const void* data,
                           const uint64_t size,
                           const uint64_t blockerId);
@@ -113,7 +115,7 @@ public:
     void* m_streamDataTarget = nullptr;
     void (*m_processStreamData)(void*, Session*, const void*, const uint64_t);
     void* m_standaloneDataTarget = nullptr;
-    void (*m_processStandaloneData)(void*, Session*, const uint64_t, const void*, const uint64_t);
+    void (*m_processStandaloneData)(void*, Session*, const uint64_t, DataBuffer*);
     void* m_errorTarget = nullptr;
     void (*m_processError)(void*, Session*, const uint8_t, const std::string);
 
