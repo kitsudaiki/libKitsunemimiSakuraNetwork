@@ -125,11 +125,8 @@ Session::sendStandaloneData(const void* data,
 {
     if(m_statemachine.isInState(ACTIVE))
     {
-        std::pair<void*, uint64_t> result;
-        result = m_multiblockIo->createOutgoingBuffer(data,
-                                                      size,
-                                                      false,
-                                                      0);
+        std::pair<DataBuffer*, uint64_t> result;
+        result = m_multiblockIo->createOutgoingBuffer(data, size, false, 0);
         return result.second;
     }
 
@@ -143,24 +140,22 @@ Session::sendStandaloneData(const void* data,
  * @param timeout
  * @return
  */
-const std::pair<void*, uint64_t>
+DataBuffer*
 Session::sendRequest(const void *data,
                      const uint64_t size,
                      const uint64_t timeout)
 {
     if(m_statemachine.isInState(ACTIVE))
     {
-        return m_multiblockIo->createOutgoingBuffer(data,
-                                                    size,
-                                                    true,
-                                                    timeout);
+        std::pair<DataBuffer*, uint64_t> result;
+        result = m_multiblockIo->createOutgoingBuffer(data,
+                                                      size,
+                                                      true,
+                                                      timeout);
+        return result.first;
     }
 
-    std::pair<void *, uint64_t> emptyResult;
-    emptyResult.first = nullptr;
-    emptyResult.second = 0;
-
-    return emptyResult;
+    return nullptr;
 }
 
 /**
@@ -177,7 +172,7 @@ Session::sendResponse(const void *data,
 {
     if(m_statemachine.isInState(ACTIVE))
     {
-        std::pair<void*, uint64_t> result;
+        std::pair<DataBuffer*, uint64_t> result;
         result = m_multiblockIo->createOutgoingBuffer(data,
                                                       size,
                                                       false,

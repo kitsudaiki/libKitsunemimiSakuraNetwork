@@ -275,16 +275,14 @@ process_Data_Multi_Finish(Session* session,
     if(message->commonHeader.flags & 0x8)
     {
         SessionHandler::m_blockerHandler->releaseMessage(message->blockerId,
-                                                        getBlock(buffer.multiBlockBuffer, 0),
-                                                        buffer.messageSize);
+                                                         buffer.multiBlockBuffer);
     }
     else
     {
         session->m_processStandaloneData(session->m_standaloneDataTarget,
                                          session,
                                          message->multiblockId,
-                                         getBlock(buffer.multiBlockBuffer, 0),
-                                         buffer.messageSize);
+                                         buffer.multiBlockBuffer);
     }
 
     session->m_multiblockIo->removeIncomingMessage(message->multiblockId);

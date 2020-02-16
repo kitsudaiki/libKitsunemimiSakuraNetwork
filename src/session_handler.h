@@ -55,8 +55,7 @@ public:
                    void* streamDataTarget,
                    void (*processStreamData)(void*, Session*, const void*, const uint64_t),
                    void* standaloneDataTarget,
-                   void (*processData)(void*, Session*, const uint64_t,
-                                       const void*, const uint64_t),
+                   void (*processData)(void*, Session*, const uint64_t, DataBuffer*),
                    void* errorTarget,
                    void (*processError)(void*, Session*, const uint8_t, const std::string));
     ~SessionHandler();
@@ -95,7 +94,7 @@ private:
     void* m_streamDataTarget = nullptr;
     void (*m_processStreamData)(void*, Session*, const void*, const uint64_t);
     void* m_standaloneDataTarget = nullptr;
-    void (*m_processStandaloneData)(void*, Session*, const uint64_t, const void*, const uint64_t);
+    void (*m_processStandaloneData)(void*, Session*, const uint64_t, DataBuffer*);
     void* m_errorTarget = nullptr;
     void (*m_processError)(void*, Session*, const uint8_t, const std::string);
 };

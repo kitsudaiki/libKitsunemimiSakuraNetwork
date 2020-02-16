@@ -3,6 +3,7 @@
 #include <libKitsunemimiProjectNetwork/session.h>
 #include <libKitsunemimiProjectNetwork/session_controller.h>
 #include <libKitsunemimiCommon/common_methods/string_methods.h>
+#include <libKitsunemimiCommon/data_buffer.h>
 
 /**
  * @brief standaloneDataCallback
@@ -37,17 +38,16 @@ void streamDataCallback(void* target,
 void standaloneDataCallback(void* target,
                             Kitsunemimi::Project::Session* session,
                             const uint64_t blockerId,
-                            const void* data,
-                            const uint64_t dataSize)
+                            Kitsunemimi::DataBuffer* data)
 {
-    const char* message = static_cast<const char*>(data);
-    const std::string stringMessage = std::string(message, dataSize);
+    std::string receivedMessage(static_cast<const char*>(data->data), data->bufferPosition);
+
     if(session->isClientSide() == false)
     {
         std::cout<<"+++++++++++++++++++++++++++++++++++++++++++++++++"<<std::endl;
         std::cout<<"blockerId: "<<blockerId<<std::endl;
         std::cout<<"message: "<<std::endl;
-        std::cout<<stringMessage<<std::endl;
+        std::cout<<receivedMessage<<std::endl;
         std::cout<<""<<std::endl;
         std::cout<<"-------------------------------------------------"<<std::endl;
     }
@@ -134,12 +134,12 @@ TestSession::sendLoop()
         {
             if(m_isClient)
             {
-                std::pair<void*, uint64_t> data = m_session->sendRequest(message.c_str(),
-                                                                         message.size(),
-                                                                         10);
+                Kitsunemimi::DataBuffer* data = m_session->sendRequest(message.c_str(),
+                                                                       message.size(),
+                                                                       10);
 
-                const char* message = static_cast<const char*>(data.first);
-                const std::string stringMessage = std::string(message, data.second);
+                const std::string stringMessage = std::string((char*)data->data,
+                                                              data->bufferPosition);
 
                 std::cout<<"#################################################"<<std::endl;
                 std::cout<<"message: "<<std::endl;

@@ -45,13 +45,15 @@ MultiblockIO::MultiblockIO(Session* session)
  *
  * @return false, if session is already in send/receive of a multiblock-message
  */
-const std::pair<void*, uint64_t>
+std::pair<DataBuffer*, uint64_t>
 MultiblockIO::createOutgoingBuffer(const void* data,
                                    const uint64_t size,
                                    const bool answerExpected,
                                    const uint64_t blockerTimeout,
                                    const uint64_t blockerId)
 {
+    std::pair<DataBuffer*, uint64_t> result;
+
     const uint32_t numberOfBlocks = static_cast<uint32_t>(size / 4096) + 1;
 
     // set or create id
@@ -65,9 +67,7 @@ MultiblockIO::createOutgoingBuffer(const void* data,
     newMultiblockMessage.answerExpected = answerExpected;
     newMultiblockMessage.blockerId = blockerId;
 
-    Kitsunemimi::addDataToBuffer(newMultiblockMessage.multiBlockBuffer,
-                                         data,
-                                         size);
+    Kitsunemimi::addDataToBuffer(newMultiblockMessage.multiBlockBuffer, data, size);
 
     // TODO: check if its really possible and if the memory can not be allocated, return 0
 
@@ -82,13 +82,11 @@ MultiblockIO::createOutgoingBuffer(const void* data,
 
     if(answerExpected)
     {
-        return SessionHandler::m_blockerHandler->blockMessage(newMultiblockId,
-                                                             blockerTimeout,
-                                                             m_session);
+        result.first = SessionHandler::m_blockerHandler->blockMessage(newMultiblockId,
+                                                                      blockerTimeout,
+                                                                      m_session);
     }
 
-    std::pair<void*, uint64_t> result;
-    result.first = nullptr;
     result.second = newMultiblockId;
 
     return result;

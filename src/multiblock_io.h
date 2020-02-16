@@ -63,7 +63,7 @@ public:
     Session* m_session = nullptr;
 
     // create
-    const std::pair<void*, uint64_t> createOutgoingBuffer(const void* data,
+    std::pair<DataBuffer*, uint64_t> createOutgoingBuffer(const void* data,
                                                           const uint64_t size,
                                                           const bool answerExpected=false,
                                                           const uint64_t blockerTimeout=0,

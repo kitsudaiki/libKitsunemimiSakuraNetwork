@@ -68,13 +68,12 @@ void streamDataCallback(void* target,
 void standaloneDataCallback(void* target,
                             Session*,
                             const uint64_t,
-                            const void* data,
-                            const uint64_t dataSize)
+                            DataBuffer* data)
 {
     Session_Test* testClass = static_cast<Session_Test*>(target);
 
-    std::string receivedMessage(static_cast<const char*>(data), dataSize);
-    testClass->compare(dataSize, testClass->m_multiBlockMessage.size());
+    std::string receivedMessage(static_cast<const char*>(data->data), data->bufferPosition);
+    testClass->compare(data->bufferPosition, testClass->m_multiBlockMessage.size());
     testClass->compare(receivedMessage, testClass->m_multiBlockMessage);
 }
 
@@ -192,7 +191,7 @@ Session_Test::runTest()
     TEST_EQUAL(m_controller->addTcpServer(1234), 1);
     TEST_EQUAL(m_controller->startTcpSession("127.0.0.1", 1234, 42), 1);
 
-    sleep(2);
+    sleep(3);
 
     TEST_EQUAL(m_controller->getSession(131072)->closeSession(), true);
     const bool isNull = m_controller->getSession(131072) == nullptr;

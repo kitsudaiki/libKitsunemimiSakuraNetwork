@@ -40,12 +40,11 @@ public:
     MessageBlockerHandler();
     ~MessageBlockerHandler();
 
-    const std::pair<void*, uint64_t> blockMessage(const uint64_t completeMessageId,
-                                                  const uint64_t blockerTimeout,
-                                                  Session* session);
+    DataBuffer* blockMessage(const uint64_t completeMessageId,
+                             const uint64_t blockerTimeout,
+                             Session* session);
     bool releaseMessage(const uint64_t completeMessageId,
-                        void* data,
-                        const uint64_t dataSize);
+                        DataBuffer* data);
 
 protected:
     void run();
@@ -58,16 +57,14 @@ private:
         uint64_t timer = 0;
         std::mutex cvMutex;
         std::condition_variable cv;
-        void* responseData = nullptr;
-        uint64_t responseDataSize = 0;
+        DataBuffer* responseData = nullptr;
     };
 
     std::vector<MessageBlocker*> m_messageList;
 
     bool releaseMessageInList(const uint64_t completeMessageId,
-                              void* data,
-                              const uint64_t dataSize);
-    const std::pair<void *, uint64_t> removeMessageFromList(const uint64_t completeMessageId);
+                              DataBuffer* data);
+    DataBuffer* removeMessageFromList(const uint64_t completeMessageId);
     void clearList();
     void makeTimerStep();
 };
