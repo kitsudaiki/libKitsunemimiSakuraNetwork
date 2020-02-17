@@ -26,7 +26,7 @@
 #include <iostream>
 #include <libKitsunemimiPersistence/logger/logger.h>
 #include <libKitsunemimiProjectNetwork/session_controller.h>
-#include <session_handler.h>
+#include <handler/session_handler.h>
 #include <libKitsunemimiProjectNetwork/session.h>
 #include <libKitsunemimiNetwork/abstract_socket.h>
 
@@ -54,6 +54,7 @@ public:
 
     std::string m_staticMessage = "";
     std::string m_dynamicMessage = "";
+    std::string m_singleBlockMessage = "";
     std::string m_multiBlockMessage = "";
 
     uint32_t m_numberOfInitSessions = 0;

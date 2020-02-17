@@ -25,8 +25,9 @@
 
 #include <messages_processing/session_processing.h>
 #include <messages_processing/heartbeat_processing.h>
-#include <messages_processing/singleblock_data_processing.h>
+#include <messages_processing/stream_data_processing.h>
 #include <messages_processing/multiblock_data_processing.h>
+#include <messages_processing/singleblock_data_processing.h>
 
 #include <multiblock_io.h>
 
@@ -92,14 +93,14 @@ Session::sendStreamData(const void* data,
     {
         if(dynamic)
         {
-            send_Data_Single_Dynamic(this,
+            send_Data_Stream_Dynamic(this,
                                      data,
                                      size,
                                      replyExpected);
         }
         else
         {
-            send_Data_Single_Static(this,
+            send_Data_Stream_Static(this,
                                     data,
                                     size,
                                     replyExpected);
@@ -125,9 +126,18 @@ Session::sendStandaloneData(const void* data,
 {
     if(m_statemachine.isInState(ACTIVE))
     {
-        std::pair<DataBuffer*, uint64_t> result;
-        result = m_multiblockIo->createOutgoingBuffer(data, size, false, 0);
-        return result.second;
+        if(size < 1000)
+        {
+            const uint64_t singleblockId = m_multiblockIo->getRandValue();
+            send_Data_SingleBlock(this, singleblockId, data, size);
+            return singleblockId;
+        }
+        else
+        {
+            std::pair<DataBuffer*, uint64_t> result;
+            result = m_multiblockIo->createOutgoingBuffer(data, size, false, 0);
+            return result.second;
+        }
     }
 
     return 0;

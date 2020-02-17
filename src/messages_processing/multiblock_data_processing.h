@@ -24,7 +24,7 @@
 #define MULTIBLOCK_DATA_PROCESSING_H
 
 #include <message_definitions.h>
-#include <session_handler.h>
+#include <handler/session_handler.h>
 #include <multiblock_io.h>
 
 #include <libKitsunemimiNetwork/abstract_socket.h>
@@ -54,10 +54,6 @@ send_Data_Multi_Init(Session* session,
                      const uint64_t requestedSize,
                      const bool answerExpected)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("SEND data multi init");
-    }
-
     Data_MultiInit_Message message;
     create_Data_MultiInit_Message(message,
                                   session->sessionId(),
@@ -81,10 +77,6 @@ send_Data_Multi_Init_Reply(Session* session,
                            const uint32_t messageId,
                            const uint8_t status)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("SEND data multi init reply");
-    }
-
     Data_MultiInitReply_Message message;
     create_Data_MultiInitReply_Message(message,
                                        session->sessionId(),
@@ -109,10 +101,6 @@ send_Data_Multi_Static(Session* session,
                        const void* data,
                        const uint64_t size)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("SEND data multi static");
-    }
-
     Data_MultiStatic_Message message;
     create_Data_MultiStatic_Message(message,
                                     session->sessionId(),
@@ -139,10 +127,6 @@ send_Data_Multi_Finish(Session* session,
                        const uint64_t multiblockId,
                        const uint64_t blockerId)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("SEND data multi finish");
-    }
-
     Data_MultiFinish_Message message;
     create_Data_MultiFinish_Message(message,
                                     session->sessionId(),
@@ -162,10 +146,6 @@ inline void
 send_Data_Multi_Abort_Init(Session* session,
                            const uint64_t multiblockId)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("SEND data multi abort init");
-    }
-
     Data_MultiAbortInit_Message message;
     create_Data_MultiAbortInit_Message(message,
                                        session->sessionId(),
@@ -185,10 +165,6 @@ send_Data_Multi_Abort_Reply(Session* session,
                             const uint64_t multiblockId,
                             const uint32_t messageId)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("SEND data multi abort reply");
-    }
-
     Data_MultiAbortReply_Message message;
     create_Data_MultiAbortReply_Message(message,
                                         session->sessionId(),
@@ -207,10 +183,6 @@ inline void
 process_Data_Multi_Init(Session* session,
                         const Data_MultiInit_Message* message)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("process data multi init");
-    }
-
     const bool ret = session->m_multiblockIo->createIncomingBuffer(message->multiblockId,
                                                                    message->totalSize);
     if(ret)
@@ -236,10 +208,6 @@ inline void
 process_Data_Multi_Init_Reply(Session* session,
                               const Data_MultiInitReply_Message* message)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("process data multi init reply");
-    }
-
     if(message->status == Data_MultiInitReply_Message::OK)
     {
         session->m_multiblockIo->makeOutgoingReady(message->multiblockId);
@@ -260,10 +228,6 @@ inline void
 process_Data_Multi_Static(Session* session,
                           const Data_MultiStatic_Message* message)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("process data multi static");
-    }
-
     session->m_multiblockIo->writeIntoIncomingBuffer(message->multiblockId,
                                                      message->payload,
                                                      message->payloadSize);
@@ -276,10 +240,6 @@ inline void
 process_Data_Multi_Finish(Session* session,
                           const Data_MultiFinish_Message* message)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("process data multi finish");
-    }
-
     MultiblockIO::MultiblockMessage buffer =
             session->m_multiblockIo->getIncomingBuffer(message->multiblockId);
 
@@ -308,10 +268,6 @@ inline void
 process_Data_Multi_Abort_Init(Session* session,
                               const Data_MultiAbortInit_Message* message)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("process data multi abort init");
-    }
-
     session->m_multiblockIo->removeOutgoingMessage(message->multiblockId);
 
     send_Data_Multi_Abort_Reply(session,
@@ -326,10 +282,6 @@ inline void
 process_Data_Multi_Abort_Reply(Session* session,
                                const Data_MultiAbortReply_Message* message)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("process data multi abort reply");
-    }
-
     session->m_multiblockIo->removeIncomingMessage(message->multiblockId);
 }
 
@@ -347,10 +299,6 @@ process_MultiBlock_Data_Type(Session* session,
                              const CommonMessageHeader* header,
                              MessageRingBuffer* recvBuffer)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("process data-type");
-    }
-
     switch(header->subType)
     {
         //------------------------------------------------------------------------------------------

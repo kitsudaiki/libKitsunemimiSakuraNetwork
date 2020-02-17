@@ -26,7 +26,7 @@
 #define ERROR_PROCESSING_H
 
 #include <message_definitions.h>
-#include <session_handler.h>
+#include <handler/session_handler.h>
 #include <multiblock_io.h>
 
 #include <libKitsunemimiNetwork/abstract_socket.h>
@@ -123,10 +123,6 @@ process_Error_Type(Session* session,
                    const CommonMessageHeader* header,
                    MessageRingBuffer* recvBuffer)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("process error message");
-    }
-
     switch(header->subType)
     {
         //------------------------------------------------------------------------------------------
