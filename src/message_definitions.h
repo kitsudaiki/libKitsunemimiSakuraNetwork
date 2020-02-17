@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file       message_definitions.h
  *
  * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
@@ -44,8 +44,9 @@ enum types
     SESSION_TYPE = 1,
     HEARTBEAT_TYPE = 2,
     ERROR_TYPE = 3,
-    SINGLEBLOCK_DATA_TYPE = 4,
-    MULTIBLOCK_DATA_TYPE = 5,
+    STREAM_DATA_TYPE = 4,
+    SINGLEBLOCK_DATA_TYPE = 5,
+    MULTIBLOCK_DATA_TYPE = 6,
 };
 
 enum session_subTypes
@@ -70,21 +71,27 @@ enum error_subTypes
     ERROR_INVALID_MESSAGE_SUBTYPE = 3,
 };
 
+enum stream_data_subTypes
+{
+    DATA_STREAM_STATIC_SUBTYPE = 1,
+    DATA_STREAM_DYNAMIC_SUBTYPE = 2,
+    DATA_STREAM_REPLY_SUBTYPE = 3,
+};
+
 enum singleblock_data_subTypes
 {
-    DATA_SINGLE_STATIC_SUBTYPE = 1,
-    DATA_SINGLE_DYNAMIC_SUBTYPE = 2,
-    DATA_SINGLE_REPLY_SUBTYPE = 3,
+    DATA_SINGLE_DATA_SUBTYPE = 1,
+    DATA_SINGLE_REPLY_SUBTYPE = 2,
 };
 
 enum multiblock_data_subTypes
 {
-    DATA_MULTI_INIT_SUBTYPE = 4,
-    DATA_MULTI_INIT_REPLY_SUBTYPE = 5,
-    DATA_MULTI_STATIC_SUBTYPE = 6,
-    DATA_MULTI_FINISH_SUBTYPE = 7,
-    DATA_MULTI_ABORT_INIT_SUBTYPE = 8,
-    DATA_MULTI_ABORT_REPLY_SUBTYPE = 9,
+    DATA_MULTI_INIT_SUBTYPE = 1,
+    DATA_MULTI_INIT_REPLY_SUBTYPE = 2,
+    DATA_MULTI_STATIC_SUBTYPE = 3,
+    DATA_MULTI_FINISH_SUBTYPE = 4,
+    DATA_MULTI_ABORT_INIT_SUBTYPE = 5,
+    DATA_MULTI_ABORT_REPLY_SUBTYPE = 6,
 };
 
 //==================================================================================================
@@ -359,9 +366,9 @@ create_Error_InvalidMessage_Message(Error_InvalidMessage_Message &target,
 //==================================================================================================
 
 /**
- * @brief Data_SingleStatic_Message
+ * @brief Data_StreamStatic_Message
  */
-struct Data_SingleStatic_Message
+struct Data_StreamStatic_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t payloadSize = 0;
@@ -371,13 +378,13 @@ struct Data_SingleStatic_Message
 } __attribute__((packed));
 
 inline void
-create_Data_SingleStatic_Message(Data_SingleStatic_Message &target,
+create_Data_StreamStatic_Message(Data_StreamStatic_Message &target,
                                  const uint32_t sessionId,
                                  const uint32_t messageId,
                                  const bool replyExpected)
 {
-    target.commonHeader.type = SINGLEBLOCK_DATA_TYPE;
-    target.commonHeader.subType = DATA_SINGLE_STATIC_SUBTYPE;
+    target.commonHeader.type = STREAM_DATA_TYPE;
+    target.commonHeader.subType = DATA_STREAM_STATIC_SUBTYPE;
     target.commonHeader.sessionId = sessionId;
     target.commonHeader.messageId = messageId;
     target.commonHeader.size = sizeof(target);
@@ -387,22 +394,22 @@ create_Data_SingleStatic_Message(Data_SingleStatic_Message &target,
 }
 
 /**
- * @brief Data_SingleDynamic_Header
+ * @brief Data_StreamDynamic_Header
  */
-struct Data_SingleDynamic_Header
+struct Data_StreamDynamic_Header
 {
     CommonMessageHeader commonHeader;
     uint64_t payloadSize = 0;
 } __attribute__((packed));
 
 inline void
-create_Data_SingleDynamic_Header(Data_SingleDynamic_Header &target,
+create_Data_StreamDynamic_Header(Data_StreamDynamic_Header &target,
                                  const uint32_t sessionId,
                                  const uint32_t messageId,
                                  const bool replyExpected)
 {
-    target.commonHeader.type = SINGLEBLOCK_DATA_TYPE;
-    target.commonHeader.subType = DATA_SINGLE_DYNAMIC_SUBTYPE;
+    target.commonHeader.type = STREAM_DATA_TYPE;
+    target.commonHeader.subType = DATA_STREAM_DYNAMIC_SUBTYPE;
     target.commonHeader.sessionId = sessionId;
     target.commonHeader.messageId = messageId;
     target.commonHeader.size = sizeof(target);
@@ -412,9 +419,9 @@ create_Data_SingleDynamic_Header(Data_SingleDynamic_Header &target,
 }
 
 /**
- * @brief Data_SingleReply_Message
+ * @brief Data_StreamReply_Message
  */
-struct Data_SingleReply_Message
+struct Data_StreamReply_Message
 {
     CommonMessageHeader commonHeader;
     uint8_t padding[4];
@@ -422,9 +429,62 @@ struct Data_SingleReply_Message
 } __attribute__((packed));
 
 inline void
-create_Data_SingleReply_Message(Data_SingleReply_Message &target,
+create_Data_StreamReply_Message(Data_StreamReply_Message &target,
                                 const uint32_t sessionId,
                                 const uint32_t messageId)
+{
+    target.commonHeader.type = STREAM_DATA_TYPE;
+    target.commonHeader.subType = DATA_STREAM_REPLY_SUBTYPE;
+    target.commonHeader.sessionId = sessionId;
+    target.commonHeader.messageId = messageId;
+    target.commonHeader.flags = 0x2;
+    target.commonHeader.size = sizeof(target);
+}
+
+//==================================================================================================
+
+/**
+ * @brief Data_SingleStatic_Message
+ */
+struct Data_SingleBlock_Message
+{
+    CommonMessageHeader commonHeader;
+    uint64_t multiblockId = 0;
+    uint64_t payloadSize = 0;
+    uint8_t payload[1000];
+    uint8_t padding[4];
+    CommonMessageEnd commonEnd;
+} __attribute__((packed));
+
+inline void
+create_Data_SingleBlock_Message(Data_SingleBlock_Message &target,
+                                const uint32_t sessionId,
+                                const uint32_t messageId,
+                                const uint64_t multiblockId)
+{
+    target.commonHeader.type = SINGLEBLOCK_DATA_TYPE;
+    target.commonHeader.subType = DATA_SINGLE_DATA_SUBTYPE;
+    target.commonHeader.sessionId = sessionId;
+    target.commonHeader.messageId = messageId;
+    target.commonHeader.size = sizeof(target);
+    target.commonHeader.flags = 0x1;
+    target.multiblockId = multiblockId;
+}
+
+/**
+ * @brief Data_SingleReply_Message
+ */
+struct Data_SingleBlockReply_Message
+{
+    CommonMessageHeader commonHeader;
+    uint8_t padding[4];
+    CommonMessageEnd commonEnd;
+} __attribute__((packed));
+
+inline void
+create_Data_SingleBlockReply_Message(Data_SingleBlockReply_Message &target,
+                                     const uint32_t sessionId,
+                                     const uint32_t messageId)
 {
     target.commonHeader.type = SINGLEBLOCK_DATA_TYPE;
     target.commonHeader.subType = DATA_SINGLE_REPLY_SUBTYPE;

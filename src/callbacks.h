@@ -33,7 +33,7 @@
 #include <messages_processing/session_processing.h>
 #include <messages_processing/heartbeat_processing.h>
 #include <messages_processing/error_processing.h>
-#include <messages_processing/singleblock_data_processing.h>
+#include <messages_processing/stream_data_processing.h>
 #include <messages_processing/multiblock_data_processing.h>
 
 using Kitsunemimi::Network::MessageRingBuffer;
@@ -93,8 +93,8 @@ processMessage(void* target,
     // process message by type
     switch(header->type)
     {
-        case SINGLEBLOCK_DATA_TYPE:
-            return process_SingleBlock_Data_Type(session, header, recvBuffer);
+        case STREAM_DATA_TYPE:
+            return process_Stream_Data_Type(session, header, recvBuffer);
         case MULTIBLOCK_DATA_TYPE:
             return process_MultiBlock_Data_Type(session, header, recvBuffer);
         case SESSION_TYPE:

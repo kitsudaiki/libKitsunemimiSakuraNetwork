@@ -88,9 +88,9 @@ SessionHandler::SessionHandler(void* sessionTarget,
     assert(sizeof(Error_FalseVersion_Message) % 8 == 0);
     assert(sizeof(Error_UnknownSession_Message) % 8 == 0);
     assert(sizeof(Error_InvalidMessage_Message) % 8 == 0);
-    assert(sizeof(Data_SingleStatic_Message) % 8 == 0);
-    assert(sizeof(Data_SingleDynamic_Header) % 8 == 0);
-    assert(sizeof(Data_SingleReply_Message) % 8 == 0);
+    assert(sizeof(Data_StreamStatic_Message) % 8 == 0);
+    assert(sizeof(Data_StreamDynamic_Header) % 8 == 0);
+    assert(sizeof(Data_StreamReply_Message) % 8 == 0);
     assert(sizeof(Data_MultiInit_Message) % 8 == 0);
     assert(sizeof(Data_MultiInitReply_Message) % 8 == 0);
     assert(sizeof(Data_MultiStatic_Message) % 8 == 0);

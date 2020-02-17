@@ -36,10 +36,11 @@ HEADERS += \
     internal_session_interface.h \
     handler/session_handler.h \
     messages_processing/multiblock_data_processing.h \
-    messages_processing/singleblock_data_processing.h \
     multiblock_io.h \
     handler/reply_handler.h \
-    handler/message_blocker_handler.h
+    handler/message_blocker_handler.h \
+    messages_processing/stream_data_processing.h \
+    messages_processing/singleblock_data_processing.h
 
 SOURCES += \
     session.cpp \

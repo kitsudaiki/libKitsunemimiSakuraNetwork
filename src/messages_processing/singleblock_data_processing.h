@@ -46,19 +46,19 @@ namespace Project
 {
 
 /**
- * @brief send_Data_Single_Static
+ * @brief send_Data_SingleBlock
  */
 inline void
-send_Data_Single_Static(Session* session,
-                        const void* data,
-                        uint64_t size,
-                        const bool replyExpected)
+send_Data_SingleBlock(Session* session,
+                      const uint64_t multiblockId,
+                      const void* data,
+                      uint64_t size)
 {
-    Data_SingleStatic_Message message;
-    create_Data_SingleStatic_Message(message,
-                                     session->sessionId(),
-                                     session->increaseMessageIdCounter(),
-                                     replyExpected);
+    Data_SingleBlock_Message message;
+    create_Data_SingleBlock_Message(message,
+                                    session->sessionId(),
+                                    session->increaseMessageIdCounter(),
+                                    multiblockId);
 
     memcpy(message.payload, data, size);
     message.payloadSize = size;
@@ -70,59 +70,14 @@ send_Data_Single_Static(Session* session,
 }
 
 /**
- * @brief send_Data_Single_Dynamic
+ * @brief send_Data_SingleBlock_Reply
  */
 inline void
-send_Data_Single_Dynamic(Session* session,
-                         const void* data,
-                         const uint64_t dataSize,
-                         const bool replyExpected)
+send_Data_SingleBlock_Reply(Session* session,
+                            const uint32_t messageId)
 {
-    // calculate size of the message
-    const uint64_t totalMessageSize = sizeof(Data_SingleDynamic_Header)
-                                      + dataSize
-                                      + sizeof(CommonMessageEnd);
-    // bring message-size to a multiple of 8
-    const uint64_t totalMessageSizeAligned = totalMessageSize + (totalMessageSize % 8);
-
-    // create message-buffer
-    uint8_t* completeMessage = new uint8_t[totalMessageSizeAligned];
-
-    // create header- and end-part of the message
-    Data_SingleDynamic_Header header;
-    create_Data_SingleDynamic_Header(header,
-                                     session->sessionId(),
-                                     session->increaseMessageIdCounter(),
-                                     replyExpected);
-    header.commonHeader.size = static_cast<uint32_t>(totalMessageSizeAligned);
-    header.payloadSize = dataSize;
-    CommonMessageEnd end;
-
-    // fill buffer to build the complete message
-    memcpy(completeMessage, &header, sizeof(Data_SingleDynamic_Header));
-    memcpy(completeMessage + sizeof(Data_SingleDynamic_Header), data, dataSize);
-    memcpy(completeMessage + (totalMessageSizeAligned - sizeof(CommonMessageEnd)),
-           &end,
-           sizeof(CommonMessageEnd));
-
-    // send message
-    SessionHandler::m_sessionHandler->sendMessage(session,
-                                                  header.commonHeader,
-                                                  completeMessage,
-                                                  totalMessageSizeAligned);
-
-    delete[] completeMessage;
-}
-
-/**
- * @brief send_Data_Single_Reply
- */
-inline void
-send_Data_Single_Reply(Session* session,
-                       const uint32_t messageId)
-{
-    Data_SingleReply_Message message;
-    create_Data_SingleReply_Message(message, session->sessionId(), messageId);
+    Data_SingleBlockReply_Message message;
+    create_Data_SingleBlockReply_Message(message, session->sessionId(), messageId);
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -130,48 +85,28 @@ send_Data_Single_Reply(Session* session,
 }
 
 /**
- * @brief process_Data_Single_Static
+ * @brief process_Data_SingleBlock
  */
 inline void
-process_Data_Single_Static(Session* session,
-                           const Data_SingleStatic_Message* message)
+process_Data_SingleBlock(Session* session,
+                         const Data_SingleBlock_Message* message)
 {
-    session->m_processStreamData(session->m_streamDataTarget,
-                                 session,
-                                 static_cast<const void*>(message->payload),
-                                 message->payloadSize);
-    send_Data_Single_Reply(session, message->commonHeader.messageId);
+    DataBuffer* buffer = new DataBuffer(1);
+    addDataToBuffer(buffer, message->payload, message->payloadSize);
+
+    session->m_processStandaloneData(session->m_standaloneDataTarget,
+                                     session,
+                                     message->multiblockId,
+                                     buffer);
+    send_Data_SingleBlock_Reply(session, message->commonHeader.messageId);
 }
 
 /**
- * @brief process_Data_Single_Dynamic
- */
-inline uint64_t
-process_Data_Single_Dynamic(Session* session,
-                            const Data_SingleDynamic_Header* message,
-                            MessageRingBuffer* recvBuffer)
-{
-    const uint8_t* completeMessage = getDataPointer(*recvBuffer, message->commonHeader.size);
-    if(completeMessage == nullptr) {
-        return 0;
-    }
-
-    const void* payload = completeMessage + sizeof(Data_SingleDynamic_Header);
-    session->m_processStreamData(session->m_streamDataTarget,
-                                 session,
-                                 payload,
-                                 message->payloadSize);
-    send_Data_Single_Reply(session, message->commonHeader.messageId);
-
-    return message->commonHeader.size;
-}
-
-/**
- * @brief process_Data_Single_Reply
+ * @brief process_Data_SingleBlock_Reply
  */
 inline void
-process_Data_Single_Reply(Session*,
-                          const Data_SingleReply_Message*)
+process_Data_SingleBlock_Reply(Session*,
+                               const Data_SingleBlockReply_Message*)
 {
 }
 
@@ -192,38 +127,25 @@ process_SingleBlock_Data_Type(Session* session,
     switch(header->subType)
     {
         //------------------------------------------------------------------------------------------
-        case DATA_SINGLE_STATIC_SUBTYPE:
+        case DATA_SINGLE_DATA_SUBTYPE:
             {
-                const Data_SingleStatic_Message* message =
-                        getObjectFromBuffer<Data_SingleStatic_Message>(recvBuffer);
+                const Data_SingleBlock_Message* message =
+                        getObjectFromBuffer<Data_SingleBlock_Message>(recvBuffer);
                 if(message == nullptr) {
                     break;
                 }
-                process_Data_Single_Static(session, message);
+                process_Data_SingleBlock(session, message);
                 return sizeof(*message);
-            }
-        //------------------------------------------------------------------------------------------
-        case DATA_SINGLE_DYNAMIC_SUBTYPE:
-            {
-                const Data_SingleDynamic_Header* messageHeader =
-                        getObjectFromBuffer<Data_SingleDynamic_Header>(recvBuffer);
-                if(messageHeader == nullptr) {
-                    break;
-                }
-                const uint64_t messageSize = process_Data_Single_Dynamic(session,
-                                                                         messageHeader,
-                                                                         recvBuffer);
-                return messageSize;
             }
         //------------------------------------------------------------------------------------------
         case DATA_SINGLE_REPLY_SUBTYPE:
             {
-                const Data_SingleReply_Message* message =
-                        getObjectFromBuffer<Data_SingleReply_Message>(recvBuffer);
+                const Data_SingleBlockReply_Message* message =
+                        getObjectFromBuffer<Data_SingleBlockReply_Message>(recvBuffer);
                 if(message == nullptr) {
                     break;
                 }
-                process_Data_Single_Reply(session, message);
+                process_Data_SingleBlock_Reply(session, message);
                 return sizeof(*message);
             }
         //------------------------------------------------------------------------------------------
