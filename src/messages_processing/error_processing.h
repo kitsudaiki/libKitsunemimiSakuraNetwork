@@ -123,10 +123,6 @@ process_Error_Type(Session* session,
                    const CommonMessageHeader* header,
                    MessageRingBuffer* recvBuffer)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("process error message");
-    }
-
     switch(header->subType)
     {
         //------------------------------------------------------------------------------------------

@@ -54,10 +54,6 @@ namespace Project
 inline void
 send_Heartbeat_Start(Session* session)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("SEND heartbeat start");
-    }
-
     Heartbeat_Start_Message message;
     create_Heartbeat_Start_Message(message,
                                    session->sessionId(),
@@ -78,10 +74,6 @@ inline void
 send_Heartbeat_Reply(Session* session,
                      const uint32_t messageId)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("SEND heartbeat reply");
-    }
-
     Heartbeat_Reply_Message message;
     create_Heartbeat_Reply_Message(message,
                                    session->sessionId(),
@@ -102,10 +94,6 @@ inline void
 process_Heartbeat_Start(Session* session,
                         const Heartbeat_Start_Message* message)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("process heartbeat start");
-    }
-
     send_Heartbeat_Reply(session, message->commonHeader.messageId);
 }
 
@@ -117,9 +105,6 @@ inline void
 process_Heartbeat_Reply(Session*,
                         const Heartbeat_Reply_Message*)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("process heartbeat reply");
-    }
 }
 
 /**
@@ -136,10 +121,6 @@ process_Heartbeat_Type(Session* session,
                        const CommonMessageHeader* header,
                        MessageRingBuffer* recvBuffer)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("process heartbeat-type");
-    }
-
     switch(header->subType)
     {
         //------------------------------------------------------------------------------------------

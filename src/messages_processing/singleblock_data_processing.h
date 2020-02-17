@@ -54,10 +54,6 @@ send_Data_Single_Static(Session* session,
                         uint64_t size,
                         const bool replyExpected)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("SEND data single static");
-    }
-
     Data_SingleStatic_Message message;
     create_Data_SingleStatic_Message(message,
                                      session->sessionId(),
@@ -82,10 +78,6 @@ send_Data_Single_Dynamic(Session* session,
                          const uint64_t dataSize,
                          const bool replyExpected)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("SEND data single dynamic");
-    }
-
     // calculate size of the message
     const uint64_t totalMessageSize = sizeof(Data_SingleDynamic_Header)
                                       + dataSize
@@ -129,10 +121,6 @@ inline void
 send_Data_Single_Reply(Session* session,
                        const uint32_t messageId)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("SEND data single reply");
-    }
-
     Data_SingleReply_Message message;
     create_Data_SingleReply_Message(message, session->sessionId(), messageId);
     SessionHandler::m_sessionHandler->sendMessage(session,
@@ -148,10 +136,6 @@ inline void
 process_Data_Single_Static(Session* session,
                            const Data_SingleStatic_Message* message)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("process data single static");
-    }
-
     session->m_processStreamData(session->m_streamDataTarget,
                                  session,
                                  static_cast<const void*>(message->payload),
@@ -167,10 +151,6 @@ process_Data_Single_Dynamic(Session* session,
                             const Data_SingleDynamic_Header* message,
                             MessageRingBuffer* recvBuffer)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("process data single dynamic");
-    }
-
     const uint8_t* completeMessage = getDataPointer(*recvBuffer, message->commonHeader.size);
     if(completeMessage == nullptr) {
         return 0;
@@ -193,9 +173,6 @@ inline void
 process_Data_Single_Reply(Session*,
                           const Data_SingleReply_Message*)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("process data single reply");
-    }
 }
 
 /**
@@ -212,10 +189,6 @@ process_SingleBlock_Data_Type(Session* session,
                               const CommonMessageHeader* header,
                               MessageRingBuffer* recvBuffer)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("process data-type");
-    }
-
     switch(header->subType)
     {
         //------------------------------------------------------------------------------------------
