@@ -22,9 +22,9 @@
 
 #include "session_handler.h"
 
-#include <reply_handler.h>
-#include <message_blocker_handler.h>
-#include <session_handler.h>
+#include <handler/reply_handler.h>
+#include <handler/message_blocker_handler.h>
+#include <handler/session_handler.h>
 
 #include <libKitsunemimiProjectNetwork/session.h>
 #include <libKitsunemimiProjectNetwork/session_controller.h>

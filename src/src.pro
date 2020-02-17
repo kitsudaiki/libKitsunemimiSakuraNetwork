@@ -34,18 +34,18 @@ HEADERS += \
     messages_processing/heartbeat_processing.h \
     messages_processing/error_processing.h \
     internal_session_interface.h \
-    session_handler.h \
+    handler/session_handler.h \
     messages_processing/multiblock_data_processing.h \
     messages_processing/singleblock_data_processing.h \
     multiblock_io.h \
-    reply_handler.h \
-    message_blocker_handler.h
+    handler/reply_handler.h \
+    handler/message_blocker_handler.h
 
 SOURCES += \
     session.cpp \
     session_constroller.cpp \
-    session_handler.cpp \
+    handler/session_handler.cpp \
     multiblock_io.cpp \
-    replay_handler.cpp \
-    message_blocker_handler.cpp
+    handler/replay_handler.cpp \
+    handler/message_blocker_handler.cpp
 
