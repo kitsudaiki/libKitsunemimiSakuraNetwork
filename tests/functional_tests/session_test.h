@@ -54,6 +54,7 @@ public:
 
     std::string m_staticMessage = "";
     std::string m_dynamicMessage = "";
+    std::string m_singleBlockMessage = "";
     std::string m_multiBlockMessage = "";
 
     uint32_t m_numberOfInitSessions = 0;
