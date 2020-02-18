@@ -130,7 +130,9 @@ process_Error_Type(Session* session,
             {
                 const Error_FalseVersion_Message* message =
                         getObjectFromBuffer<Error_FalseVersion_Message>(recvBuffer);
-                if(message == nullptr) {
+                if(message == nullptr
+                        || message->commonEnd.end != MESSAGE_DELIMITER)
+                {
                     break;
                 }
 
@@ -145,10 +147,11 @@ process_Error_Type(Session* session,
             {
                 const Error_UnknownSession_Message* message =
                         getObjectFromBuffer<Error_UnknownSession_Message>(recvBuffer);
-                if(message == nullptr) {
+                if(message == nullptr
+                        || message->commonEnd.end != MESSAGE_DELIMITER)
+                {
                     break;
                 }
-
 
                 session->m_processError(session->m_errorTarget,
                                         session,
@@ -161,7 +164,9 @@ process_Error_Type(Session* session,
             {
                 const Error_InvalidMessage_Message* message =
                         getObjectFromBuffer<Error_InvalidMessage_Message>(recvBuffer);
-                if(message == nullptr) {
+                if(message == nullptr
+                        || message->commonEnd.end != MESSAGE_DELIMITER)
+                {
                     break;
                 }
 

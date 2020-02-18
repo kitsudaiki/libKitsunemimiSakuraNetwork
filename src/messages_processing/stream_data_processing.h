@@ -196,7 +196,9 @@ process_Stream_Data_Type(Session* session,
             {
                 const Data_StreamStatic_Message* message =
                         getObjectFromBuffer<Data_StreamStatic_Message>(recvBuffer);
-                if(message == nullptr) {
+                if(message == nullptr
+                        || message->commonEnd.end != MESSAGE_DELIMITER)
+                {
                     break;
                 }
                 process_Data_Stream_Static(session, message);
@@ -207,7 +209,18 @@ process_Stream_Data_Type(Session* session,
             {
                 const Data_StreamDynamic_Header* messageHeader =
                         getObjectFromBuffer<Data_StreamDynamic_Header>(recvBuffer);
-                if(messageHeader == nullptr) {
+
+                const uint8_t* endPointer = getDataPointer(*recvBuffer,
+                                                           messageHeader->commonHeader.size);
+
+                const CommonMessageEnd* end =
+                        reinterpret_cast<const CommonMessageEnd*>(endPointer
+                                                                  + messageHeader->commonHeader.size
+                                                                  - sizeof(CommonMessageEnd));
+
+                if(messageHeader == nullptr
+                        || end->end != MESSAGE_DELIMITER)
+                {
                     break;
                 }
                 const uint64_t messageSize = process_Data_Stream_Dynamic(session,
@@ -220,7 +233,9 @@ process_Stream_Data_Type(Session* session,
             {
                 const Data_StreamReply_Message* message =
                         getObjectFromBuffer<Data_StreamReply_Message>(recvBuffer);
-                if(message == nullptr) {
+                if(message == nullptr
+                        || message->commonEnd.end != MESSAGE_DELIMITER)
+                {
                     break;
                 }
                 process_Data_Stream_Reply(session, message);

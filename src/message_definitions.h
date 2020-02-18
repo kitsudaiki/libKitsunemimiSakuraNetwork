@@ -38,6 +38,8 @@ namespace Kitsunemimi
 namespace Project
 {
 
+#define MESSAGE_DELIMITER 1314472257
+
 enum types
 {
     UNDEFINED_TYPE = 0,
@@ -112,7 +114,7 @@ struct CommonMessageHeader
 
 struct CommonMessageEnd
 {
-    const uint32_t end = 1314472257;
+    const uint32_t end = MESSAGE_DELIMITER;
 } __attribute__((packed));
 
 //==================================================================================================
