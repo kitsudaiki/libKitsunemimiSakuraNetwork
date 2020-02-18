@@ -52,13 +52,15 @@ inline void
 send_Data_SingleBlock(Session* session,
                       const uint64_t multiblockId,
                       const void* data,
-                      uint64_t size)
+                      uint64_t size,
+                      const uint64_t blockerId=0)
 {
     Data_SingleBlock_Message message;
     create_Data_SingleBlock_Message(message,
                                     session->sessionId(),
                                     session->increaseMessageIdCounter(),
-                                    multiblockId);
+                                    multiblockId,
+                                    blockerId);
 
     memcpy(message.payload, data, size);
     message.payloadSize = size;

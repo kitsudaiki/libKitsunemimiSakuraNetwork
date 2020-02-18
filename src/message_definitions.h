@@ -451,6 +451,7 @@ struct Data_SingleBlock_Message
     CommonMessageHeader commonHeader;
     uint64_t multiblockId = 0;
     uint64_t payloadSize = 0;
+    uint64_t blockerId = 0;
     uint8_t payload[1000];
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
@@ -460,7 +461,8 @@ inline void
 create_Data_SingleBlock_Message(Data_SingleBlock_Message &target,
                                 const uint32_t sessionId,
                                 const uint32_t messageId,
-                                const uint64_t multiblockId)
+                                const uint64_t multiblockId,
+                                const uint64_t blockerId)
 {
     target.commonHeader.type = SINGLEBLOCK_DATA_TYPE;
     target.commonHeader.subType = DATA_SINGLE_DATA_SUBTYPE;
@@ -468,6 +470,7 @@ create_Data_SingleBlock_Message(Data_SingleBlock_Message &target,
     target.commonHeader.messageId = messageId;
     target.commonHeader.size = sizeof(target);
     target.commonHeader.flags = 0x1;
+    target.blockerId = blockerId;
     target.multiblockId = multiblockId;
 }
 

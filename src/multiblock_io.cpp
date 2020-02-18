@@ -49,7 +49,6 @@ std::pair<DataBuffer*, uint64_t>
 MultiblockIO::createOutgoingBuffer(const void* data,
                                    const uint64_t size,
                                    const bool answerExpected,
-                                   const uint64_t blockerTimeout,
                                    const uint64_t blockerId)
 {
     std::pair<DataBuffer*, uint64_t> result;
@@ -64,7 +63,6 @@ MultiblockIO::createOutgoingBuffer(const void* data,
     newMultiblockMessage.multiBlockBuffer = new Kitsunemimi::DataBuffer(numberOfBlocks);
     newMultiblockMessage.messageSize = size;
     newMultiblockMessage.multiblockId = newMultiblockId;
-    newMultiblockMessage.answerExpected = answerExpected;
     newMultiblockMessage.blockerId = blockerId;
 
     Kitsunemimi::addDataToBuffer(newMultiblockMessage.multiBlockBuffer, data, size);
@@ -79,13 +77,6 @@ MultiblockIO::createOutgoingBuffer(const void* data,
     m_outgoing_lock.clear(std::memory_order_release);
 
     send_Data_Multi_Init(m_session, newMultiblockId, size, answerExpected);
-
-    if(answerExpected)
-    {
-        result.first = SessionHandler::m_blockerHandler->blockMessage(newMultiblockId,
-                                                                      blockerTimeout,
-                                                                      m_session);
-    }
 
     result.second = newMultiblockId;
 

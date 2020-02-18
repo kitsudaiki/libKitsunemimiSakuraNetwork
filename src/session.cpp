@@ -89,21 +89,16 @@ Session::sendStreamData(const void* data,
                         const bool dynamic,
                         const bool replyExpected)
 {
+    if(size >= 1000) {
+        return false;
+    }
+
     if(m_statemachine.isInState(ACTIVE))
     {
-        if(dynamic)
-        {
-            send_Data_Stream_Dynamic(this,
-                                     data,
-                                     size,
-                                     replyExpected);
-        }
-        else
-        {
-            send_Data_Stream_Static(this,
-                                    data,
-                                    size,
-                                    replyExpected);
+        if(dynamic) {
+            send_Data_Stream_Dynamic(this, data, size, replyExpected);
+        } else {
+            send_Data_Stream_Static(this, data, size, replyExpected);
         }
 
         return true;
@@ -135,7 +130,7 @@ Session::sendStandaloneData(const void* data,
         else
         {
             std::pair<DataBuffer*, uint64_t> result;
-            result = m_multiblockIo->createOutgoingBuffer(data, size, false, 0);
+            result = m_multiblockIo->createOutgoingBuffer(data, size, false);
             return result.second;
         }
     }
@@ -157,12 +152,21 @@ Session::sendRequest(const void *data,
 {
     if(m_statemachine.isInState(ACTIVE))
     {
-        std::pair<DataBuffer*, uint64_t> result;
-        result = m_multiblockIo->createOutgoingBuffer(data,
-                                                      size,
-                                                      true,
-                                                      timeout);
-        return result.first;
+        uint64_t id = 0;
+
+        if(size < 1000)
+        {
+            id = m_multiblockIo->getRandValue();
+            send_Data_SingleBlock(this, id, data, size);
+        }
+        else
+        {
+            std::pair<DataBuffer*, uint64_t> result;
+            result = m_multiblockIo->createOutgoingBuffer(data, size, true);
+            id = result.second;
+        }
+
+        return SessionHandler::m_blockerHandler->blockMessage(id, timeout, this);
     }
 
     return nullptr;
@@ -182,13 +186,18 @@ Session::sendResponse(const void *data,
 {
     if(m_statemachine.isInState(ACTIVE))
     {
-        std::pair<DataBuffer*, uint64_t> result;
-        result = m_multiblockIo->createOutgoingBuffer(data,
-                                                      size,
-                                                      false,
-                                                      0,
-                                                      blockerId);
-        return result.second;
+        if(size < 1000)
+        {
+            const uint64_t singleblockId = m_multiblockIo->getRandValue();
+            send_Data_SingleBlock(this, singleblockId, data, size, blockerId);
+            return singleblockId;
+        }
+        else
+        {
+            std::pair<DataBuffer*, uint64_t> result;
+            result = m_multiblockIo->createOutgoingBuffer(data, size, false, blockerId);
+            return result.second;
+        }
     }
 
     return 0;
@@ -202,8 +211,7 @@ Session::sendResponse(const void *data,
 void
 Session::abortMessages(const uint64_t multiblockMessageId)
 {
-    if(m_multiblockIo->removeOutgoingMessage(multiblockMessageId) == false)
-    {
+    if(m_multiblockIo->removeOutgoingMessage(multiblockMessageId) == false) {
         send_Data_Multi_Abort_Init(this, multiblockMessageId);
     }
 }
@@ -229,7 +237,8 @@ Session::closeSession(const bool replyExpected)
         }
         else
         {
-            return endSession(true);
+            send_Session_Close_Start(this, false);
+            return endSession();
         }
     }
 
@@ -269,9 +278,7 @@ Session::isClientSide() const
  * @return false if session is already init or socker can not be connected, else true
  */
 bool
-Session::connectiSession(const uint32_t sessionId,
-                         const uint64_t sessionIdentifier,
-                         const bool init)
+Session::connectiSession(const uint32_t sessionId)
 {
     LOG_DEBUG("CALL session connect: " + std::to_string(m_sessionId));
 
@@ -289,11 +296,6 @@ Session::connectiSession(const uint32_t sessionId,
         }
         m_sessionId = sessionId;
         m_socket->startThread();
-
-        // init session
-        if(init) {
-            send_Session_Init_Start(this, sessionIdentifier);
-        }
 
         return true;
     }
@@ -338,7 +340,7 @@ Session::makeSessionReady(const uint32_t sessionId,
  * @return true, if statechange and socket-disconnect were successful, else false
  */
 bool
-Session::endSession(const bool init)
+Session::endSession()
 {
     LOG_DEBUG("CALL session close: " + std::to_string(m_sessionId));
 
@@ -346,11 +348,6 @@ Session::endSession(const bool init)
     if(m_statemachine.goToNextState(STOP_SESSION))
     {
         m_processSession(m_sessionTarget, false, this, m_sessionIdentifier);
-
-        if(init) {
-            send_Session_Close_Start(this, false);
-        }
-
         SessionHandler::m_sessionHandler->removeSession(m_sessionId);
         return disconnectSession();
     }

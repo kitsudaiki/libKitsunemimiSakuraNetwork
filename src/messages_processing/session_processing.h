@@ -161,7 +161,7 @@ process_Session_Init_Start(Session* session,
 
     // create new session and make it ready
     SessionHandler::m_sessionHandler->addSession(sessionId, session);
-    session->connectiSession(sessionId, false);
+    session->connectiSession(sessionId);
     session->makeSessionReady(sessionId, sessionIdentifier);
 
     // confirm id
