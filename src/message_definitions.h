@@ -277,7 +277,7 @@ struct Error_FalseVersion_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t messageSize = 0;
-    char message[1000];
+    char message[1024];
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
 } __attribute__((packed));
@@ -295,8 +295,8 @@ create_Error_FalseVersion_Message(Error_FalseVersion_Message &target,
     target.commonHeader.size = sizeof(target);
 
     target.messageSize = errorMessage.size();
-    if(target.messageSize > 999) {
-        target.messageSize = 999;
+    if(target.messageSize > 1023) {
+        target.messageSize = 1023;
     }
     strncpy(target.message, errorMessage.c_str(), target.messageSize);
 }
@@ -308,7 +308,7 @@ struct Error_UnknownSession_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t messageSize = 0;
-    char message[1000];
+    char message[1024];
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
 } __attribute__((packed));
@@ -326,8 +326,8 @@ create_Error_UnknownSession_Message(Error_UnknownSession_Message &target,
     target.commonHeader.size = sizeof(target);
 
     target.messageSize = errorMessage.size();
-    if(target.messageSize > 999) {
-        target.messageSize = 999;
+    if(target.messageSize > 1023) {
+        target.messageSize = 1023;
     }
     strncpy(target.message, errorMessage.c_str(), target.messageSize);
 }
@@ -339,7 +339,7 @@ struct Error_InvalidMessage_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t messageSize = 0;
-    char message[1000];
+    char message[1024];
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
 } __attribute__((packed));
@@ -357,8 +357,8 @@ create_Error_InvalidMessage_Message(Error_InvalidMessage_Message &target,
     target.commonHeader.size = sizeof(target);
 
     target.messageSize = errorMessage.size();
-    if(target.messageSize > 999) {
-        target.messageSize = 999;
+    if(target.messageSize > 1023) {
+        target.messageSize = 1023;
     }
     strncpy(target.message, errorMessage.c_str(), target.messageSize);
 }
@@ -372,7 +372,7 @@ struct Data_StreamStatic_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t payloadSize = 0;
-    uint8_t payload[1000];
+    uint8_t payload[1024];
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
 } __attribute__((packed));
@@ -452,7 +452,7 @@ struct Data_SingleBlock_Message
     uint64_t multiblockId = 0;
     uint64_t payloadSize = 0;
     uint64_t blockerId = 0;
-    uint8_t payload[1000];
+    uint8_t payload[1024];
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
 } __attribute__((packed));
@@ -574,7 +574,8 @@ struct Data_MultiStatic_Message
     uint32_t totalPartNumber = 0;
     uint32_t partId = 0;
     uint64_t payloadSize = 0;
-    uint8_t payload[1004];
+    uint8_t payload[1024];
+    uint8_t padding[4];
     CommonMessageEnd commonEnd;
 } __attribute__((packed));
 

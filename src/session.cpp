@@ -89,16 +89,36 @@ Session::sendStreamData(const void* data,
                         const bool dynamic,
                         const bool replyExpected)
 {
-    if(size >= 1000) {
-        return false;
-    }
-
     if(m_statemachine.isInState(ACTIVE))
     {
-        if(dynamic) {
-            send_Data_Stream_Dynamic(this, data, size, replyExpected);
-        } else {
-            send_Data_Stream_Static(this, data, size, replyExpected);
+        uint64_t totalSize = size;
+        uint64_t currentMessageSize = 0;
+        uint32_t partCounter = 0;
+
+        while(totalSize != 0)
+        {
+            currentMessageSize = 1024;
+            if(totalSize <= 1024) {
+                currentMessageSize = totalSize;
+            }
+            totalSize -= currentMessageSize;
+
+            const uint8_t* dataPointer = static_cast<const uint8_t*>(data);
+
+            if(dynamic)
+            {
+                send_Data_Stream_Dynamic(this,
+                                         dataPointer + (1024 * partCounter),
+                                         currentMessageSize,
+                                         replyExpected);
+            }
+            else
+            {
+                send_Data_Stream_Static(this,
+                                        dataPointer + (1024 * partCounter),
+                                        currentMessageSize,
+                                        replyExpected);
+            }
         }
 
         return true;
@@ -121,7 +141,7 @@ Session::sendStandaloneData(const void* data,
 {
     if(m_statemachine.isInState(ACTIVE))
     {
-        if(size < 1000)
+        if(size <= 1024)
         {
             const uint64_t singleblockId = m_multiblockIo->getRandValue();
             send_Data_SingleBlock(this, singleblockId, data, size);
@@ -154,7 +174,7 @@ Session::sendRequest(const void *data,
     {
         uint64_t id = 0;
 
-        if(size < 1000)
+        if(size <= 1024)
         {
             id = m_multiblockIo->getRandValue();
             send_Data_SingleBlock(this, id, data, size);
@@ -186,7 +206,7 @@ Session::sendResponse(const void *data,
 {
     if(m_statemachine.isInState(ACTIVE))
     {
-        if(size < 1000)
+        if(size < 1024)
         {
             const uint64_t singleblockId = m_multiblockIo->getRandValue();
             send_Data_SingleBlock(this, singleblockId, data, size, blockerId);

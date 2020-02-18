@@ -74,7 +74,7 @@ void standaloneDataCallback(void* target,
 
     std::string receivedMessage(static_cast<const char*>(data->data), data->bufferPosition);
 
-    if(data->bufferPosition < 1000)
+    if(data->bufferPosition <= 1024)
     {
         testClass->compare(data->bufferPosition, testClass->m_singleBlockMessage.size());
         testClass->compare(receivedMessage, testClass->m_singleBlockMessage);
