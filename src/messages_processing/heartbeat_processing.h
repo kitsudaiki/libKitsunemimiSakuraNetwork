@@ -128,7 +128,9 @@ process_Heartbeat_Type(Session* session,
             {
                 const Heartbeat_Start_Message* message =
                         getObjectFromBuffer<Heartbeat_Start_Message>(recvBuffer);
-                if(message == nullptr) {
+                if(message == nullptr
+                        || message->commonEnd.end != MESSAGE_DELIMITER)
+                {
                     break;
                 }
                 process_Heartbeat_Start(session, message);
@@ -139,7 +141,9 @@ process_Heartbeat_Type(Session* session,
             {
                 const Heartbeat_Reply_Message* message =
                         getObjectFromBuffer<Heartbeat_Reply_Message>(recvBuffer);
-                if(message == nullptr) {
+                if(message == nullptr
+                        || message->commonEnd.end != MESSAGE_DELIMITER)
+                {
                     break;
                 }
                 process_Heartbeat_Reply(session, message);

@@ -306,7 +306,9 @@ process_MultiBlock_Data_Type(Session* session,
             {
                 const Data_MultiInit_Message* message =
                         getObjectFromBuffer<Data_MultiInit_Message>(recvBuffer);
-                if(message == nullptr) {
+                if(message == nullptr
+                        || message->commonEnd.end != MESSAGE_DELIMITER)
+                {
                     break;
                 }
                 process_Data_Multi_Init(session, message);
@@ -317,7 +319,9 @@ process_MultiBlock_Data_Type(Session* session,
             {
                 const Data_MultiInitReply_Message* message =
                         getObjectFromBuffer<Data_MultiInitReply_Message>(recvBuffer);
-                if(message == nullptr) {
+                if(message == nullptr
+                        || message->commonEnd.end != MESSAGE_DELIMITER)
+                {
                     break;
                 }
                 process_Data_Multi_Init_Reply(session, message);
@@ -328,7 +332,9 @@ process_MultiBlock_Data_Type(Session* session,
             {
                 const Data_MultiStatic_Message* message =
                         getObjectFromBuffer<Data_MultiStatic_Message>(recvBuffer);
-                if(message == nullptr) {
+                if(message == nullptr
+                        || message->commonEnd.end != MESSAGE_DELIMITER)
+                {
                     break;
                 }
                 process_Data_Multi_Static(session, message);
@@ -339,7 +345,9 @@ process_MultiBlock_Data_Type(Session* session,
             {
                 const Data_MultiFinish_Message* message =
                         getObjectFromBuffer<Data_MultiFinish_Message>(recvBuffer);
-                if(message == nullptr) {
+                if(message == nullptr
+                        || message->commonEnd.end != MESSAGE_DELIMITER)
+                {
                     break;
                 }
                 process_Data_Multi_Finish(session, message);
@@ -350,7 +358,9 @@ process_MultiBlock_Data_Type(Session* session,
             {
                 const Data_MultiAbortInit_Message* message =
                         getObjectFromBuffer<Data_MultiAbortInit_Message>(recvBuffer);
-                if(message == nullptr) {
+                if(message == nullptr
+                        || message->commonEnd.end != MESSAGE_DELIMITER)
+                {
                     break;
                 }
                 process_Data_Multi_Abort_Init(session, message);
@@ -361,7 +371,9 @@ process_MultiBlock_Data_Type(Session* session,
             {
                 const Data_MultiAbortReply_Message* message =
                         getObjectFromBuffer<Data_MultiAbortReply_Message>(recvBuffer);
-                if(message == nullptr) {
+                if(message == nullptr
+                        || message->commonEnd.end != MESSAGE_DELIMITER)
+                {
                     break;
                 }
                 process_Data_Multi_Abort_Reply(session, message);

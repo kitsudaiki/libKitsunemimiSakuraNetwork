@@ -133,7 +133,9 @@ process_SingleBlock_Data_Type(Session* session,
             {
                 const Data_SingleBlock_Message* message =
                         getObjectFromBuffer<Data_SingleBlock_Message>(recvBuffer);
-                if(message == nullptr) {
+                if(message == nullptr
+                        || message->commonEnd.end != MESSAGE_DELIMITER)
+                {
                     break;
                 }
                 process_Data_SingleBlock(session, message);
@@ -144,7 +146,9 @@ process_SingleBlock_Data_Type(Session* session,
             {
                 const Data_SingleBlockReply_Message* message =
                         getObjectFromBuffer<Data_SingleBlockReply_Message>(recvBuffer);
-                if(message == nullptr) {
+                if(message == nullptr
+                        || message->commonEnd.end != MESSAGE_DELIMITER)
+                {
                     break;
                 }
                 process_Data_SingleBlock_Reply(session, message);

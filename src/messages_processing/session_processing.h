@@ -256,7 +256,9 @@ process_Session_Type(Session* session,
             {
                 const Session_Init_Start_Message* message =
                         getObjectFromBuffer<Session_Init_Start_Message>(recvBuffer);
-                if(message == nullptr) {
+                if(message == nullptr
+                        || message->commonEnd.end != MESSAGE_DELIMITER)
+                {
                     break;
                 }
                 process_Session_Init_Start(session, message);
@@ -267,7 +269,9 @@ process_Session_Type(Session* session,
             {
                 const Session_Init_Reply_Message* message =
                         getObjectFromBuffer<Session_Init_Reply_Message>(recvBuffer);
-                if(message == nullptr) {
+                if(message == nullptr
+                        || message->commonEnd.end != MESSAGE_DELIMITER)
+                {
                     break;
                 }
                 process_Session_Init_Reply(session, message);
@@ -278,7 +282,9 @@ process_Session_Type(Session* session,
             {
                 const Session_Close_Start_Message* message =
                         getObjectFromBuffer<Session_Close_Start_Message>(recvBuffer);
-                if(message == nullptr) {
+                if(message == nullptr
+                        || message->commonEnd.end != MESSAGE_DELIMITER)
+                {
                     break;
                 }
                 process_Session_Close_Start(session, message);
@@ -289,7 +295,9 @@ process_Session_Type(Session* session,
             {
                 const Session_Close_Reply_Message* message =
                         getObjectFromBuffer<Session_Close_Reply_Message>(recvBuffer);
-                if(message == nullptr) {
+                if(message == nullptr
+                        || message->commonEnd.end != MESSAGE_DELIMITER)
+                {
                     break;
                 }
                 process_Session_Close_Reply(session, message);
