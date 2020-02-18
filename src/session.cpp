@@ -89,16 +89,36 @@ Session::sendStreamData(const void* data,
                         const bool dynamic,
                         const bool replyExpected)
 {
-    if(size >= 1024) {
-        return false;
-    }
-
     if(m_statemachine.isInState(ACTIVE))
     {
-        if(dynamic) {
-            send_Data_Stream_Dynamic(this, data, size, replyExpected);
-        } else {
-            send_Data_Stream_Static(this, data, size, replyExpected);
+        uint64_t totalSize = size;
+        uint64_t currentMessageSize = 0;
+        uint32_t partCounter = 0;
+
+        while(totalSize != 0)
+        {
+            currentMessageSize = 1024;
+            if(totalSize <= 1024) {
+                currentMessageSize = totalSize;
+            }
+            totalSize -= currentMessageSize;
+
+            const uint8_t* dataPointer = static_cast<const uint8_t*>(data);
+
+            if(dynamic)
+            {
+                send_Data_Stream_Dynamic(this,
+                                         dataPointer + (1024 * partCounter),
+                                         currentMessageSize,
+                                         replyExpected);
+            }
+            else
+            {
+                send_Data_Stream_Static(this,
+                                        dataPointer + (1024 * partCounter),
+                                        currentMessageSize,
+                                        replyExpected);
+            }
         }
 
         return true;
