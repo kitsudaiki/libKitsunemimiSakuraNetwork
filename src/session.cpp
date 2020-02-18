@@ -89,7 +89,7 @@ Session::sendStreamData(const void* data,
                         const bool dynamic,
                         const bool replyExpected)
 {
-    if(size >= 1000) {
+    if(size >= 1024) {
         return false;
     }
 
@@ -121,7 +121,7 @@ Session::sendStandaloneData(const void* data,
 {
     if(m_statemachine.isInState(ACTIVE))
     {
-        if(size < 1000)
+        if(size <= 1024)
         {
             const uint64_t singleblockId = m_multiblockIo->getRandValue();
             send_Data_SingleBlock(this, singleblockId, data, size);
@@ -154,7 +154,7 @@ Session::sendRequest(const void *data,
     {
         uint64_t id = 0;
 
-        if(size < 1000)
+        if(size <= 1024)
         {
             id = m_multiblockIo->getRandValue();
             send_Data_SingleBlock(this, id, data, size);
@@ -186,7 +186,7 @@ Session::sendResponse(const void *data,
 {
     if(m_statemachine.isInState(ACTIVE))
     {
-        if(size < 1000)
+        if(size < 1024)
         {
             const uint64_t singleblockId = m_multiblockIo->getRandValue();
             send_Data_SingleBlock(this, singleblockId, data, size, blockerId);
