@@ -26,6 +26,7 @@
 #include <handler/message_blocker_handler.h>
 #include <handler/session_handler.h>
 #include <callbacks.h>
+#include <messages_processing/session_processing.h>
 
 #include <libKitsunemimiNetwork/tcp/tcp_server.h>
 #include <libKitsunemimiNetwork/tcp/tcp_socket.h>
@@ -389,7 +390,13 @@ SessionController::startSession(Network::AbstractSocket *socket,
     const uint32_t newId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
     SessionHandler::m_sessionHandler->addSession(newId, newSession);
 
-    return newSession->connectiSession(newId, sessionIdentifier, true);
+    if(newSession->connectiSession(newId))
+    {
+        send_Session_Init_Start(newSession, sessionIdentifier);
+        return true;
+    }
+
+    return false;
 }
 
 //==================================================================================================

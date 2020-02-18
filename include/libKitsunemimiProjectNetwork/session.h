@@ -96,14 +96,12 @@ public:
     uint64_t m_sessionIdentifier = 0;
 
     // init session
-    bool connectiSession(const uint32_t sessionId,
-                         const uint64_t sessionIdentifier,
-                         const bool init = false);
+    bool connectiSession(const uint32_t sessionId);
     bool makeSessionReady(const uint32_t sessionId,
                           const uint64_t sessionIdentifier);
 
     // end session
-    bool endSession(const bool init = false);
+    bool endSession();
     bool disconnectSession();
 
     bool sendHeartbeat();

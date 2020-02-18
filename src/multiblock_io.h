@@ -50,7 +50,6 @@ public:
         bool isReady = false;
         bool currentSend = false;
         uint64_t blockerId = 0;
-        bool answerExpected = false;
         uint64_t multiblockId = 0;
         uint64_t messageSize = 0;
         uint32_t numberOfPackages = 0;
@@ -66,7 +65,6 @@ public:
     std::pair<DataBuffer*, uint64_t> createOutgoingBuffer(const void* data,
                                                           const uint64_t size,
                                                           const bool answerExpected=false,
-                                                          const uint64_t blockerTimeout=0,
                                                           const uint64_t blockerId=0);
     bool createIncomingBuffer(const uint64_t multiblockId,
                               const uint64_t size);
