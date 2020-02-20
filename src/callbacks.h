@@ -83,6 +83,15 @@ processMessage(void* target,
         return 0;
     }
 
+    // use the linkes session to forward the message
+    if(session->m_linkedSession != nullptr)
+    {
+        Session* linkedSession = session->getLinkedSession();
+        linkedSession->m_socket->sendMessage(getDataPointer(*recvBuffer, header->size),
+                                             header->size);
+        return header->size;
+    }
+
     // remove from reply-handler if message is reply
     if(header->flags & 0x2)
     {

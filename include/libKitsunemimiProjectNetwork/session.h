@@ -68,6 +68,7 @@ public:
     bool closeSession(const bool replyExpected = false);
     uint32_t sessionId() const;
     bool isClientSide() const;
+    Session* getLinkedSession();
 
     enum errorCodes
     {
@@ -94,6 +95,7 @@ public:
     MultiblockIO* m_multiblockIo = nullptr;
     uint32_t m_sessionId = 0;
     uint64_t m_sessionIdentifier = 0;
+    Session* m_linkedSession = nullptr;
 
     // init session
     bool connectiSession(const uint32_t sessionId);
@@ -119,6 +121,7 @@ public:
 
     // counter
     std::atomic_flag m_messageIdCounter_lock = ATOMIC_FLAG_INIT;
+    std::atomic_flag m_linkSession_lock = ATOMIC_FLAG_INIT;
     uint32_t m_messageIdCounter = 0;
 };
 

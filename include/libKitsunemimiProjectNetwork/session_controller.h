@@ -77,6 +77,10 @@ public:
     Session* getSession(const uint32_t id);
     void closeAllSession();
 
+    // linking
+    bool linkSessions(Session* session1, Session* session2);
+    bool unlinkSession(Session* session);
+
 private:
     uint32_t m_serverIdCounter = 0;
 
