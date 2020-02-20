@@ -373,6 +373,72 @@ SessionController::closeAllSession()
 }
 
 /**
+ * @brief SessionController::linkSessions
+ * @param session1
+ * @param session2
+ * @return
+ */
+bool
+SessionController::linkSessions(Session* session1, Session* session2)
+{
+    bool result = false;
+
+    while(session1->m_linkSession_lock.test_and_set(std::memory_order_acquire))  {
+        asm("");
+    }
+    while(session2->m_linkSession_lock.test_and_set(std::memory_order_acquire))  {
+        asm("");
+    }
+
+    if(session1->m_linkedSession != nullptr
+            || session2->m_linkedSession != nullptr)
+    {
+        session1->m_linkedSession = session2->m_linkedSession;
+        session2->m_linkedSession = session1->m_linkedSession;
+    }
+
+    session2->m_linkSession_lock.clear(std::memory_order_release);
+    session1->m_linkSession_lock.clear(std::memory_order_release);
+
+    return result;
+}
+
+/**
+ * @brief SessionController::unlinkSession
+ * @param session
+ * @return
+ */
+bool
+SessionController::unlinkSession(Session* session)
+{
+    Session* session2 = nullptr;
+
+    while(session->m_linkSession_lock.test_and_set(std::memory_order_acquire))  {
+        asm("");
+    }
+
+    if(session->m_linkedSession == nullptr)
+    {
+        session->m_linkSession_lock.clear(std::memory_order_release);
+        return false;
+    }
+
+    session2 = session->m_linkedSession;
+
+    while(session2->m_linkSession_lock.test_and_set(std::memory_order_acquire))  {
+        asm("");
+    }
+
+    session->m_linkedSession = nullptr;
+    session2->m_linkedSession = nullptr;
+
+    session2->m_linkSession_lock.clear(std::memory_order_release);
+    session->m_linkSession_lock.clear(std::memory_order_release);
+
+    return true;
+}
+
+/**
  * @brief start a new session
  *
  * @param socket socket of the new session
