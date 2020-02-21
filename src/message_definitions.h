@@ -39,6 +39,7 @@ namespace Project
 {
 
 #define MESSAGE_DELIMITER 1314472257
+#define STATIC_PAYLOAD_SIZE (128*1024)
 
 enum types
 {
@@ -279,7 +280,7 @@ struct Error_FalseVersion_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t messageSize = 0;
-    char message[1024];
+    char message[STATIC_PAYLOAD_SIZE];
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
 } __attribute__((packed));
@@ -297,8 +298,8 @@ create_Error_FalseVersion_Message(Error_FalseVersion_Message &target,
     target.commonHeader.size = sizeof(target);
 
     target.messageSize = errorMessage.size();
-    if(target.messageSize > 1023) {
-        target.messageSize = 1023;
+    if(target.messageSize > STATIC_PAYLOAD_SIZE-1) {
+        target.messageSize = STATIC_PAYLOAD_SIZE-1;
     }
     strncpy(target.message, errorMessage.c_str(), target.messageSize);
 }
@@ -310,7 +311,7 @@ struct Error_UnknownSession_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t messageSize = 0;
-    char message[1024];
+    char message[STATIC_PAYLOAD_SIZE];
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
 } __attribute__((packed));
@@ -328,8 +329,8 @@ create_Error_UnknownSession_Message(Error_UnknownSession_Message &target,
     target.commonHeader.size = sizeof(target);
 
     target.messageSize = errorMessage.size();
-    if(target.messageSize > 1023) {
-        target.messageSize = 1023;
+    if(target.messageSize > STATIC_PAYLOAD_SIZE-1) {
+        target.messageSize = STATIC_PAYLOAD_SIZE-1;
     }
     strncpy(target.message, errorMessage.c_str(), target.messageSize);
 }
@@ -341,7 +342,7 @@ struct Error_InvalidMessage_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t messageSize = 0;
-    char message[1024];
+    char message[STATIC_PAYLOAD_SIZE];
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
 } __attribute__((packed));
@@ -359,8 +360,8 @@ create_Error_InvalidMessage_Message(Error_InvalidMessage_Message &target,
     target.commonHeader.size = sizeof(target);
 
     target.messageSize = errorMessage.size();
-    if(target.messageSize > 1023) {
-        target.messageSize = 1023;
+    if(target.messageSize > STATIC_PAYLOAD_SIZE-1) {
+        target.messageSize = STATIC_PAYLOAD_SIZE-1;
     }
     strncpy(target.message, errorMessage.c_str(), target.messageSize);
 }
@@ -374,7 +375,7 @@ struct Data_StreamStatic_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t payloadSize = 0;
-    uint8_t payload[1024];
+    uint8_t payload[STATIC_PAYLOAD_SIZE];
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
 } __attribute__((packed));
@@ -391,7 +392,7 @@ create_Data_StreamStatic_Message(Data_StreamStatic_Message &target,
     target.commonHeader.messageId = messageId;
     target.commonHeader.size = sizeof(target);
     if(replyExpected) {
-        target.commonHeader.flags |= 0x1;
+        target.commonHeader.flags = 0x1;
     }
 }
 
@@ -416,7 +417,7 @@ create_Data_StreamDynamic_Header(Data_StreamDynamic_Header &target,
     target.commonHeader.messageId = messageId;
     target.commonHeader.size = sizeof(target);
     if(replyExpected) {
-        target.commonHeader.flags |= 0x1;
+        target.commonHeader.flags = 0x1;
     }
 }
 
@@ -454,7 +455,7 @@ struct Data_SingleBlock_Message
     uint64_t multiblockId = 0;
     uint64_t payloadSize = 0;
     uint64_t blockerId = 0;
-    uint8_t payload[1024];
+    uint8_t payload[STATIC_PAYLOAD_SIZE];
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
 } __attribute__((packed));
@@ -576,7 +577,7 @@ struct Data_MultiStatic_Message
     uint32_t totalPartNumber = 0;
     uint32_t partId = 0;
     uint64_t payloadSize = 0;
-    uint8_t payload[1024];
+    uint8_t payload[STATIC_PAYLOAD_SIZE];
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
 } __attribute__((packed));
