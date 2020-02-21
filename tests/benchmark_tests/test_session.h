@@ -29,10 +29,12 @@ public:
     bool m_isClient = false;
 
     uint64_t m_size = 0;
+    uint64_t m_sizeCounter = 0;
     uint8_t* m_dataBuffer = nullptr;
 
     Kitsunemimi::Project::SessionController* m_controller = nullptr;
-    Kitsunemimi::Project::Session* m_session = nullptr;
+    Kitsunemimi::Project::Session* m_clientSession = nullptr;
+    Kitsunemimi::Project::Session* m_serverSession = nullptr;
 
     std::chrono::high_resolution_clock::time_point m_start;
     std::chrono::high_resolution_clock::time_point m_end;
