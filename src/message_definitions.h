@@ -473,6 +473,9 @@ create_Data_SingleBlock_Message(Data_SingleBlock_Message &target,
     target.commonHeader.messageId = messageId;
     target.commonHeader.size = sizeof(target);
     target.commonHeader.flags = 0x1;
+    if(blockerId != 0) {
+        target.commonHeader.flags |= 0x8;
+    }
     target.blockerId = blockerId;
     target.multiblockId = multiblockId;
 }
@@ -623,7 +626,6 @@ create_Data_MultiFinish_Message(Data_MultiFinish_Message &target,
 
     target.multiblockId = multiblockId;
     target.blockerId = blockerId;
-
     if(blockerId != 0) {
         target.commonHeader.flags |= 0x8;
     }

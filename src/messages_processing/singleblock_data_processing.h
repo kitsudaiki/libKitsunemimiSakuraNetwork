@@ -96,10 +96,20 @@ process_Data_SingleBlock(Session* session,
     DataBuffer* buffer = new DataBuffer(1);
     addDataToBuffer(buffer, message->payload, message->payloadSize);
 
-    session->m_processStandaloneData(session->m_standaloneDataTarget,
-                                     session,
-                                     message->multiblockId,
-                                     buffer);
+    if(message->commonHeader.flags & 0x8)
+    {
+        bool found = SessionHandler::m_blockerHandler->releaseMessage(message->blockerId,
+                                                                      buffer);
+        assert(found);
+    }
+    else
+    {
+        session->m_processStandaloneData(session->m_standaloneDataTarget,
+                                         session,
+                                         message->multiblockId,
+                                         buffer);
+    }
+
     send_Data_SingleBlock_Reply(session, message->commonHeader.messageId);
 }
 
