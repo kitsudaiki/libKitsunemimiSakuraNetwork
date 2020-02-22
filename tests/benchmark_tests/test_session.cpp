@@ -2,8 +2,10 @@
 
 #include <libKitsunemimiProjectNetwork/session.h>
 #include <libKitsunemimiProjectNetwork/session_controller.h>
+
 #include <libKitsunemimiCommon/common_methods/string_methods.h>
 #include <libKitsunemimiCommon/data_buffer.h>
+#include <libKitsunemimiCommon/common_items/table_item.h>
 
 /**
  * @brief standaloneDataCallback
@@ -32,13 +34,21 @@ void streamDataCallback(void* target,
         testClass->m_end = std::chrono::system_clock::now();
         float duration = std::chrono::duration_cast<chronoMicroSec>(testClass->m_end - testClass->m_start).count();
         duration /= 1000000.0f;
-
-        std::cout<<"duration: "<<duration<<" seconds"<<std::endl;
         const float speed = ((static_cast<float>(testClass->m_size*10)
                              / (1024.0f*1024.0f*1024.0f))
                              / duration) * 8;
-        std::cout<<"speed: "<<speed<<" Gbits/sec"<<std::endl;
 
+        Kitsunemimi::TableItem result;
+
+        result.addColumn("key");
+        result.addColumn("value");
+
+        result.addRow(std::vector<std::string>{"duration", std::to_string(duration) + " seconds"});
+        result.addRow(std::vector<std::string>{"speed", std::to_string(speed) + " Gbits/sec"});
+
+        std::cout<<result.toString()<<std::endl;
+
+        exit(0);
     }
 }
 
@@ -130,10 +140,17 @@ void sessionCallback(void* target,
  * @param port
  */
 TestSession::TestSession(const std::string &address,
-                         const uint16_t port)
+                         const uint16_t port,
+                         const std::string &type)
 {
     m_size = 1024*1024*1024;
-    m_dataBuffer = new uint8_t[m_size];
+    m_dataBuffer = new uint8_t[1024*1024];
+
+    if(type == "tcp") {
+        m_isTcp = true;
+    } else {
+        m_isTcp = false;
+    }
 
     m_controller = new Kitsunemimi::Project::SessionController(this, &sessionCallback,
                                                                this, &streamDataCallback,
@@ -142,10 +159,20 @@ TestSession::TestSession(const std::string &address,
 
     if(port == 0)
     {
-        m_isClient = true;
-        m_controller->addTcpServer(1234);
-        usleep(10000);
-        m_controller->startTcpSession("127.0.0.1", 1234);
+        if(m_isTcp)
+        {
+            m_isClient = true;
+            m_controller->addTcpServer(4321);
+            usleep(10000);
+            m_controller->startTcpSession("127.0.0.1", 4321);
+        }
+        else
+        {
+            m_isClient = true;
+            m_controller->addUnixDomainServer("/tmp/sock.uds");
+            usleep(10000);
+            m_controller->startUnixDomainSession("/tmp/sock.uds");
+        }
     }
     else
     {
@@ -174,11 +201,11 @@ TestSession::sendLoop()
         }
 
         m_start = std::chrono::system_clock::now();
-        for(uint32_t i = 0; i < 10; i++)
-        {
-            m_clientSession->sendStreamData(m_dataBuffer, m_size);
-        }
 
+        for(int i = 0; i < 10*8*1024; i++)
+        {
+            assert(m_clientSession->sendStreamData(m_dataBuffer, 128*1024));
+        }
     }
 
     while(true)

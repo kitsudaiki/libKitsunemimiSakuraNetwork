@@ -23,10 +23,12 @@ class TestSession
 {
 public:
     TestSession(const std::string &address,
-                const uint16_t port);
+                const uint16_t port,
+                const std::string &type);
     void sendLoop();
 
     bool m_isClient = false;
+    bool m_isTcp = false;
 
     uint64_t m_size = 0;
     uint64_t m_sizeCounter = 0;
