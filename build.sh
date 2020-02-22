@@ -27,7 +27,7 @@ function build_kitsune_lib_repo () {
     /usr/bin/make -j4
 
     # copy build-result and include-files into the result-directory
-    cp -d $REPO_DIR/src/$REPO_NAME.so.* $RESULT_DIR/
+    cp -d $REPO_DIR/src/$REPO_NAME.a $RESULT_DIR/
     cp -r $PARENT_DIR/$REPO_NAME/include $RESULT_DIR/
 }
 
@@ -45,11 +45,11 @@ function get_required_kitsune_lib_repo () {
 
 #-----------------------------------------------------------------------------------------------------------------
 
-get_required_kitsune_lib_repo "libKitsunemimiCommon" "v0.10.1"
+get_required_kitsune_lib_repo "libKitsunemimiCommon" "master"
 
 get_required_kitsune_lib_repo "libKitsunemimiPersistence" "v0.7.0"
 
-get_required_kitsune_lib_repo "libKitsunemimiNetwork" "v0.5.3"
+get_required_kitsune_lib_repo "libKitsunemimiNetwork" "master"
 
 #-----------------------------------------------------------------------------------------------------------------
 

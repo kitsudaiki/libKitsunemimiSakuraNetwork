@@ -162,15 +162,15 @@ MultiblockIO::sendOutgoingData(const MultiblockMessage& messageBuffer)
     uint32_t partCounter = 0;
 
     // static values
-    const uint32_t totalPartNumber = static_cast<uint32_t>(totalSize / 1024) + 1;
+    const uint32_t totalPartNumber = static_cast<uint32_t>(totalSize / STATIC_PAYLOAD_SIZE) + 1;
     const uint8_t* dataPointer = getBlock(messageBuffer.multiBlockBuffer, 0);
 
     while(totalSize != 0
           && m_aborCurrentMessage == false)
     {
         // get message-size base on the rest
-        currentMessageSize = 1024;
-        if(totalSize <= 1024) {
+        currentMessageSize = STATIC_PAYLOAD_SIZE;
+        if(totalSize <= STATIC_PAYLOAD_SIZE) {
             currentMessageSize = totalSize;
         }
         totalSize -= currentMessageSize;
@@ -180,7 +180,7 @@ MultiblockIO::sendOutgoingData(const MultiblockMessage& messageBuffer)
                                messageBuffer.multiblockId,
                                totalPartNumber,
                                partCounter,
-                               dataPointer + (1024 * partCounter),
+                               dataPointer + (STATIC_PAYLOAD_SIZE * partCounter),
                                currentMessageSize);
 
         partCounter++;

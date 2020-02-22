@@ -97,8 +97,8 @@ Session::sendStreamData(const void* data,
 
         while(totalSize != 0)
         {
-            currentMessageSize = 1024;
-            if(totalSize <= 1024) {
+            currentMessageSize = STATIC_PAYLOAD_SIZE;
+            if(totalSize <= STATIC_PAYLOAD_SIZE) {
                 currentMessageSize = totalSize;
             }
             totalSize -= currentMessageSize;
@@ -108,14 +108,14 @@ Session::sendStreamData(const void* data,
             if(dynamic)
             {
                 send_Data_Stream_Dynamic(this,
-                                         dataPointer + (1024 * partCounter),
+                                         dataPointer + (STATIC_PAYLOAD_SIZE * partCounter),
                                          currentMessageSize,
                                          replyExpected);
             }
             else
             {
                 send_Data_Stream_Static(this,
-                                        dataPointer + (1024 * partCounter),
+                                        dataPointer + (STATIC_PAYLOAD_SIZE * partCounter),
                                         currentMessageSize,
                                         replyExpected);
             }
@@ -141,7 +141,7 @@ Session::sendStandaloneData(const void* data,
 {
     if(m_statemachine.isInState(ACTIVE))
     {
-        if(size <= 1024)
+        if(size <= STATIC_PAYLOAD_SIZE)
         {
             const uint64_t singleblockId = m_multiblockIo->getRandValue();
             send_Data_SingleBlock(this, singleblockId, data, size);
@@ -174,7 +174,7 @@ Session::sendRequest(const void *data,
     {
         uint64_t id = 0;
 
-        if(size <= 1024)
+        if(size <= STATIC_PAYLOAD_SIZE)
         {
             id = m_multiblockIo->getRandValue();
             send_Data_SingleBlock(this, id, data, size);
@@ -206,7 +206,7 @@ Session::sendResponse(const void *data,
 {
     if(m_statemachine.isInState(ACTIVE))
     {
-        if(size < 1024)
+        if(size < STATIC_PAYLOAD_SIZE)
         {
             const uint64_t singleblockId = m_multiblockIo->getRandValue();
             send_Data_SingleBlock(this, singleblockId, data, size, blockerId);

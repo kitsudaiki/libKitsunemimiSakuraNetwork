@@ -140,7 +140,10 @@ process_Data_Stream_Static(Session* session,
                                  session,
                                  static_cast<const void*>(message->payload),
                                  message->payloadSize);
-    send_Data_Stream_Reply(session, message->commonHeader.messageId);
+
+    if(message->commonHeader.flags & 0x1) {
+        send_Data_Stream_Reply(session, message->commonHeader.messageId);
+    }
 }
 
 /**
@@ -161,7 +164,9 @@ process_Data_Stream_Dynamic(Session* session,
                                  session,
                                  payload,
                                  message->payloadSize);
-    send_Data_Stream_Reply(session, message->commonHeader.messageId);
+    if(message->commonHeader.flags & 0x1) {
+        send_Data_Stream_Reply(session, message->commonHeader.messageId);
+    }
 
     return message->commonHeader.size;
 }
