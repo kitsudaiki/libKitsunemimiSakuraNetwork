@@ -93,11 +93,8 @@ processMessage(void* target,
     }
 
     // remove from reply-handler if message is reply
-    if(header->flags & 0x2)
-    {
-        bool found = SessionHandler::m_replyHandler->removeMessage(header->sessionId,
-                                                                   header->messageId);
-        assert(found);
+    if(header->flags & 0x2) {
+        SessionHandler::m_replyHandler->removeMessage(header->sessionId, header->messageId);
     }
 
     // process message by type
