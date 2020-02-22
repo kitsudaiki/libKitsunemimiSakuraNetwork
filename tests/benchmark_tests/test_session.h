@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <chrono>
+#include <mutex>
+#include <condition_variable>
 
 namespace Kitsunemimi {
 namespace Project {
@@ -25,10 +27,11 @@ public:
     TestSession(const std::string &address,
                 const uint16_t port,
                 const std::string &type);
-    void sendLoop();
+    void sendLoop(const std::string &transferType);
 
     bool m_isClient = false;
     bool m_isTcp = false;
+    std::string m_transferType = "";
 
     uint64_t m_size = 0;
     uint64_t m_sizeCounter = 0;
@@ -40,6 +43,9 @@ public:
 
     std::chrono::high_resolution_clock::time_point m_start;
     std::chrono::high_resolution_clock::time_point m_end;
+
+    std::mutex m_cvMutex;
+    std::condition_variable m_cv;
 };
 
 #endif // TEST_SESSION_H

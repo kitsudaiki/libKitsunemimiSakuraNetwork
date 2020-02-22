@@ -49,7 +49,12 @@ int main(int argc, char *argv[])
         (
             "type,t",
             argParser::value<std::string>(),
-            "type: tcp or uds"
+            "type: tcp or uds (Default: tcp)"
+        )
+        (
+            "transfer-type,s",
+            argParser::value<std::string>(),
+            "type of transfer: stream, standalone or request (Default: stream)"
         )
     ;
 
@@ -66,7 +71,8 @@ int main(int argc, char *argv[])
 
     uint16_t port = 0;
     std::string address = "";
-    std::string type = "";
+    std::string type = "tcp";
+    std::string transferType = "stream";
 
     if(vm.count("address")) {
         address = vm["address"].as<std::string>();
@@ -77,6 +83,9 @@ int main(int argc, char *argv[])
     if(vm.count("type")) {
         type = vm["type"].as<std::string>();
     }
+    if(vm.count("transfer-type")) {
+        transferType = vm["transfer-type"].as<std::string>();
+    }
 
     if(type != "tcp"
             && type != "uds")
@@ -85,11 +94,21 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    if(transferType != "stream"
+            && transferType != "standalone"
+            && transferType != "request")
+    {
+        std::cout<<"ERROR: transfer-type \""<<transferType<<"\" is unknown. "
+                   "Choose \"stream\", \"standalone\" or \"request\"."<<std::endl;;
+        exit(1);
+    }
+
     std::cout<<"address: "<<address<<std::endl;
     std::cout<<"port: "<<(int)port<<std::endl;
     std::cout<<"type: "<<type<<std::endl;
+    std::cout<<"transfer-type: "<<transferType<<std::endl;
 
     TestSession testSession(address, port, type);
 
-    testSession.sendLoop();
+    testSession.sendLoop(transferType);
 }
