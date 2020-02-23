@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
         (
             "address,a",
             argParser::value<std::string>(),
-            "address to connect"
+            "address to connect (Default: 127.0.0.1)"
         )
         (
             "port,p",
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     }
 
     uint16_t port = 0;
-    std::string address = "";
+    std::string address = "127.0.0.1";
     std::string type = "tcp";
     std::string transferType = "stream";
 
@@ -87,6 +87,7 @@ int main(int argc, char *argv[])
         transferType = vm["transfer-type"].as<std::string>();
     }
 
+    // precheck type
     if(type != "tcp"
             && type != "uds")
     {
@@ -94,6 +95,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    // precheck transfer-type
     if(transferType != "stream"
             && transferType != "standalone"
             && transferType != "request")
@@ -103,12 +105,15 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    // ouptput set values
+    std::cout<<"--------------------------------------"<<std::endl;
     std::cout<<"address: "<<address<<std::endl;
-    std::cout<<"port: "<<(int)port<<std::endl;
+    std::cout<<"port: "<<static_cast<int>(port)<<std::endl;
     std::cout<<"type: "<<type<<std::endl;
     std::cout<<"transfer-type: "<<transferType<<std::endl;
+    std::cout<<"--------------------------------------"<<std::endl;
 
-    TestSession testSession(address, port, type);
+    TestSession testSession(address, port, type, transferType);
 
-    testSession.sendLoop(transferType);
+    testSession.sendLoop();
 }

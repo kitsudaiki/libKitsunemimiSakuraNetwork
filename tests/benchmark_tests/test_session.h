@@ -15,9 +15,9 @@ class Session;
 }
 }
 
-typedef std::chrono::microseconds  chronoMicroSec;
-typedef std::chrono::nanoseconds  chronoNanoSec;
-typedef std::chrono::seconds  chronoSec;
+typedef std::chrono::microseconds chronoMicroSec;
+typedef std::chrono::nanoseconds chronoNanoSec;
+typedef std::chrono::seconds chronoSec;
 typedef std::chrono::high_resolution_clock::time_point chronoTimePoint;
 typedef std::chrono::high_resolution_clock chronoClock;
 
@@ -26,14 +26,15 @@ class TestSession
 public:
     TestSession(const std::string &address,
                 const uint16_t port,
-                const std::string &type);
-    void sendLoop(const std::string &transferType);
+                const std::string &type, const std::string &transferType);
+    void sendLoop();
 
     bool m_isClient = false;
     bool m_isTcp = false;
     std::string m_transferType = "";
 
     uint64_t m_size = 0;
+    uint64_t m_totalSize = 0;
     uint64_t m_sizeCounter = 0;
     uint8_t* m_dataBuffer = nullptr;
 
