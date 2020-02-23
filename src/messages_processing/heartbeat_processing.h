@@ -134,7 +134,7 @@ process_Heartbeat_Type(Session* session,
                     break;
                 }
                 process_Heartbeat_Start(session, message);
-                return sizeof(*message);
+                break;
             }
         //------------------------------------------------------------------------------------------
         case HEARTBEAT_REPLY_SUBTYPE:
@@ -147,14 +147,12 @@ process_Heartbeat_Type(Session* session,
                     break;
                 }
                 process_Heartbeat_Reply(session, message);
-                return sizeof(*message);
+                break;
             }
         //------------------------------------------------------------------------------------------
         default:
             break;
     }
-
-    return 0;
 }
 
 } // namespace Project

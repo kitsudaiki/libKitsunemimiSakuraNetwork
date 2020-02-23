@@ -54,12 +54,12 @@ send_Data_Stream(Session* session,
                  const uint32_t size,
                  const bool replyExpected)
 {
-    uint8_t messageBuffer[STATIC_PAYLOAD_SIZE];
+    uint8_t messageBuffer[MESSAGE_CACHE_SIZE];
 
     // bring message-size to a multiple of 8
     const uint32_t totalMessageSize = sizeof(Data_Stream_Header)
                                       + size
-                                      + (size % 8)
+                                      + (8-(size % 8))  // fill up to a multiple of 8
                                       + sizeof(CommonMessageEnd);
 
     CommonMessageEnd end;
@@ -102,11 +102,11 @@ send_Data_Stream_Reply(Session* session,
 /**
  * @brief process_Data_Stream_Static
  */
-inline uint64_t
+inline void
 process_Data_Stream(Session* session,
+                    const Data_Stream_Header* header,
                     const void* rawMessage)
 {
-    const Data_Stream_Header* header = static_cast<const Data_Stream_Header*>(rawMessage);
     const uint8_t* payloadData = static_cast<const uint8_t*>(rawMessage)
                                  + sizeof(Data_Stream_Header);
 
@@ -118,18 +118,16 @@ process_Data_Stream(Session* session,
     if(header->commonHeader.flags & 0x1) {
         send_Data_Stream_Reply(session, header->commonHeader.messageId);
     }
-
-    return header->commonHeader.totalMessageSize;
 }
 
 /**
  * @brief process_Data_Stream_Reply
  */
-inline uint64_t
+inline void
 process_Data_Stream_Reply(Session*,
-                          const void*)
+                          const Data_StreamReply_Message*)
 {
-    return sizeof(Data_StreamReply_Message);
+    return;
 }
 
 /**
@@ -141,30 +139,33 @@ process_Data_Stream_Reply(Session*,
  *
  * @return number of processed bytes
  */
-inline uint64_t
+inline void
 process_Stream_Data_Type(Session* session,
                          const CommonMessageHeader* header,
-                         const void* rawMessage,
-                         const uint32_t)
+                         const void* rawMessage)
 {
     switch(header->subType)
     {
         //------------------------------------------------------------------------------------------
         case DATA_STREAM_STATIC_SUBTYPE:
             {
-                return process_Data_Stream(session, rawMessage);
+                const Data_Stream_Header* message =
+                    static_cast<const Data_Stream_Header*>(rawMessage);
+                process_Data_Stream(session, message, rawMessage);
+                break;
             }
         //------------------------------------------------------------------------------------------
         case DATA_STREAM_REPLY_SUBTYPE:
             {
-                return process_Data_Stream_Reply(session, rawMessage);
+                const Data_StreamReply_Message* message =
+                    static_cast<const Data_StreamReply_Message*>(rawMessage);
+                process_Data_Stream_Reply(session, message);
+                break;
             }
         //------------------------------------------------------------------------------------------
         default:
             break;
     }
-
-    return 0;
 }
 
 } // namespace Project

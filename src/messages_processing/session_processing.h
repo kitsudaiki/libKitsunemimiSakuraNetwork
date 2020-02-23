@@ -240,7 +240,7 @@ process_Session_Close_Reply(Session* session,
  *
  * @return number of processed bytes
  */
-inline uint64_t
+inline void
 process_Session_Type(Session* session,
                      const CommonMessageHeader* header,
                      MessageRingBuffer *recvBuffer)
@@ -262,7 +262,7 @@ process_Session_Type(Session* session,
                     break;
                 }
                 process_Session_Init_Start(session, message);
-                return sizeof(*message);
+                break;
             }
         //------------------------------------------------------------------------------------------
         case SESSION_INIT_REPLY_SUBTYPE:
@@ -275,7 +275,7 @@ process_Session_Type(Session* session,
                     break;
                 }
                 process_Session_Init_Reply(session, message);
-                return sizeof(*message);
+                break;
             }
         //------------------------------------------------------------------------------------------
         case SESSION_CLOSE_START_SUBTYPE:
@@ -288,7 +288,7 @@ process_Session_Type(Session* session,
                     break;
                 }
                 process_Session_Close_Start(session, message);
-                return sizeof(*message);
+                break;
             }
         //------------------------------------------------------------------------------------------
         case SESSION_CLOSE_REPLY_SUBTYPE:
@@ -301,14 +301,12 @@ process_Session_Type(Session* session,
                     break;
                 }
                 process_Session_Close_Reply(session, message);
-                return sizeof(*message);
+                break;
             }
         //------------------------------------------------------------------------------------------
         default:
             break;
     }
-
-    return 0;
 }
 
 } // namespace Project

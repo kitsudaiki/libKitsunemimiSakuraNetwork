@@ -97,12 +97,14 @@ processMessage(void* target,
         SessionHandler::m_replyHandler->removeMessage(header->sessionId, header->messageId);
     }
 
+    // get complete message from the ringbuffer, if enough data are available
     const void* rawMessage = static_cast<const void*>(getDataPointer(*recvBuffer,
                                                       header->totalMessageSize));
     if(rawMessage == nullptr) {
         return 0;
     }
 
+    // check delimiter
     const uint32_t* end = static_cast<const uint32_t*>(rawMessage)
                           + ((header->totalMessageSize)/4)
                           - 1;
@@ -116,23 +118,29 @@ processMessage(void* target,
     switch(header->type)
     {
         case STREAM_DATA_TYPE:
-            return process_Stream_Data_Type(session, header, rawMessage, header->payloadSize);
+            process_Stream_Data_Type(session, header, rawMessage);
+            break;
         case SINGLEBLOCK_DATA_TYPE:
-            return process_SingleBlock_Data_Type(session, header, recvBuffer);
+            process_SingleBlock_Data_Type(session, header, rawMessage);
+            break;
         case MULTIBLOCK_DATA_TYPE:
-            return process_MultiBlock_Data_Type(session, header, recvBuffer);
+            process_MultiBlock_Data_Type(session, header, rawMessage);
+            break;
         case SESSION_TYPE:
-            return process_Session_Type(session, header, recvBuffer);
+            process_Session_Type(session, header, recvBuffer);
+            break;
         case HEARTBEAT_TYPE:
-            return process_Heartbeat_Type(session, header, recvBuffer);
+            process_Heartbeat_Type(session, header, recvBuffer);
+            break;
         case ERROR_TYPE:
-            return process_Error_Type(session, header, recvBuffer);
+            process_Error_Type(session, header, recvBuffer);
+            break;
         default:
             // TODO: handle invalid case
-            break;
+            return 0;
     }
 
-    return 0;
+    return header->totalMessageSize;
 }
 
 /**

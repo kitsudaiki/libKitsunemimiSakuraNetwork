@@ -140,7 +140,7 @@ process_Error_Type(Session* session,
                                         session,
                                         Session::errorCodes::FALSE_VERSION,
                                         std::string(message->message, message->messageSize));
-                return sizeof(*message);
+                break;
             }
         //------------------------------------------------------------------------------------------
         case ERROR_UNKNOWN_SESSION_SUBTYPE:
@@ -157,7 +157,7 @@ process_Error_Type(Session* session,
                                         session,
                                         Session::errorCodes::UNKNOWN_SESSION,
                                         std::string(message->message, message->messageSize));
-                return sizeof(*message);
+                break;
             }
         //------------------------------------------------------------------------------------------
         case ERROR_INVALID_MESSAGE_SUBTYPE:
@@ -174,14 +174,12 @@ process_Error_Type(Session* session,
                                         session,
                                         Session::errorCodes::INVALID_MESSAGE_SIZE,
                                         std::string(message->message, message->messageSize));
-                return sizeof(*message);
+                break;
             }
         //------------------------------------------------------------------------------------------
         default:
             break;
     }
-
-    return 0;
 }
 
 } // namespace Project

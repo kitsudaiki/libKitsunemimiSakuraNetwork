@@ -101,22 +101,38 @@ send_Data_Multi_Static(Session* session,
                        const void* data,
                        const uint32_t size)
 {
+    uint8_t messageBuffer[MESSAGE_CACHE_SIZE];
+
+    // bring message-size to a multiple of 8
+    const uint32_t totalMessageSize = sizeof(Data_MultiStatic_Message)
+                                      + size
+                                      + (8-(size % 8)) % 8  // fill up to a multiple of 8
+                                      + sizeof(CommonMessageEnd);
+
+    CommonMessageEnd end;
     Data_MultiStatic_Message message;
     create_Data_MultiStatic_Message(message,
                                     session->sessionId(),
                                     session->increaseMessageIdCounter(),
-                                    multiblockId);
+                                    multiblockId,
+                                    totalMessageSize,
+                                    size);
 
     message.totalPartNumber = totalPartNumber;
     message.partId = partId;
 
-    memcpy(message.payload, data, size);
-    message.commonHeader.payloadSize = size;
+    // fill buffer to build the complete message
+    memcpy(&messageBuffer[0], &message, sizeof(Data_MultiStatic_Message));
+    memcpy(&messageBuffer[sizeof(Data_MultiStatic_Message)], data, size);
+    memcpy(&messageBuffer[(totalMessageSize - sizeof(CommonMessageEnd))],
+           &end,
+           sizeof(CommonMessageEnd));
 
+    return;
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
-                                                  &message,
-                                                  sizeof(message));
+                                                  messageBuffer,
+                                                  totalMessageSize);
 }
 
 /**
@@ -226,10 +242,13 @@ process_Data_Multi_Init_Reply(Session* session,
  */
 inline void
 process_Data_Multi_Static(Session* session,
-                          const Data_MultiStatic_Message* message)
+                          const Data_MultiStatic_Message* message,
+                          const void* rawMessage)
 {
+    const uint8_t* payloadData = static_cast<const uint8_t*>(rawMessage)
+                                 + sizeof(Data_SingleBlock_Heaser);
     session->m_multiblockIo->writeIntoIncomingBuffer(message->multiblockId,
-                                                     message->payload,
+                                                     payloadData,
                                                      message->commonHeader.payloadSize);
 }
 
@@ -294,10 +313,10 @@ process_Data_Multi_Abort_Reply(Session* session,
  *
  * @return number of processed bytes
  */
-inline uint64_t
+inline void
 process_MultiBlock_Data_Type(Session* session,
                              const CommonMessageHeader* header,
-                             MessageRingBuffer* recvBuffer)
+                             const void* rawMessage)
 {
     switch(header->subType)
     {
@@ -305,86 +324,54 @@ process_MultiBlock_Data_Type(Session* session,
         case DATA_MULTI_INIT_SUBTYPE:
             {
                 const Data_MultiInit_Message* message =
-                        getObjectFromBuffer<Data_MultiInit_Message>(recvBuffer);
-                if(message == nullptr
-                        || message->commonEnd.end != MESSAGE_DELIMITER)
-                {
-                    break;
-                }
+                    static_cast<const Data_MultiInit_Message*>(rawMessage);
                 process_Data_Multi_Init(session, message);
-                return sizeof(*message);
+                break;
             }
         //------------------------------------------------------------------------------------------
         case DATA_MULTI_INIT_REPLY_SUBTYPE:
             {
                 const Data_MultiInitReply_Message* message =
-                        getObjectFromBuffer<Data_MultiInitReply_Message>(recvBuffer);
-                if(message == nullptr
-                        || message->commonEnd.end != MESSAGE_DELIMITER)
-                {
-                    break;
-                }
+                    static_cast<const Data_MultiInitReply_Message*>(rawMessage);
                 process_Data_Multi_Init_Reply(session, message);
-                return sizeof(*message);
+                break;
             }
         //------------------------------------------------------------------------------------------
         case DATA_MULTI_STATIC_SUBTYPE:
             {
                 const Data_MultiStatic_Message* message =
-                        getObjectFromBuffer<Data_MultiStatic_Message>(recvBuffer);
-                if(message == nullptr
-                        || message->commonEnd.end != MESSAGE_DELIMITER)
-                {
-                    break;
-                }
-                process_Data_Multi_Static(session, message);
-                return sizeof(*message);
+                    static_cast<const Data_MultiStatic_Message*>(rawMessage);
+                process_Data_Multi_Static(session, message, rawMessage);
+                break;
             }
         //------------------------------------------------------------------------------------------
         case DATA_MULTI_FINISH_SUBTYPE:
             {
                 const Data_MultiFinish_Message* message =
-                        getObjectFromBuffer<Data_MultiFinish_Message>(recvBuffer);
-                if(message == nullptr
-                        || message->commonEnd.end != MESSAGE_DELIMITER)
-                {
-                    break;
-                }
+                    static_cast<const Data_MultiFinish_Message*>(rawMessage);
                 process_Data_Multi_Finish(session, message);
-                return sizeof(*message);
+                break;
             }
         //------------------------------------------------------------------------------------------
         case DATA_MULTI_ABORT_INIT_SUBTYPE:
             {
                 const Data_MultiAbortInit_Message* message =
-                        getObjectFromBuffer<Data_MultiAbortInit_Message>(recvBuffer);
-                if(message == nullptr
-                        || message->commonEnd.end != MESSAGE_DELIMITER)
-                {
-                    break;
-                }
+                    static_cast<const Data_MultiAbortInit_Message*>(rawMessage);
                 process_Data_Multi_Abort_Init(session, message);
-                return sizeof(*message);
+                break;
             }
         //------------------------------------------------------------------------------------------
         case DATA_MULTI_ABORT_REPLY_SUBTYPE:
             {
                 const Data_MultiAbortReply_Message* message =
-                        getObjectFromBuffer<Data_MultiAbortReply_Message>(recvBuffer);
-                if(message == nullptr
-                        || message->commonEnd.end != MESSAGE_DELIMITER)
-                {
-                    break;
-                }
+                    static_cast<const Data_MultiAbortReply_Message*>(rawMessage);
                 process_Data_Multi_Abort_Reply(session, message);
-                return sizeof(*message);
+                break;
             }
         //------------------------------------------------------------------------------------------
         default:
             break;
     }
-
-    return 0;
 }
 
 } // namespace Project
