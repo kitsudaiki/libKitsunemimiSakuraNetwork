@@ -58,13 +58,13 @@ send_Data_SingleBlock(Session* session,
     uint8_t messageBuffer[MESSAGE_CACHE_SIZE];
 
     // bring message-size to a multiple of 8
-    const uint32_t totalMessageSize = sizeof(Data_SingleBlock_Heaser)
+    const uint32_t totalMessageSize = sizeof(Data_SingleBlock_Header)
                                       + size
                                       + (8-(size % 8))  // fill up to a multiple of 8
                                       + sizeof(CommonMessageEnd);
 
     CommonMessageEnd end;
-    Data_SingleBlock_Heaser header;
+    Data_SingleBlock_Header header;
 
     header.commonHeader.type = SINGLEBLOCK_DATA_TYPE;
     header.commonHeader.subType = DATA_SINGLE_DATA_SUBTYPE;
@@ -79,8 +79,8 @@ send_Data_SingleBlock(Session* session,
         header.commonHeader.flags |= 0x8;
     }
 
-    memcpy(&messageBuffer[0], &header, sizeof(Data_SingleBlock_Heaser));
-    memcpy(&messageBuffer[sizeof(Data_SingleBlock_Heaser)], data, size);
+    memcpy(&messageBuffer[0], &header, sizeof(Data_SingleBlock_Header));
+    memcpy(&messageBuffer[sizeof(Data_SingleBlock_Header)], data, size);
     memcpy(&messageBuffer[(totalMessageSize - sizeof(CommonMessageEnd))],
            &end,
            sizeof(CommonMessageEnd));
@@ -118,14 +118,14 @@ send_Data_SingleBlock_Reply(Session* session,
  */
 inline void
 process_Data_SingleBlock(Session* session,
-                         const Data_SingleBlock_Heaser* header,
+                         const Data_SingleBlock_Header* header,
                          const void* rawMessage)
 {
     const uint32_t allocateBlocks = (header->commonHeader.payloadSize / 4096) + 1;
     DataBuffer* buffer = new DataBuffer(allocateBlocks);
 
     const uint8_t* payloadData = static_cast<const uint8_t*>(rawMessage)
-                                 + sizeof(Data_SingleBlock_Heaser);
+                                 + sizeof(Data_SingleBlock_Header);
 
     addDataToBuffer(buffer, payloadData, header->commonHeader.payloadSize);
 
@@ -177,8 +177,8 @@ process_SingleBlock_Data_Type(Session* session,
         //------------------------------------------------------------------------------------------
         case DATA_SINGLE_DATA_SUBTYPE:
             {
-                const Data_SingleBlock_Heaser* message =
-                    static_cast<const Data_SingleBlock_Heaser*>(rawMessage);
+                const Data_SingleBlock_Header* message =
+                    static_cast<const Data_SingleBlock_Header*>(rawMessage);
                 process_Data_SingleBlock(session, message, rawMessage);
                 break;
             }

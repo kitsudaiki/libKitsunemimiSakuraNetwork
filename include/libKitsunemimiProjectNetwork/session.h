@@ -50,7 +50,6 @@ public:
 
     bool sendStreamData(const void* data,
                         const uint64_t size,
-                        const bool dynamic = false,
                         const bool replyExpected = false);
 
     uint64_t sendStandaloneData(const void* data,

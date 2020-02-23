@@ -128,29 +128,20 @@ void sessionCallback(void* target,
         {
             bool ret = false;
 
-            // static size
+            // stream-message
             const std::string staticTestString = testClass->m_staticMessage;
             ret = session->sendStreamData(staticTestString.c_str(),
                                           staticTestString.size(),
-                                          false,
                                           true);
             testClass->compare(ret,  true);
 
-            // dynamic size
-            const std::string dynamicTestString = testClass->m_dynamicMessage;
-            ret = session->sendStreamData(dynamicTestString.c_str(),
-                                          dynamicTestString.size(),
-                                          true,
-                                          true);
-            testClass->compare(ret,  true);
-
-            // singleblock
+            // singleblock-message
             const std::string singleblockTestString = testClass->m_singleBlockMessage;
             ret = session->sendStandaloneData(singleblockTestString.c_str(),
                                               singleblockTestString.size());
             testClass->compare(ret,  true);
 
-            // multiblock
+            // multiblock-message
             const std::string multiblockTestString = testClass->m_multiBlockMessage;
             ret = session->sendStandaloneData(multiblockTestString.c_str(),
                                               multiblockTestString.size());

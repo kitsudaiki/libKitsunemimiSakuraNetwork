@@ -287,7 +287,7 @@ struct Error_InvalidMessage_Message
 //==================================================================================================
 
 /**
- * @brief Data_StreamStatic_Message
+ * @brief Data_Stream_Header
  */
 struct Data_Stream_Header
 {
@@ -306,9 +306,9 @@ struct Data_StreamReply_Message
 //==================================================================================================
 
 /**
- * @brief Data_SingleStatic_Message
+ * @brief Data_SingleBlock_Header
  */
-struct Data_SingleBlock_Heaser
+struct Data_SingleBlock_Header
 {
     CommonMessageHeader commonHeader;
     uint64_t multiblockId = 0;
@@ -357,9 +357,9 @@ struct Data_MultiInitReply_Message
 } __attribute__((packed));
 
 /**
- * @brief Data_MultiStatic_Message
+ * @brief Data_MultiBlock_Header
  */
-struct Data_MultiStatic_Message
+struct Data_MultiBlock_Header
 {
     CommonMessageHeader commonHeader;
     uint64_t multiblockId = 0;

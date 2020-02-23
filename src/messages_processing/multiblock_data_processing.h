@@ -114,13 +114,13 @@ send_Data_Multi_Static(Session* session,
     uint8_t messageBuffer[MESSAGE_CACHE_SIZE];
 
     // bring message-size to a multiple of 8
-    const uint32_t totalMessageSize = sizeof(Data_MultiStatic_Message)
+    const uint32_t totalMessageSize = sizeof(Data_MultiBlock_Header)
                                       + size
                                       + (8-(size % 8)) % 8  // fill up to a multiple of 8
                                       + sizeof(CommonMessageEnd);
 
     CommonMessageEnd end;
-    Data_MultiStatic_Message message;
+    Data_MultiBlock_Header message;
 
     message.commonHeader.type = MULTIBLOCK_DATA_TYPE;
     message.commonHeader.subType = DATA_MULTI_STATIC_SUBTYPE;
@@ -133,8 +133,8 @@ send_Data_Multi_Static(Session* session,
     message.partId = partId;
 
     // fill buffer to build the complete message
-    memcpy(&messageBuffer[0], &message, sizeof(Data_MultiStatic_Message));
-    memcpy(&messageBuffer[sizeof(Data_MultiStatic_Message)], data, size);
+    memcpy(&messageBuffer[0], &message, sizeof(Data_MultiBlock_Header));
+    memcpy(&messageBuffer[sizeof(Data_MultiBlock_Header)], data, size);
     memcpy(&messageBuffer[(totalMessageSize - sizeof(CommonMessageEnd))],
            &end,
            sizeof(CommonMessageEnd));
@@ -267,11 +267,11 @@ process_Data_Multi_Init_Reply(Session* session,
  */
 inline void
 process_Data_Multi_Static(Session* session,
-                          const Data_MultiStatic_Message* message,
+                          const Data_MultiBlock_Header* message,
                           const void* rawMessage)
 {
     const uint8_t* payloadData = static_cast<const uint8_t*>(rawMessage)
-                                 + sizeof(Data_SingleBlock_Heaser);
+                                 + sizeof(Data_SingleBlock_Header);
     session->m_multiblockIo->writeIntoIncomingBuffer(message->multiblockId,
                                                      payloadData,
                                                      message->commonHeader.payloadSize);
@@ -364,8 +364,8 @@ process_MultiBlock_Data_Type(Session* session,
         //------------------------------------------------------------------------------------------
         case DATA_MULTI_STATIC_SUBTYPE:
             {
-                const Data_MultiStatic_Message* message =
-                    static_cast<const Data_MultiStatic_Message*>(rawMessage);
+                const Data_MultiBlock_Header* message =
+                    static_cast<const Data_MultiBlock_Header*>(rawMessage);
                 process_Data_Multi_Static(session, message, rawMessage);
                 break;
             }

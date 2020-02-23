@@ -78,7 +78,6 @@ Session::~Session()
  *
  * @param data data-pointer
  * @param size number of bytes
- * @param dynamic if true, packets are not bigger as necessary, but its slower
  * @param replyExpected if true, the other side sends a reply-message to check timeouts
  *
  * @return false if session is NOT ready to send, else true
@@ -86,7 +85,6 @@ Session::~Session()
 bool
 Session::sendStreamData(const void* data,
                         const uint64_t size,
-                        const bool dynamic,
                         const bool replyExpected)
 {
     if(m_statemachine.isInState(ACTIVE))
@@ -199,7 +197,11 @@ Session::sendResponse(const void *data,
         if(size < MAX_SINGLE_MESSAGE_SIZE)
         {
             const uint64_t singleblockId = m_multiblockIo->getRandValue();
-            send_Data_SingleBlock(this, singleblockId, data, size, blockerId);
+            send_Data_SingleBlock(this,
+                                  singleblockId,
+                                  data,
+                                  static_cast<uint32_t>(size),
+                                  blockerId);
             return singleblockId;
         }
         else

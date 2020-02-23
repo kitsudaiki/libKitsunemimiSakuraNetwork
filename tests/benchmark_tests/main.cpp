@@ -47,12 +47,12 @@ int main(int argc, char *argv[])
             "port where to listen"
         )
         (
-            "type,t",
+            "socket,s",
             argParser::value<std::string>(),
             "type: tcp or uds (Default: tcp)"
         )
         (
-            "transfer-type,s",
+            "transfer-type,t",
             argParser::value<std::string>(),
             "type of transfer: stream, standalone or request (Default: stream)"
         )
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 
     uint16_t port = 0;
     std::string address = "127.0.0.1";
-    std::string type = "tcp";
+    std::string socket = "tcp";
     std::string transferType = "stream";
 
     if(vm.count("address")) {
@@ -80,18 +80,18 @@ int main(int argc, char *argv[])
     if(vm.count("port")) {
         port = vm["port"].as<uint16_t>();
     }
-    if(vm.count("type")) {
-        type = vm["type"].as<std::string>();
+    if(vm.count("socket")) {
+        socket = vm["socket"].as<std::string>();
     }
     if(vm.count("transfer-type")) {
         transferType = vm["transfer-type"].as<std::string>();
     }
 
     // precheck type
-    if(type != "tcp"
-            && type != "uds")
+    if(socket != "tcp"
+            && socket != "uds")
     {
-        std::cout<<"ERROR: type \""<<type<<"\" is unknown. Choose \"tcp\" or \"uds\"."<<std::endl;;
+        std::cout<<"ERROR: type \""<<socket<<"\" is unknown. Choose \"tcp\" or \"uds\"."<<std::endl;;
         exit(1);
     }
 
@@ -109,11 +109,11 @@ int main(int argc, char *argv[])
     std::cout<<"--------------------------------------"<<std::endl;
     std::cout<<"address: "<<address<<std::endl;
     std::cout<<"port: "<<static_cast<int>(port)<<std::endl;
-    std::cout<<"type: "<<type<<std::endl;
+    std::cout<<"socket: "<<socket<<std::endl;
     std::cout<<"transfer-type: "<<transferType<<std::endl;
     std::cout<<"--------------------------------------"<<std::endl;
 
-    TestSession testSession(address, port, type, transferType);
+    TestSession testSession(address, port, socket, transferType);
 
     testSession.sendLoop();
 }

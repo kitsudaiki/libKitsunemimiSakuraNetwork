@@ -8,10 +8,7 @@
 #include <libKitsunemimiCommon/common_items/table_item.h>
 
 /**
- * @brief standaloneDataCallback
- * @param target
- * @param data
- * @param dataSize
+ * @brief streamDataCallback
  */
 void streamDataCallback(void* target,
                         Kitsunemimi::Project::Session* session,
@@ -36,10 +33,6 @@ void streamDataCallback(void* target,
 
 /**
  * @brief standaloneDataCallback
- * @param target
- * @param isStream
- * @param data
- * @param dataSize
  */
 void standaloneDataCallback(void* target,
                             Kitsunemimi::Project::Session* session,
@@ -48,6 +41,7 @@ void standaloneDataCallback(void* target,
 {
     TestSession* testClass = static_cast<TestSession*>(target);
 
+    // handling for request transfer-type
     if(testClass->m_transferType == "request")
     {
         if(session->isClientSide() == false)
@@ -59,6 +53,7 @@ void standaloneDataCallback(void* target,
         }
     }
 
+    // handling for standalone transfer-type
     if(testClass->m_transferType == "standalone")
     {
         if(session->isClientSide() == false)
@@ -88,9 +83,6 @@ void errorCallback(void*,
 
 /**
  * @brief sessionCallback
- * @param target
- * @param isInit
- * @param session
  */
 void sessionCallback(void* target,
                      bool isInit,
@@ -121,30 +113,35 @@ void sessionCallback(void* target,
 }
 
 /**
- * @brief TestSession::TestSession
- * @param address
- * @param port
+ * @brief iniitialize test-class
+ *
+ * @param address ip address
+ * @param port port-number
+ * @param socket socket-type (tcp or uds)
+ * @param transferType transfer-type (stream, standalone or request)
  */
 TestSession::TestSession(const std::string &address,
                          const uint16_t port,
-                         const std::string &type,
+                         const std::string &socket,
                          const std::string &transferType)
 {
-    m_totalSize = 1024l*1024l*1024l*10l;
+    // init global values
+    m_totalSize = 1024l*1024l*1024l*100l;
     m_dataBuffer = new uint8_t[128*1024*1024];
     m_transferType = transferType;
-
-    if(type == "tcp") {
+    if(socket == "tcp") {
         m_isTcp = true;
     } else {
         m_isTcp = false;
     }
 
+    // create controller and connect callbacks
     m_controller = new Kitsunemimi::Project::SessionController(this, &sessionCallback,
                                                                this, &streamDataCallback,
                                                                this, &standaloneDataCallback,
                                                                this, &errorCallback);
 
+    // start test
     if(port == 0)
     {
         if(m_isTcp)
@@ -177,10 +174,10 @@ TestSession::TestSession(const std::string &address,
 }
 
 /**
- * @brief TestSession::sendLoop
+ * @brief run test
  */
 void
-TestSession::sendLoop()
+TestSession::runTest()
 {
 
     if(m_isClient)
@@ -198,7 +195,7 @@ TestSession::sendLoop()
         // send stream-messages
         if(m_transferType == "stream")
         {
-            for(int j = 0; j < 10; j++)
+            for(int j = 0; j < 100; j++)
             {
                 for(int i = 0; i < 8; i++)
                 {
@@ -211,7 +208,7 @@ TestSession::sendLoop()
         // send standalone-messages
         if(m_transferType == "standalone")
         {
-            for(int j = 0; j < 10; j++)
+            for(int j = 0; j < 100; j++)
             {
                 for(int i = 0; i < 8; i++)
                 {
@@ -224,7 +221,7 @@ TestSession::sendLoop()
         // send request-messages
         if(m_transferType == "request")
         {
-            for(int j = 0; j < 10; j++)
+            for(int j = 0; j < 100; j++)
             {
                 for(int i = 0; i < 8; i++)
                 {
@@ -250,7 +247,6 @@ TestSession::sendLoop()
         result.addColumn("value");
         result.addRow(std::vector<std::string>{"duration", std::to_string(duration) + " seconds"});
         result.addRow(std::vector<std::string>{"speed", std::to_string(speed) + " Gbits/sec"});
-
         std::cout<<result.toString()<<std::endl;
     }
 }

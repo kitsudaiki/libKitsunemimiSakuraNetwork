@@ -26,7 +26,8 @@ class TestSession
 public:
     TestSession(const std::string &address,
                 const uint16_t port,
-                const std::string &type, const std::string &transferType);
+                const std::string &socket,
+                const std::string &transferType);
     void sendLoop();
 
     bool m_isClient = false;
