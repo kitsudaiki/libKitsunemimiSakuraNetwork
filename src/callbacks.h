@@ -127,13 +127,13 @@ processMessage(void* target,
             process_MultiBlock_Data_Type(session, header, rawMessage);
             break;
         case SESSION_TYPE:
-            process_Session_Type(session, header, recvBuffer);
+            process_Session_Type(session, header, rawMessage);
             break;
         case HEARTBEAT_TYPE:
-            process_Heartbeat_Type(session, header, recvBuffer);
+            process_Heartbeat_Type(session, header, rawMessage);
             break;
         case ERROR_TYPE:
-            process_Error_Type(session, header, recvBuffer);
+            process_Error_Type(session, header, rawMessage);
             break;
         default:
             // TODO: handle invalid case

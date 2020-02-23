@@ -118,10 +118,10 @@ send_ErrorMessage(Session* session,
  *
  * @return number of processed bytes
  */
-inline uint64_t
+inline void
 process_Error_Type(Session* session,
                    const CommonMessageHeader* header,
-                   MessageRingBuffer* recvBuffer)
+                   const void* rawMessage)
 {
     switch(header->subType)
     {
@@ -129,13 +129,7 @@ process_Error_Type(Session* session,
         case ERROR_FALSE_VERSION_SUBTYPE:
             {
                 const Error_FalseVersion_Message* message =
-                        getObjectFromBuffer<Error_FalseVersion_Message>(recvBuffer);
-                if(message == nullptr
-                        || message->commonEnd.end != MESSAGE_DELIMITER)
-                {
-                    break;
-                }
-
+                    static_cast<const Error_FalseVersion_Message*>(rawMessage);
                 session->m_processError(session->m_errorTarget,
                                         session,
                                         Session::errorCodes::FALSE_VERSION,
@@ -146,13 +140,7 @@ process_Error_Type(Session* session,
         case ERROR_UNKNOWN_SESSION_SUBTYPE:
             {
                 const Error_UnknownSession_Message* message =
-                        getObjectFromBuffer<Error_UnknownSession_Message>(recvBuffer);
-                if(message == nullptr
-                        || message->commonEnd.end != MESSAGE_DELIMITER)
-                {
-                    break;
-                }
-
+                    static_cast<const Error_UnknownSession_Message*>(rawMessage);
                 session->m_processError(session->m_errorTarget,
                                         session,
                                         Session::errorCodes::UNKNOWN_SESSION,
@@ -163,13 +151,7 @@ process_Error_Type(Session* session,
         case ERROR_INVALID_MESSAGE_SUBTYPE:
             {
                 const Error_InvalidMessage_Message* message =
-                        getObjectFromBuffer<Error_InvalidMessage_Message>(recvBuffer);
-                if(message == nullptr
-                        || message->commonEnd.end != MESSAGE_DELIMITER)
-                {
-                    break;
-                }
-
+                    static_cast<const Error_InvalidMessage_Message*>(rawMessage);
                 session->m_processError(session->m_errorTarget,
                                         session,
                                         Session::errorCodes::INVALID_MESSAGE_SIZE,

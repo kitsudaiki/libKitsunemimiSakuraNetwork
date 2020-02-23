@@ -243,7 +243,7 @@ process_Session_Close_Reply(Session* session,
 inline void
 process_Session_Type(Session* session,
                      const CommonMessageHeader* header,
-                     MessageRingBuffer *recvBuffer)
+                     const void* rawMessage)
 {
     if(DEBUG_MODE) {
         LOG_DEBUG("process session-type");
@@ -255,12 +255,7 @@ process_Session_Type(Session* session,
         case SESSION_INIT_START_SUBTYPE:
             {
                 const Session_Init_Start_Message* message =
-                        getObjectFromBuffer<Session_Init_Start_Message>(recvBuffer);
-                if(message == nullptr
-                        || message->commonEnd.end != MESSAGE_DELIMITER)
-                {
-                    break;
-                }
+                    static_cast<const Session_Init_Start_Message*>(rawMessage);
                 process_Session_Init_Start(session, message);
                 break;
             }
@@ -268,12 +263,7 @@ process_Session_Type(Session* session,
         case SESSION_INIT_REPLY_SUBTYPE:
             {
                 const Session_Init_Reply_Message* message =
-                        getObjectFromBuffer<Session_Init_Reply_Message>(recvBuffer);
-                if(message == nullptr
-                        || message->commonEnd.end != MESSAGE_DELIMITER)
-                {
-                    break;
-                }
+                    static_cast<const Session_Init_Reply_Message*>(rawMessage);
                 process_Session_Init_Reply(session, message);
                 break;
             }
@@ -281,12 +271,7 @@ process_Session_Type(Session* session,
         case SESSION_CLOSE_START_SUBTYPE:
             {
                 const Session_Close_Start_Message* message =
-                        getObjectFromBuffer<Session_Close_Start_Message>(recvBuffer);
-                if(message == nullptr
-                        || message->commonEnd.end != MESSAGE_DELIMITER)
-                {
-                    break;
-                }
+                    static_cast<const Session_Close_Start_Message*>(rawMessage);
                 process_Session_Close_Start(session, message);
                 break;
             }
@@ -294,12 +279,7 @@ process_Session_Type(Session* session,
         case SESSION_CLOSE_REPLY_SUBTYPE:
             {
                 const Session_Close_Reply_Message* message =
-                        getObjectFromBuffer<Session_Close_Reply_Message>(recvBuffer);
-                if(message == nullptr
-                        || message->commonEnd.end != MESSAGE_DELIMITER)
-                {
-                    break;
-                }
+                    static_cast<const Session_Close_Reply_Message*>(rawMessage);
                 process_Session_Close_Reply(session, message);
                 break;
             }
