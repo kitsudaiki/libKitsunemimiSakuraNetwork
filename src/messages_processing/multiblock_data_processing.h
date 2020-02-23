@@ -55,12 +55,18 @@ send_Data_Multi_Init(Session* session,
                      const bool answerExpected)
 {
     Data_MultiInit_Message message;
-    create_Data_MultiInit_Message(message,
-                                  session->sessionId(),
-                                  session->increaseMessageIdCounter(),
-                                  multiblockId,
-                                  answerExpected);
+
+    message.commonHeader.type = MULTIBLOCK_DATA_TYPE;
+    message.commonHeader.subType = DATA_MULTI_INIT_SUBTYPE;
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = session->increaseMessageIdCounter();
+    message.commonHeader.flags = 0x1;
+    message.commonHeader.totalMessageSize = sizeof(Data_MultiInit_Message);
+    message.multiblockId = multiblockId;
     message.totalSize = requestedSize;
+    if(answerExpected) {
+        message.commonHeader.flags |= 0x4;
+    }
 
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
@@ -78,10 +84,14 @@ send_Data_Multi_Init_Reply(Session* session,
                            const uint8_t status)
 {
     Data_MultiInitReply_Message message;
-    create_Data_MultiInitReply_Message(message,
-                                       session->sessionId(),
-                                       messageId,
-                                       multiblockId);
+
+    message.commonHeader.type = MULTIBLOCK_DATA_TYPE;
+    message.commonHeader.subType = DATA_MULTI_INIT_REPLY_SUBTYPE;
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = messageId;
+    message.commonHeader.flags = 0x2;
+    message.commonHeader.totalMessageSize = sizeof(Data_MultiInitReply_Message);
+    message.multiblockId = multiblockId;
     message.status = status;
 
     SessionHandler::m_sessionHandler->sendMessage(session,
@@ -111,13 +121,14 @@ send_Data_Multi_Static(Session* session,
 
     CommonMessageEnd end;
     Data_MultiStatic_Message message;
-    create_Data_MultiStatic_Message(message,
-                                    session->sessionId(),
-                                    session->increaseMessageIdCounter(),
-                                    multiblockId,
-                                    totalMessageSize,
-                                    size);
 
+    message.commonHeader.type = MULTIBLOCK_DATA_TYPE;
+    message.commonHeader.subType = DATA_MULTI_STATIC_SUBTYPE;
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = session->increaseMessageIdCounter();
+    message.commonHeader.totalMessageSize = totalMessageSize;
+    message.commonHeader.payloadSize = size;
+    message.multiblockId = multiblockId;
     message.totalPartNumber = totalPartNumber;
     message.partId = partId;
 
@@ -128,7 +139,6 @@ send_Data_Multi_Static(Session* session,
            &end,
            sizeof(CommonMessageEnd));
 
-    return;
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   messageBuffer,
@@ -144,11 +154,18 @@ send_Data_Multi_Finish(Session* session,
                        const uint64_t blockerId)
 {
     Data_MultiFinish_Message message;
-    create_Data_MultiFinish_Message(message,
-                                    session->sessionId(),
-                                    session->increaseMessageIdCounter(),
-                                    multiblockId,
-                                    blockerId);
+
+    message.commonHeader.type = MULTIBLOCK_DATA_TYPE;
+    message.commonHeader.subType = DATA_MULTI_FINISH_SUBTYPE;
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = session->increaseMessageIdCounter();
+    message.commonHeader.totalMessageSize = sizeof(Data_MultiFinish_Message);
+    message.multiblockId = multiblockId;
+    message.blockerId = blockerId;
+    if(blockerId != 0) {
+        message.commonHeader.flags |= 0x8;
+    }
+
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -163,10 +180,14 @@ send_Data_Multi_Abort_Init(Session* session,
                            const uint64_t multiblockId)
 {
     Data_MultiAbortInit_Message message;
-    create_Data_MultiAbortInit_Message(message,
-                                       session->sessionId(),
-                                       session->increaseMessageIdCounter(),
-                                       multiblockId);
+
+    message.commonHeader.type = MULTIBLOCK_DATA_TYPE;
+    message.commonHeader.subType = DATA_MULTI_ABORT_INIT_SUBTYPE;
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = session->increaseMessageIdCounter();
+    message.commonHeader.totalMessageSize = sizeof(Data_MultiAbortInit_Message);
+    message.multiblockId = multiblockId;
+
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -182,10 +203,14 @@ send_Data_Multi_Abort_Reply(Session* session,
                             const uint32_t messageId)
 {
     Data_MultiAbortReply_Message message;
-    create_Data_MultiAbortReply_Message(message,
-                                        session->sessionId(),
-                                        messageId,
-                                        multiblockId);
+
+    message.commonHeader.type = MULTIBLOCK_DATA_TYPE;
+    message.commonHeader.subType = DATA_MULTI_ABORT_REPLY_SUBTYPE;
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = messageId;
+    message.commonHeader.totalMessageSize = sizeof(Data_MultiAbortReply_Message);
+    message.multiblockId = multiblockId;
+
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,

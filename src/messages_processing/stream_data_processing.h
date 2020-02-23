@@ -63,23 +63,27 @@ send_Data_Stream(Session* session,
                                       + sizeof(CommonMessageEnd);
 
     CommonMessageEnd end;
-    Data_Stream_Header message;
-    create_Data_StreamStatic_Message(message,
-                                     session->sessionId(),
-                                     session->increaseMessageIdCounter(),
-                                     totalMessageSize,
-                                     size,
-                                     replyExpected);
+    Data_Stream_Header header;
+
+    header.commonHeader.type = STREAM_DATA_TYPE;
+    header.commonHeader.subType = DATA_STREAM_STATIC_SUBTYPE;
+    header.commonHeader.sessionId = session->sessionId();
+    header.commonHeader.messageId = session->increaseMessageIdCounter();
+    header.commonHeader.totalMessageSize = totalMessageSize;
+    header.commonHeader.payloadSize = size;
+    if(replyExpected) {
+        header.commonHeader.flags = 0x1;
+    }
 
     // fill buffer to build the complete message
-    memcpy(&messageBuffer[0], &message, sizeof(Data_Stream_Header));
+    memcpy(&messageBuffer[0], &header, sizeof(Data_Stream_Header));
     memcpy(&messageBuffer[sizeof(Data_Stream_Header)], data, size);
     memcpy(&messageBuffer[(totalMessageSize - sizeof(CommonMessageEnd))],
            &end,
            sizeof(CommonMessageEnd));
 
     SessionHandler::m_sessionHandler->sendMessage(session,
-                                                  message.commonHeader,
+                                                  header.commonHeader,
                                                   messageBuffer,
                                                   totalMessageSize);
 }
@@ -92,7 +96,14 @@ send_Data_Stream_Reply(Session* session,
                        const uint32_t messageId)
 {
     Data_StreamReply_Message message;
-    create_Data_StreamReply_Message(message, session->sessionId(), messageId);
+
+    message.commonHeader.type = STREAM_DATA_TYPE;
+    message.commonHeader.subType = DATA_STREAM_REPLY_SUBTYPE;
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = messageId;
+    message.commonHeader.flags = 0x2;
+    message.commonHeader.totalMessageSize = sizeof(Data_StreamReply_Message);
+
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,

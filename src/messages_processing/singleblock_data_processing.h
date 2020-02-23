@@ -64,23 +64,29 @@ send_Data_SingleBlock(Session* session,
                                       + sizeof(CommonMessageEnd);
 
     CommonMessageEnd end;
-    Data_SingleBlock_Heaser message;
-    create_Data_SingleBlock_Message(message,
-                                    session->sessionId(),
-                                    session->increaseMessageIdCounter(),
-                                    multiblockId,
-                                    blockerId,
-                                    totalMessageSize,
-                                    size);
+    Data_SingleBlock_Heaser header;
 
-    memcpy(&messageBuffer[0], &message, sizeof(Data_SingleBlock_Heaser));
+    header.commonHeader.type = SINGLEBLOCK_DATA_TYPE;
+    header.commonHeader.subType = DATA_SINGLE_DATA_SUBTYPE;
+    header.commonHeader.sessionId = session->sessionId();
+    header.commonHeader.messageId = session->increaseMessageIdCounter();
+    header.commonHeader.flags = 0x1;
+    header.commonHeader.totalMessageSize = totalMessageSize;
+    header.commonHeader.payloadSize = size;
+    header.blockerId = blockerId;
+    header.multiblockId = multiblockId;
+    if(blockerId != 0) {
+        header.commonHeader.flags |= 0x8;
+    }
+
+    memcpy(&messageBuffer[0], &header, sizeof(Data_SingleBlock_Heaser));
     memcpy(&messageBuffer[sizeof(Data_SingleBlock_Heaser)], data, size);
     memcpy(&messageBuffer[(totalMessageSize - sizeof(CommonMessageEnd))],
            &end,
            sizeof(CommonMessageEnd));
 
     SessionHandler::m_sessionHandler->sendMessage(session,
-                                                  message.commonHeader,
+                                                  header.commonHeader,
                                                   &messageBuffer,
                                                   totalMessageSize);
 }
@@ -93,7 +99,14 @@ send_Data_SingleBlock_Reply(Session* session,
                             const uint32_t messageId)
 {
     Data_SingleBlockReply_Message message;
-    create_Data_SingleBlockReply_Message(message, session->sessionId(), messageId);
+
+    message.commonHeader.type = SINGLEBLOCK_DATA_TYPE;
+    message.commonHeader.subType = DATA_SINGLE_REPLY_SUBTYPE;
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = messageId;
+    message.commonHeader.flags = 0x2;
+    message.commonHeader.totalMessageSize = sizeof(Data_SingleBlockReply_Message);
+
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,

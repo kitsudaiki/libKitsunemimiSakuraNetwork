@@ -55,9 +55,14 @@ inline void
 send_Heartbeat_Start(Session* session)
 {
     Heartbeat_Start_Message message;
-    create_Heartbeat_Start_Message(message,
-                                   session->sessionId(),
-                                   session->increaseMessageIdCounter());
+
+    message.commonHeader.type = HEARTBEAT_TYPE;
+    message.commonHeader.subType = HEARTBEAT_START_SUBTYPE;
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = session->increaseMessageIdCounter();
+    message.commonHeader.flags = 0x1;
+    message.commonHeader.totalMessageSize = sizeof(Heartbeat_Start_Message);
+
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -75,9 +80,14 @@ send_Heartbeat_Reply(Session* session,
                      const uint32_t messageId)
 {
     Heartbeat_Reply_Message message;
-    create_Heartbeat_Reply_Message(message,
-                                   session->sessionId(),
-                                   messageId);
+
+    message.commonHeader.type = HEARTBEAT_TYPE;
+    message.commonHeader.subType = HEARTBEAT_REPLY_SUBTYPE;
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = messageId;
+    message.commonHeader.flags = 0x2;
+    message.commonHeader.totalMessageSize = sizeof(Heartbeat_Reply_Message);
+
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,

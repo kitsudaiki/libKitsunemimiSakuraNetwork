@@ -65,10 +65,19 @@ send_ErrorMessage(Session* session,
         case Session::errorCodes::FALSE_VERSION:
         {
             Error_FalseVersion_Message message;
-            create_Error_FalseVersion_Message(message,
-                                              session->sessionId(),
-                                              session->increaseMessageIdCounter(),
-                                              errorMessage);
+
+            message.commonHeader.type = ERROR_TYPE;
+            message.commonHeader.subType = ERROR_FALSE_VERSION_SUBTYPE;
+            message.commonHeader.sessionId = session->sessionId();
+            message.commonHeader.messageId = session->increaseMessageIdCounter();
+            message.commonHeader.totalMessageSize = sizeof(Error_FalseVersion_Message);
+            message.messageSize = errorMessage.size();
+
+            if(message.messageSize > MAX_SINGLE_MESSAGE_SIZE-1) {
+                message.messageSize = MAX_SINGLE_MESSAGE_SIZE-1;
+            }
+            strncpy(message.message, errorMessage.c_str(), message.messageSize);
+
             SessionHandler::m_sessionHandler->sendMessage(session,
                                                           message.commonHeader,
                                                           &message,
@@ -79,10 +88,19 @@ send_ErrorMessage(Session* session,
         case Session::errorCodes::UNKNOWN_SESSION:
         {
             Error_UnknownSession_Message message;
-            create_Error_UnknownSession_Message(message,
-                                                session->sessionId(),
-                                                session->increaseMessageIdCounter(),
-                                                errorMessage);
+
+            message.commonHeader.type = ERROR_TYPE;
+            message.commonHeader.subType = ERROR_UNKNOWN_SESSION_SUBTYPE;
+            message.commonHeader.sessionId = session->sessionId();
+            message.commonHeader.messageId = session->increaseMessageIdCounter();
+            message.commonHeader.totalMessageSize = sizeof(Error_UnknownSession_Message);
+            message.messageSize = errorMessage.size();
+
+            if(message.messageSize > MAX_SINGLE_MESSAGE_SIZE-1) {
+                message.messageSize = MAX_SINGLE_MESSAGE_SIZE-1;
+            }
+            strncpy(message.message, errorMessage.c_str(), message.messageSize);
+
             SessionHandler::m_sessionHandler->sendMessage(session,
                                                           message.commonHeader,
                                                           &message,
@@ -93,10 +111,19 @@ send_ErrorMessage(Session* session,
         case Session::errorCodes::INVALID_MESSAGE_SIZE:
         {
             Error_InvalidMessage_Message message;
-            create_Error_InvalidMessage_Message(message,
-                                                session->sessionId(),
-                                                session->increaseMessageIdCounter(),
-                                                errorMessage);
+
+            message.commonHeader.type = ERROR_TYPE;
+            message.commonHeader.subType = ERROR_INVALID_MESSAGE_SUBTYPE;
+            message.commonHeader.sessionId = session->sessionId();
+            message.commonHeader.messageId = session->increaseMessageIdCounter();
+            message.commonHeader.totalMessageSize = sizeof(Error_InvalidMessage_Message);
+            message.messageSize = errorMessage.size();
+
+            if(message.messageSize > MAX_SINGLE_MESSAGE_SIZE-1) {
+                message.messageSize = MAX_SINGLE_MESSAGE_SIZE-1;
+            }
+            strncpy(message.message, errorMessage.c_str(), message.messageSize);
+
             SessionHandler::m_sessionHandler->sendMessage(session,
                                                           message.commonHeader,
                                                           &message,
