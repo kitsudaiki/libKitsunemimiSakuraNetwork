@@ -105,20 +105,10 @@ Session::sendStreamData(const void* data,
 
             const uint8_t* dataPointer = static_cast<const uint8_t*>(data);
 
-            if(dynamic)
-            {
-                send_Data_Stream_Dynamic(this,
-                                         dataPointer + (STATIC_PAYLOAD_SIZE * partCounter),
-                                         currentMessageSize,
-                                         replyExpected);
-            }
-            else
-            {
-                send_Data_Stream_Static(this,
-                                        dataPointer + (STATIC_PAYLOAD_SIZE * partCounter),
-                                        currentMessageSize,
-                                        replyExpected);
-            }
+            send_Data_Stream(this,
+                                    dataPointer + (STATIC_PAYLOAD_SIZE * partCounter),
+                                    static_cast<uint32_t>(currentMessageSize),
+                                    replyExpected);
         }
 
         return true;

@@ -79,7 +79,7 @@ processMessage(void* target,
     }
 
     // check if there are enough data in the buffer for the complete message
-    if(header->size > recvBuffer->readWriteDiff) {
+    if(header->totalMessageSize > recvBuffer->readWriteDiff) {
         return 0;
     }
 
@@ -87,9 +87,9 @@ processMessage(void* target,
     if(session->m_linkedSession != nullptr)
     {
         Session* linkedSession = session->getLinkedSession();
-        linkedSession->m_socket->sendMessage(getDataPointer(*recvBuffer, header->size),
-                                             header->size);
-        return header->size;
+        linkedSession->m_socket->sendMessage(getDataPointer(*recvBuffer, header->totalMessageSize),
+                                             header->totalMessageSize);
+        return header->totalMessageSize;
     }
 
     // remove from reply-handler if message is reply
@@ -97,11 +97,26 @@ processMessage(void* target,
         SessionHandler::m_replyHandler->removeMessage(header->sessionId, header->messageId);
     }
 
+    const void* rawMessage = static_cast<const void*>(getDataPointer(*recvBuffer,
+                                                      header->totalMessageSize));
+    if(rawMessage == nullptr) {
+        return 0;
+    }
+
+    const uint32_t* end = static_cast<const uint32_t*>(rawMessage)
+                          + ((header->totalMessageSize)/4)
+                          - 1;
+    if(*end != MESSAGE_DELIMITER) {
+        // TODO: ERROR
+        return 0;
+    }
+
+
     // process message by type
     switch(header->type)
     {
         case STREAM_DATA_TYPE:
-            return process_Stream_Data_Type(session, header, recvBuffer);
+            return process_Stream_Data_Type(session, header, rawMessage, header->payloadSize);
         case SINGLEBLOCK_DATA_TYPE:
             return process_SingleBlock_Data_Type(session, header, recvBuffer);
         case MULTIBLOCK_DATA_TYPE:

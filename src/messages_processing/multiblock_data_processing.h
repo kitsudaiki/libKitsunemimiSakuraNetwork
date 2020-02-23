@@ -99,7 +99,7 @@ send_Data_Multi_Static(Session* session,
                        const uint32_t totalPartNumber,
                        const uint32_t partId,
                        const void* data,
-                       const uint64_t size)
+                       const uint32_t size)
 {
     Data_MultiStatic_Message message;
     create_Data_MultiStatic_Message(message,
@@ -111,7 +111,7 @@ send_Data_Multi_Static(Session* session,
     message.partId = partId;
 
     memcpy(message.payload, data, size);
-    message.payloadSize = size;
+    message.commonHeader.payloadSize = size;
 
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
@@ -230,7 +230,7 @@ process_Data_Multi_Static(Session* session,
 {
     session->m_multiblockIo->writeIntoIncomingBuffer(message->multiblockId,
                                                      message->payload,
-                                                     message->payloadSize);
+                                                     message->commonHeader.payloadSize);
 }
 
 /**
