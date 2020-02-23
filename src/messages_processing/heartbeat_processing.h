@@ -105,6 +105,7 @@ inline void
 process_Heartbeat_Reply(Session*,
                         const Heartbeat_Reply_Message*)
 {
+    return;
 }
 
 /**
@@ -116,10 +117,10 @@ process_Heartbeat_Reply(Session*,
  *
  * @return number of processed bytes
  */
-inline uint64_t
+inline void
 process_Heartbeat_Type(Session* session,
                        const CommonMessageHeader* header,
-                       MessageRingBuffer* recvBuffer)
+                       const void* rawMessage)
 {
     switch(header->subType)
     {
@@ -127,34 +128,22 @@ process_Heartbeat_Type(Session* session,
         case HEARTBEAT_START_SUBTYPE:
             {
                 const Heartbeat_Start_Message* message =
-                        getObjectFromBuffer<Heartbeat_Start_Message>(recvBuffer);
-                if(message == nullptr
-                        || message->commonEnd.end != MESSAGE_DELIMITER)
-                {
-                    break;
-                }
+                    static_cast<const Heartbeat_Start_Message*>(rawMessage);
                 process_Heartbeat_Start(session, message);
-                return sizeof(*message);
+                break;
             }
         //------------------------------------------------------------------------------------------
         case HEARTBEAT_REPLY_SUBTYPE:
             {
                 const Heartbeat_Reply_Message* message =
-                        getObjectFromBuffer<Heartbeat_Reply_Message>(recvBuffer);
-                if(message == nullptr
-                        || message->commonEnd.end != MESSAGE_DELIMITER)
-                {
-                    break;
-                }
+                    static_cast<const Heartbeat_Reply_Message*>(rawMessage);
                 process_Heartbeat_Reply(session, message);
-                return sizeof(*message);
+                break;
             }
         //------------------------------------------------------------------------------------------
         default:
             break;
     }
-
-    return 0;
 }
 
 } // namespace Project

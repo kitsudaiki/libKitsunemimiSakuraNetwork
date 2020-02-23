@@ -52,23 +52,37 @@ inline void
 send_Data_SingleBlock(Session* session,
                       const uint64_t multiblockId,
                       const void* data,
-                      uint64_t size,
+                      uint32_t size,
                       const uint64_t blockerId=0)
 {
-    Data_SingleBlock_Message message;
+    uint8_t messageBuffer[MESSAGE_CACHE_SIZE];
+
+    // bring message-size to a multiple of 8
+    const uint32_t totalMessageSize = sizeof(Data_SingleBlock_Heaser)
+                                      + size
+                                      + (8-(size % 8))  // fill up to a multiple of 8
+                                      + sizeof(CommonMessageEnd);
+
+    CommonMessageEnd end;
+    Data_SingleBlock_Heaser message;
     create_Data_SingleBlock_Message(message,
                                     session->sessionId(),
                                     session->increaseMessageIdCounter(),
                                     multiblockId,
-                                    blockerId);
+                                    blockerId,
+                                    totalMessageSize,
+                                    size);
 
-    memcpy(message.payload, data, size);
-    message.payloadSize = size;
+    memcpy(&messageBuffer[0], &message, sizeof(Data_SingleBlock_Heaser));
+    memcpy(&messageBuffer[sizeof(Data_SingleBlock_Heaser)], data, size);
+    memcpy(&messageBuffer[(totalMessageSize - sizeof(CommonMessageEnd))],
+           &end,
+           sizeof(CommonMessageEnd));
 
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
-                                                  &message,
-                                                  sizeof(message));
+                                                  &messageBuffer,
+                                                  totalMessageSize);
 }
 
 /**
@@ -91,14 +105,20 @@ send_Data_SingleBlock_Reply(Session* session,
  */
 inline void
 process_Data_SingleBlock(Session* session,
-                         const Data_SingleBlock_Message* message)
+                         const Data_SingleBlock_Heaser* header,
+                         const void* rawMessage)
 {
-    DataBuffer* buffer = new DataBuffer(1);
-    addDataToBuffer(buffer, message->payload, message->payloadSize);
+    const uint32_t allocateBlocks = (header->commonHeader.payloadSize / 4096) + 1;
+    DataBuffer* buffer = new DataBuffer(allocateBlocks);
 
-    if(message->commonHeader.flags & 0x8)
+    const uint8_t* payloadData = static_cast<const uint8_t*>(rawMessage)
+                                 + sizeof(Data_SingleBlock_Heaser);
+
+    addDataToBuffer(buffer, payloadData, header->commonHeader.payloadSize);
+
+    if(header->commonHeader.flags & 0x8)
     {
-        bool found = SessionHandler::m_blockerHandler->releaseMessage(message->blockerId,
+        bool found = SessionHandler::m_blockerHandler->releaseMessage(header->blockerId,
                                                                       buffer);
         assert(found);
     }
@@ -106,11 +126,13 @@ process_Data_SingleBlock(Session* session,
     {
         session->m_processStandaloneData(session->m_standaloneDataTarget,
                                          session,
-                                         message->multiblockId,
+                                         header->multiblockId,
                                          buffer);
     }
 
-    send_Data_SingleBlock_Reply(session, message->commonHeader.messageId);
+    if(header->commonHeader.flags & 0x1) {
+        send_Data_SingleBlock_Reply(session, header->commonHeader.messageId);
+    }
 }
 
 /**
@@ -120,6 +142,7 @@ inline void
 process_Data_SingleBlock_Reply(Session*,
                                const Data_SingleBlockReply_Message*)
 {
+    return;
 }
 
 /**
@@ -131,45 +154,33 @@ process_Data_SingleBlock_Reply(Session*,
  *
  * @return number of processed bytes
  */
-inline uint64_t
+inline void
 process_SingleBlock_Data_Type(Session* session,
                               const CommonMessageHeader* header,
-                              MessageRingBuffer* recvBuffer)
+                              const void* rawMessage)
 {
     switch(header->subType)
     {
         //------------------------------------------------------------------------------------------
         case DATA_SINGLE_DATA_SUBTYPE:
             {
-                const Data_SingleBlock_Message* message =
-                        getObjectFromBuffer<Data_SingleBlock_Message>(recvBuffer);
-                if(message == nullptr
-                        || message->commonEnd.end != MESSAGE_DELIMITER)
-                {
-                    break;
-                }
-                process_Data_SingleBlock(session, message);
-                return sizeof(*message);
+                const Data_SingleBlock_Heaser* message =
+                    static_cast<const Data_SingleBlock_Heaser*>(rawMessage);
+                process_Data_SingleBlock(session, message, rawMessage);
+                break;
             }
         //------------------------------------------------------------------------------------------
         case DATA_SINGLE_REPLY_SUBTYPE:
             {
                 const Data_SingleBlockReply_Message* message =
-                        getObjectFromBuffer<Data_SingleBlockReply_Message>(recvBuffer);
-                if(message == nullptr
-                        || message->commonEnd.end != MESSAGE_DELIMITER)
-                {
-                    break;
-                }
+                    static_cast<const Data_SingleBlockReply_Message*>(rawMessage);
                 process_Data_SingleBlock_Reply(session, message);
-                return sizeof(*message);
+                break;
             }
         //------------------------------------------------------------------------------------------
         default:
             break;
     }
-
-    return 0;
 }
 
 } // namespace Project

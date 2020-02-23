@@ -79,7 +79,7 @@ processMessage(void* target,
     }
 
     // check if there are enough data in the buffer for the complete message
-    if(header->size > recvBuffer->readWriteDiff) {
+    if(header->totalMessageSize > recvBuffer->readWriteDiff) {
         return 0;
     }
 
@@ -87,9 +87,9 @@ processMessage(void* target,
     if(session->m_linkedSession != nullptr)
     {
         Session* linkedSession = session->getLinkedSession();
-        linkedSession->m_socket->sendMessage(getDataPointer(*recvBuffer, header->size),
-                                             header->size);
-        return header->size;
+        linkedSession->m_socket->sendMessage(getDataPointer(*recvBuffer, header->totalMessageSize),
+                                             header->totalMessageSize);
+        return header->totalMessageSize;
     }
 
     // remove from reply-handler if message is reply
@@ -97,27 +97,50 @@ processMessage(void* target,
         SessionHandler::m_replyHandler->removeMessage(header->sessionId, header->messageId);
     }
 
+    // get complete message from the ringbuffer, if enough data are available
+    const void* rawMessage = static_cast<const void*>(getDataPointer(*recvBuffer,
+                                                      header->totalMessageSize));
+    if(rawMessage == nullptr) {
+        return 0;
+    }
+
+    // check delimiter
+    const uint32_t* end = static_cast<const uint32_t*>(rawMessage)
+                          + ((header->totalMessageSize)/4)
+                          - 1;
+    if(*end != MESSAGE_DELIMITER) {
+        // TODO: ERROR
+        return 0;
+    }
+
+
     // process message by type
     switch(header->type)
     {
         case STREAM_DATA_TYPE:
-            return process_Stream_Data_Type(session, header, recvBuffer);
+            process_Stream_Data_Type(session, header, rawMessage);
+            break;
         case SINGLEBLOCK_DATA_TYPE:
-            return process_SingleBlock_Data_Type(session, header, recvBuffer);
+            process_SingleBlock_Data_Type(session, header, rawMessage);
+            break;
         case MULTIBLOCK_DATA_TYPE:
-            return process_MultiBlock_Data_Type(session, header, recvBuffer);
+            process_MultiBlock_Data_Type(session, header, rawMessage);
+            break;
         case SESSION_TYPE:
-            return process_Session_Type(session, header, recvBuffer);
+            process_Session_Type(session, header, rawMessage);
+            break;
         case HEARTBEAT_TYPE:
-            return process_Heartbeat_Type(session, header, recvBuffer);
+            process_Heartbeat_Type(session, header, rawMessage);
+            break;
         case ERROR_TYPE:
-            return process_Error_Type(session, header, recvBuffer);
+            process_Error_Type(session, header, rawMessage);
+            break;
         default:
             // TODO: handle invalid case
-            break;
+            return 0;
     }
 
-    return 0;
+    return header->totalMessageSize;
 }
 
 /**

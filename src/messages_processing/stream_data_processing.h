@@ -49,69 +49,39 @@ namespace Project
  * @brief send_Data_Stream_Static
  */
 inline void
-send_Data_Stream_Static(Session* session,
-                        const void* data,
-                        uint64_t size,
-                        const bool replyExpected)
+send_Data_Stream(Session* session,
+                 const void* data,
+                 const uint32_t size,
+                 const bool replyExpected)
 {
-    Data_StreamStatic_Message message;
+    uint8_t messageBuffer[MESSAGE_CACHE_SIZE];
+
+    // bring message-size to a multiple of 8
+    const uint32_t totalMessageSize = sizeof(Data_Stream_Header)
+                                      + size
+                                      + (8-(size % 8))  // fill up to a multiple of 8
+                                      + sizeof(CommonMessageEnd);
+
+    CommonMessageEnd end;
+    Data_Stream_Header message;
     create_Data_StreamStatic_Message(message,
                                      session->sessionId(),
                                      session->increaseMessageIdCounter(),
+                                     totalMessageSize,
+                                     size,
                                      replyExpected);
-
-    memcpy(message.payload, data, size);
-    message.payloadSize = size;
-
-    SessionHandler::m_sessionHandler->sendMessage(session,
-                                                  message.commonHeader,
-                                                  &message,
-                                                  sizeof(message));
-}
-
-/**
- * @brief send_Data_Stream_Dynamic
- */
-inline void
-send_Data_Stream_Dynamic(Session* session,
-                         const void* data,
-                         const uint64_t dataSize,
-                         const bool replyExpected)
-{
-    // calculate size of the message
-    const uint64_t totalMessageSize = sizeof(Data_StreamDynamic_Header)
-                                      + dataSize
-                                      + sizeof(CommonMessageEnd);
-    // bring message-size to a multiple of 8
-    const uint64_t totalMessageSizeAligned = totalMessageSize + (totalMessageSize % 8);
-
-    // create message-buffer
-    uint8_t* completeMessage = new uint8_t[totalMessageSizeAligned];
-
-    // create header- and end-part of the message
-    Data_StreamDynamic_Header header;
-    create_Data_StreamDynamic_Header(header,
-                                     session->sessionId(),
-                                     session->increaseMessageIdCounter(),
-                                     replyExpected);
-    header.commonHeader.size = static_cast<uint32_t>(totalMessageSizeAligned);
-    header.payloadSize = dataSize;
-    CommonMessageEnd end;
 
     // fill buffer to build the complete message
-    memcpy(completeMessage, &header, sizeof(Data_StreamDynamic_Header));
-    memcpy(completeMessage + sizeof(Data_StreamDynamic_Header), data, dataSize);
-    memcpy(completeMessage + (totalMessageSizeAligned - sizeof(CommonMessageEnd)),
+    memcpy(&messageBuffer[0], &message, sizeof(Data_Stream_Header));
+    memcpy(&messageBuffer[sizeof(Data_Stream_Header)], data, size);
+    memcpy(&messageBuffer[(totalMessageSize - sizeof(CommonMessageEnd))],
            &end,
            sizeof(CommonMessageEnd));
 
-    // send message
     SessionHandler::m_sessionHandler->sendMessage(session,
-                                                  header.commonHeader,
-                                                  completeMessage,
-                                                  totalMessageSizeAligned);
-
-    delete[] completeMessage;
+                                                  message.commonHeader,
+                                                  messageBuffer,
+                                                  totalMessageSize);
 }
 
 /**
@@ -133,42 +103,21 @@ send_Data_Stream_Reply(Session* session,
  * @brief process_Data_Stream_Static
  */
 inline void
-process_Data_Stream_Static(Session* session,
-                           const Data_StreamStatic_Message* message)
+process_Data_Stream(Session* session,
+                    const Data_Stream_Header* header,
+                    const void* rawMessage)
 {
+    const uint8_t* payloadData = static_cast<const uint8_t*>(rawMessage)
+                                 + sizeof(Data_Stream_Header);
+
     session->m_processStreamData(session->m_streamDataTarget,
                                  session,
-                                 static_cast<const void*>(message->payload),
-                                 message->payloadSize);
+                                 static_cast<const void*>(payloadData),
+                                 header->commonHeader.payloadSize);
 
-    if(message->commonHeader.flags & 0x1) {
-        send_Data_Stream_Reply(session, message->commonHeader.messageId);
+    if(header->commonHeader.flags & 0x1) {
+        send_Data_Stream_Reply(session, header->commonHeader.messageId);
     }
-}
-
-/**
- * @brief process_Data_Stream_Dynamic
- */
-inline uint64_t
-process_Data_Stream_Dynamic(Session* session,
-                            const Data_StreamDynamic_Header* message,
-                            MessageRingBuffer* recvBuffer)
-{
-    const uint8_t* completeMessage = getDataPointer(*recvBuffer, message->commonHeader.size);
-    if(completeMessage == nullptr) {
-        return 0;
-    }
-
-    const void* payload = completeMessage + sizeof(Data_StreamDynamic_Header);
-    session->m_processStreamData(session->m_streamDataTarget,
-                                 session,
-                                 payload,
-                                 message->payloadSize);
-    if(message->commonHeader.flags & 0x1) {
-        send_Data_Stream_Reply(session, message->commonHeader.messageId);
-    }
-
-    return message->commonHeader.size;
 }
 
 /**
@@ -178,6 +127,7 @@ inline void
 process_Data_Stream_Reply(Session*,
                           const Data_StreamReply_Message*)
 {
+    return;
 }
 
 /**
@@ -189,69 +139,33 @@ process_Data_Stream_Reply(Session*,
  *
  * @return number of processed bytes
  */
-inline uint64_t
+inline void
 process_Stream_Data_Type(Session* session,
                          const CommonMessageHeader* header,
-                         MessageRingBuffer* recvBuffer)
+                         const void* rawMessage)
 {
     switch(header->subType)
     {
         //------------------------------------------------------------------------------------------
         case DATA_STREAM_STATIC_SUBTYPE:
             {
-                const Data_StreamStatic_Message* message =
-                        getObjectFromBuffer<Data_StreamStatic_Message>(recvBuffer);
-                if(message == nullptr
-                        || message->commonEnd.end != MESSAGE_DELIMITER)
-                {
-                    break;
-                }
-                process_Data_Stream_Static(session, message);
-                return sizeof(*message);
-            }
-        //------------------------------------------------------------------------------------------
-        case DATA_STREAM_DYNAMIC_SUBTYPE:
-            {
-                const Data_StreamDynamic_Header* messageHeader =
-                        getObjectFromBuffer<Data_StreamDynamic_Header>(recvBuffer);
-
-                const uint8_t* endPointer = getDataPointer(*recvBuffer,
-                                                           messageHeader->commonHeader.size);
-
-                const CommonMessageEnd* end =
-                        reinterpret_cast<const CommonMessageEnd*>(endPointer
-                                                                  + messageHeader->commonHeader.size
-                                                                  - sizeof(CommonMessageEnd));
-
-                if(messageHeader == nullptr
-                        || end->end != MESSAGE_DELIMITER)
-                {
-                    break;
-                }
-                const uint64_t messageSize = process_Data_Stream_Dynamic(session,
-                                                                         messageHeader,
-                                                                         recvBuffer);
-                return messageSize;
+                const Data_Stream_Header* message =
+                    static_cast<const Data_Stream_Header*>(rawMessage);
+                process_Data_Stream(session, message, rawMessage);
+                break;
             }
         //------------------------------------------------------------------------------------------
         case DATA_STREAM_REPLY_SUBTYPE:
             {
                 const Data_StreamReply_Message* message =
-                        getObjectFromBuffer<Data_StreamReply_Message>(recvBuffer);
-                if(message == nullptr
-                        || message->commonEnd.end != MESSAGE_DELIMITER)
-                {
-                    break;
-                }
+                    static_cast<const Data_StreamReply_Message*>(rawMessage);
                 process_Data_Stream_Reply(session, message);
-                return sizeof(*message);
+                break;
             }
         //------------------------------------------------------------------------------------------
         default:
             break;
     }
-
-    return 0;
 }
 
 } // namespace Project
