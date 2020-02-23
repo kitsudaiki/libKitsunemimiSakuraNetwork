@@ -37,9 +37,6 @@
 
 #include <libKitsunemimiPersistence/logger/logger.h>
 
-using Kitsunemimi::Network::MessageRingBuffer;
-using Kitsunemimi::Network::getObjectFromBuffer;
-
 namespace Kitsunemimi
 {
 namespace Project
@@ -66,6 +63,7 @@ send_ErrorMessage(Session* session,
         {
             Error_FalseVersion_Message message;
 
+            // fill message
             message.commonHeader.type = ERROR_TYPE;
             message.commonHeader.subType = ERROR_FALSE_VERSION_SUBTYPE;
             message.commonHeader.sessionId = session->sessionId();
@@ -73,11 +71,15 @@ send_ErrorMessage(Session* session,
             message.commonHeader.totalMessageSize = sizeof(Error_FalseVersion_Message);
             message.messageSize = errorMessage.size();
 
+            // check and copy message-content
             if(message.messageSize > MAX_SINGLE_MESSAGE_SIZE-1) {
                 message.messageSize = MAX_SINGLE_MESSAGE_SIZE-1;
             }
-            strncpy(message.message, errorMessage.c_str(), message.messageSize);
+            strncpy(message.message,
+                    errorMessage.c_str(),
+                    message.messageSize);
 
+            // send
             SessionHandler::m_sessionHandler->sendMessage(session,
                                                           message.commonHeader,
                                                           &message,
@@ -89,6 +91,7 @@ send_ErrorMessage(Session* session,
         {
             Error_UnknownSession_Message message;
 
+            // fill message
             message.commonHeader.type = ERROR_TYPE;
             message.commonHeader.subType = ERROR_UNKNOWN_SESSION_SUBTYPE;
             message.commonHeader.sessionId = session->sessionId();
@@ -96,11 +99,15 @@ send_ErrorMessage(Session* session,
             message.commonHeader.totalMessageSize = sizeof(Error_UnknownSession_Message);
             message.messageSize = errorMessage.size();
 
+            // check and copy message-content
             if(message.messageSize > MAX_SINGLE_MESSAGE_SIZE-1) {
                 message.messageSize = MAX_SINGLE_MESSAGE_SIZE-1;
             }
-            strncpy(message.message, errorMessage.c_str(), message.messageSize);
+            strncpy(message.message,
+                    errorMessage.c_str(),
+                    message.messageSize);
 
+            // send
             SessionHandler::m_sessionHandler->sendMessage(session,
                                                           message.commonHeader,
                                                           &message,
@@ -112,6 +119,7 @@ send_ErrorMessage(Session* session,
         {
             Error_InvalidMessage_Message message;
 
+            // fill message
             message.commonHeader.type = ERROR_TYPE;
             message.commonHeader.subType = ERROR_INVALID_MESSAGE_SUBTYPE;
             message.commonHeader.sessionId = session->sessionId();
@@ -119,11 +127,15 @@ send_ErrorMessage(Session* session,
             message.commonHeader.totalMessageSize = sizeof(Error_InvalidMessage_Message);
             message.messageSize = errorMessage.size();
 
+            // check and copy message-content
             if(message.messageSize > MAX_SINGLE_MESSAGE_SIZE-1) {
                 message.messageSize = MAX_SINGLE_MESSAGE_SIZE-1;
             }
-            strncpy(message.message, errorMessage.c_str(), message.messageSize);
+            strncpy(message.message,
+                    errorMessage.c_str(),
+                    message.messageSize);
 
+            // send
             SessionHandler::m_sessionHandler->sendMessage(session,
                                                           message.commonHeader,
                                                           &message,
@@ -141,7 +153,7 @@ send_ErrorMessage(Session* session,
  *
  * @param session pointer to the session
  * @param header pointer to the common header of the message within the message-ring-buffer
- * @param recvBuffer pointer to the message-ring-buffer
+ * @param rawMessage pointer to the complete raw data of the message
  *
  * @return number of processed bytes
  */
