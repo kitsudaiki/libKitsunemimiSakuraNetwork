@@ -115,5 +115,5 @@ int main(int argc, char *argv[])
 
     TestSession testSession(address, port, socket, transferType);
 
-    testSession.sendLoop();
+    testSession.runTest();
 }

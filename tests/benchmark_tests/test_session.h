@@ -8,6 +8,8 @@
 #include <mutex>
 #include <condition_variable>
 
+#include <libKitsunemimiCommon/benchmark_test.h>
+
 namespace Kitsunemimi {
 namespace Project {
 class SessionController;
@@ -22,13 +24,15 @@ typedef std::chrono::high_resolution_clock::time_point chronoTimePoint;
 typedef std::chrono::high_resolution_clock chronoClock;
 
 class TestSession
+        : public Kitsunemimi::BenchmarkTest
 {
 public:
     TestSession(const std::string &address,
                 const uint16_t port,
                 const std::string &socket,
                 const std::string &transferType);
-    void sendLoop();
+    void runTest();
+    double calculateSpeed(double duration);
 
     bool m_isClient = false;
     bool m_isTcp = false;
@@ -43,9 +47,8 @@ public:
     Kitsunemimi::Project::Session* m_clientSession = nullptr;
     Kitsunemimi::Project::Session* m_serverSession = nullptr;
 
-    std::chrono::high_resolution_clock::time_point m_start;
-    std::chrono::high_resolution_clock::time_point m_end;
 
+    TimerSlot m_timeSlot;
     std::mutex m_cvMutex;
     std::condition_variable m_cv;
 };
