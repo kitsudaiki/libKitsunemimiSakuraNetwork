@@ -30,7 +30,7 @@
 #include <libKitsunemimiProjectNetwork/session.h>
 #include <libKitsunemimiNetwork/abstract_socket.h>
 
-#include <libKitsunemimiCommon/test.h>
+#include <libKitsunemimiCommon/test_helper/compare_test_helper.h>
 
 namespace Kitsunemimi
 {
@@ -38,7 +38,7 @@ namespace Project
 {
 
 class Session_Test
-        : public Kitsunemimi::Test
+        : public Kitsunemimi::CompareTestHelper
 {
 public:
     Session_Test();

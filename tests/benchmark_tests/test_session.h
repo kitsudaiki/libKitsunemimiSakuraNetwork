@@ -8,7 +8,7 @@
 #include <mutex>
 #include <condition_variable>
 
-#include <libKitsunemimiCommon/benchmark_test.h>
+#include <libKitsunemimiCommon/test_helper/speed_test_helper.h>
 
 namespace Kitsunemimi {
 namespace Project {
@@ -24,7 +24,7 @@ typedef std::chrono::high_resolution_clock::time_point chronoTimePoint;
 typedef std::chrono::high_resolution_clock chronoClock;
 
 class TestSession
-        : public Kitsunemimi::BenchmarkTest
+        : public Kitsunemimi::SpeedTestHelper
 {
 public:
     TestSession(const std::string &address,

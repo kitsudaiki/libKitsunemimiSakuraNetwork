@@ -158,7 +158,7 @@ void sessionCallback(void* target,
  * @brief Session_Test::Session_Test
  */
 Session_Test::Session_Test() :
-    Kitsunemimi::Test("Session_Test")
+    Kitsunemimi::CompareTestHelper("Session_Test")
 {
     initTestCase();
     runTest();
