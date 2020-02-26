@@ -58,23 +58,20 @@ inline uint64_t
 processMessage(void* target,
                MessageRingBuffer* recvBuffer)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("process message");
-    }
-
-    const CommonMessageHeader* header = getObjectFromBuffer<CommonMessageHeader>(recvBuffer);
+    // gsession, which is related to the message
     Session* session = static_cast<Session*>(target);
 
-    // precheck
+    // et header of message and check if header was complete within the buffer
+    const CommonMessageHeader* header = getObjectFromBuffer<CommonMessageHeader>(recvBuffer);
     if(header == nullptr) {
         return 0;
     }
 
-    // check version
+    // check version in header
     if(header->version != 0x1)
     {
         LOG_ERROR("false message-version");
-        send_ErrorMessage(session, Session::errorCodes::FALSE_VERSION, "++++++++++++++++++FAIL");
+        send_ErrorMessage(session, Session::errorCodes::FALSE_VERSION, "");
         return 0;
     }
 
@@ -82,6 +79,15 @@ processMessage(void* target,
     const void* rawMessage = static_cast<const void*>(getDataPointer(*recvBuffer,
                                                       header->totalMessageSize));
     if(rawMessage == nullptr) {
+        return 0;
+    }
+
+    // check delimiter of the message
+    const uint32_t* end = static_cast<const uint32_t*>(rawMessage)
+                          + ((header->totalMessageSize)/4)
+                          - 1;
+    if(*end != MESSAGE_DELIMITER) {
+        // TODO: ERROR
         return 0;
     }
 
@@ -98,16 +104,6 @@ processMessage(void* target,
     if(header->flags & 0x2) {
         SessionHandler::m_replyHandler->removeMessage(header->sessionId, header->messageId);
     }
-
-    // check delimiter
-    const uint32_t* end = static_cast<const uint32_t*>(rawMessage)
-                          + ((header->totalMessageSize)/4)
-                          - 1;
-    if(*end != MESSAGE_DELIMITER) {
-        // TODO: ERROR
-        return 0;
-    }
-
 
     // process message by type
     switch(header->type)

@@ -144,9 +144,7 @@ send_ErrorMessage(Session* session,
  *
  * @param session pointer to the session
  * @param header pointer to the common header of the message within the message-ring-buffer
- * @param rawMessage pointer to the complete raw data of the message
- *
- * @return number of processed bytes
+ * @param rawMessage pointer to the raw data of the complete message (header + payload + end)
  */
 inline void
 process_Error_Type(Session* session,

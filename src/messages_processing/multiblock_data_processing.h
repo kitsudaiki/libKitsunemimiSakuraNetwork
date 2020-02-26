@@ -56,6 +56,7 @@ send_Data_Multi_Init(Session* session,
 {
     Data_MultiInit_Message message;
 
+    // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = session->increaseMessageIdCounter();
     message.multiblockId = multiblockId;
@@ -81,6 +82,7 @@ send_Data_Multi_Init_Reply(Session* session,
 {
     Data_MultiInitReply_Message message;
 
+    // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = messageId;
     message.multiblockId = multiblockId;
@@ -114,6 +116,7 @@ send_Data_Multi_Static(Session* session,
     CommonMessageEnd end;
     Data_MultiBlock_Header message;
 
+    // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = session->increaseMessageIdCounter();
     message.commonHeader.totalMessageSize = totalMessageSize;
@@ -315,9 +318,7 @@ process_Data_Multi_Abort_Reply(Session* session,
  *
  * @param session pointer to the session
  * @param header pointer to the common header of the message within the message-ring-buffer
- * @param recvBuffer pointer to the message-ring-buffer
- *
- * @return number of processed bytes
+ * @param rawMessage pointer to the raw data of the complete message (header + payload + end)
  */
 inline void
 process_MultiBlock_Data_Type(Session* session,

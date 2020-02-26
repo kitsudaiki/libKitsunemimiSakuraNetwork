@@ -58,6 +58,7 @@ send_Session_Init_Start(Session* session,
 
     Session_Init_Start_Message message;
 
+    // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = session->increaseMessageIdCounter();
     message.sessionIdentifier = sessionIdentifier;
@@ -87,6 +88,7 @@ send_Session_Init_Reply(Session* session,
 
     Session_Init_Reply_Message message;
 
+    // fill message
     message.commonHeader.sessionId = initialSessionId;
     message.commonHeader.messageId = messageId;
     message.completeSessionId = completeSessionId;
@@ -112,6 +114,7 @@ send_Session_Close_Start(Session* session,
 
     Session_Close_Start_Message message;
 
+    // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = session->increaseMessageIdCounter();
     if(replyExpected) {
@@ -138,6 +141,7 @@ send_Session_Close_Reply(Session* session,
 
     Session_Close_Reply_Message message;
 
+    // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = messageId;
 
@@ -242,9 +246,7 @@ process_Session_Close_Reply(Session* session,
  *
  * @param session pointer to the session
  * @param header pointer to the common header of the message within the message-ring-buffer
- * @param recvBuffer pointer to the message-ring-buffer
- *
- * @return number of processed bytes
+ * @param rawMessage pointer to the raw data of the complete message (header + payload + end)
  */
 inline void
 process_Session_Type(Session* session,

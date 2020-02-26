@@ -109,9 +109,10 @@ struct CommonMessageHeader
     uint8_t version = 0x1;
     uint8_t type = 0;
     uint8_t subType = 0;
-    uint8_t flags = 0;   // 0x1 = reply required; 0x2 = is reply; // 0x4 = answer required; 0x8 = is answer
-    uint32_t messageId = 0;
+    uint8_t flags = 0;   // 0x1 = reply required; 0x2 = is reply;
+                         // 0x4 = is request; 0x8 = is response
     uint32_t sessionId = 0;
+    uint32_t messageId = 0;
     uint32_t totalMessageSize = 0;
     uint32_t payloadSize = 0;
 } __attribute__((packed));

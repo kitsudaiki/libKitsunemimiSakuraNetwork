@@ -59,12 +59,13 @@ send_Data_Stream(Session* session,
     // bring message-size to a multiple of 8
     const uint32_t totalMessageSize = sizeof(Data_Stream_Header)
                                       + size
-                                      + (8-(size % 8))  // fill up to a multiple of 8
+                                      + (8-(size % 8)) % 8  // fill up to a multiple of 8
                                       + sizeof(CommonMessageEnd);
 
     CommonMessageEnd end;
     Data_Stream_Header header;
 
+    // fill message
     header.commonHeader.sessionId = session->sessionId();
     header.commonHeader.messageId = session->increaseMessageIdCounter();
     header.commonHeader.totalMessageSize = totalMessageSize;
@@ -80,6 +81,7 @@ send_Data_Stream(Session* session,
            &end,
            sizeof(CommonMessageEnd));
 
+    // send
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   header.commonHeader,
                                                   messageBuffer,
@@ -95,9 +97,11 @@ send_Data_Stream_Reply(Session* session,
 {
     Data_StreamReply_Message message;
 
+    // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = messageId;
 
+    // send
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -112,14 +116,17 @@ process_Data_Stream(Session* session,
                     const Data_Stream_Header* header,
                     const void* rawMessage)
 {
+    // get pointer to the beginning of the payload
     const uint8_t* payloadData = static_cast<const uint8_t*>(rawMessage)
                                  + sizeof(Data_Stream_Header);
 
+    // trigger callback
     session->m_processStreamData(session->m_streamDataTarget,
                                  session,
                                  static_cast<const void*>(payloadData),
                                  header->commonHeader.payloadSize);
 
+    // send reply if necessary
     if(header->commonHeader.flags & 0x1) {
         send_Data_Stream_Reply(session, header->commonHeader.messageId);
     }
@@ -140,9 +147,7 @@ process_Data_Stream_Reply(Session*,
  *
  * @param session pointer to the session
  * @param header pointer to the common header of the message within the message-ring-buffer
- * @param recvBuffer pointer to the message-ring-buffer
- *
- * @return number of processed bytes
+ * @param rawMessage pointer to the raw data of the complete message (header + payload + end)
  */
 inline void
 process_Stream_Data_Type(Session* session,

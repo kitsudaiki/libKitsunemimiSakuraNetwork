@@ -56,6 +56,7 @@ send_Heartbeat_Start(Session* session)
 {
     Heartbeat_Start_Message message;
 
+    // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = session->increaseMessageIdCounter();
 
@@ -77,6 +78,7 @@ send_Heartbeat_Reply(Session* session,
 {
     Heartbeat_Reply_Message message;
 
+    // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = messageId;
 
@@ -115,9 +117,7 @@ process_Heartbeat_Reply(Session*,
  *
  * @param session pointer to the session
  * @param header pointer to the common header of the message within the message-ring-buffer
- * @param recvBuffer pointer to the message-ring-buffer
- *
- * @return number of processed bytes
+ * @param rawMessage pointer to the raw data of the complete message (header + payload + end)
  */
 inline void
 process_Heartbeat_Type(Session* session,

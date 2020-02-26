@@ -60,12 +60,13 @@ send_Data_SingleBlock(Session* session,
     // bring message-size to a multiple of 8
     const uint32_t totalMessageSize = sizeof(Data_SingleBlock_Header)
                                       + size
-                                      + (8-(size % 8))  // fill up to a multiple of 8
+                                      + (8-(size % 8)) % 8  // fill up to a multiple of 8
                                       + sizeof(CommonMessageEnd);
 
     CommonMessageEnd end;
     Data_SingleBlock_Header header;
 
+    // fill message
     header.commonHeader.sessionId = session->sessionId();
     header.commonHeader.messageId = session->increaseMessageIdCounter();
     header.commonHeader.totalMessageSize = totalMessageSize;
@@ -76,12 +77,14 @@ send_Data_SingleBlock(Session* session,
         header.commonHeader.flags |= 0x8;
     }
 
+    // fill buffer with all parts of the message
     memcpy(&messageBuffer[0], &header, sizeof(Data_SingleBlock_Header));
     memcpy(&messageBuffer[sizeof(Data_SingleBlock_Header)], data, size);
     memcpy(&messageBuffer[(totalMessageSize - sizeof(CommonMessageEnd))],
            &end,
            sizeof(CommonMessageEnd));
 
+    // send
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   header.commonHeader,
                                                   &messageBuffer,
@@ -97,9 +100,11 @@ send_Data_SingleBlock_Reply(Session* session,
 {
     Data_SingleBlockReply_Message message;
 
+    // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = messageId;
 
+    // send
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -114,28 +119,34 @@ process_Data_SingleBlock(Session* session,
                          const Data_SingleBlock_Header* header,
                          const void* rawMessage)
 {
+    // prepare buffer for payload
     const uint32_t allocateBlocks = (header->commonHeader.payloadSize / 4096) + 1;
-    DataBuffer* buffer = new DataBuffer(allocateBlocks);
+    DataBuffer* buffer = new DataBuffer(allocateBlocks, 4096);
 
+    // get pointer to the beginning of the payload
     const uint8_t* payloadData = static_cast<const uint8_t*>(rawMessage)
                                  + sizeof(Data_SingleBlock_Header);
 
+    // copy messagy-payload into buffer
     addDataToBuffer(buffer, payloadData, header->commonHeader.payloadSize);
 
+    // check if normal standalone-message or if message is response
     if(header->commonHeader.flags & 0x8)
     {
-        bool found = SessionHandler::m_blockerHandler->releaseMessage(header->blockerId,
-                                                                      buffer);
-        assert(found);
+        // release thread, which is related to the blocker-id
+        SessionHandler::m_blockerHandler->releaseMessage(header->blockerId,
+                                                         buffer);
     }
     else
     {
+        // use callback
         session->m_processStandaloneData(session->m_standaloneDataTarget,
                                          session,
                                          header->multiblockId,
                                          buffer);
     }
 
+    // send reply, if requested
     if(header->commonHeader.flags & 0x1) {
         send_Data_SingleBlock_Reply(session, header->commonHeader.messageId);
     }
@@ -156,9 +167,7 @@ process_Data_SingleBlock_Reply(Session*,
  *
  * @param session pointer to the session
  * @param header pointer to the common header of the message within the message-ring-buffer
- * @param recvBuffer pointer to the message-ring-buffer
- *
- * @return number of processed bytes
+ * @param rawMessage pointer to the raw data of the complete message (header + payload + end)
  */
 inline void
 process_SingleBlock_Data_Type(Session* session,
