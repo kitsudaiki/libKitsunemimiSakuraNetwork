@@ -165,7 +165,10 @@ Session::sendRequest(const void *data,
         if(size <= MAX_SINGLE_MESSAGE_SIZE)
         {
             id = m_multiblockIo->getRandValue();
-            send_Data_SingleBlock(this, id, data, size);
+            send_Data_SingleBlock(this,
+                                  id,
+                                  data,
+                                  static_cast<uint32_t>(size));
         }
         else
         {
@@ -446,10 +449,10 @@ Session::initStatemachine()
     assert(m_statemachine.setInitialChildState(SESSION_READY, ACTIVE));
 
     // init transitions
-    assert(m_statemachine.addTransition(NOT_CONNECTED,     CONNECT,            CONNECTED));
-    assert(m_statemachine.addTransition(CONNECTED,         DISCONNECT,         NOT_CONNECTED));
-    assert(m_statemachine.addTransition(SESSION_NOT_READY, START_SESSION,      SESSION_READY));
-    assert(m_statemachine.addTransition(SESSION_READY,     STOP_SESSION,       SESSION_NOT_READY));
+    assert(m_statemachine.addTransition(NOT_CONNECTED,     CONNECT,       CONNECTED));
+    assert(m_statemachine.addTransition(CONNECTED,         DISCONNECT,    NOT_CONNECTED));
+    assert(m_statemachine.addTransition(SESSION_NOT_READY, START_SESSION, SESSION_READY));
+    assert(m_statemachine.addTransition(SESSION_READY,     STOP_SESSION,  SESSION_NOT_READY));
 }
 
 /**
@@ -467,6 +470,7 @@ Session::increaseMessageIdCounter()
 
     m_messageIdCounter++;
     tempId = m_messageIdCounter;
+
     m_messageIdCounter_lock.clear(std::memory_order_release);
     return tempId;
 }

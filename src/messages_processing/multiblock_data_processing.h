@@ -56,12 +56,8 @@ send_Data_Multi_Init(Session* session,
 {
     Data_MultiInit_Message message;
 
-    message.commonHeader.type = MULTIBLOCK_DATA_TYPE;
-    message.commonHeader.subType = DATA_MULTI_INIT_SUBTYPE;
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = session->increaseMessageIdCounter();
-    message.commonHeader.flags = 0x1;
-    message.commonHeader.totalMessageSize = sizeof(Data_MultiInit_Message);
     message.multiblockId = multiblockId;
     message.totalSize = requestedSize;
     if(answerExpected) {
@@ -85,12 +81,8 @@ send_Data_Multi_Init_Reply(Session* session,
 {
     Data_MultiInitReply_Message message;
 
-    message.commonHeader.type = MULTIBLOCK_DATA_TYPE;
-    message.commonHeader.subType = DATA_MULTI_INIT_REPLY_SUBTYPE;
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = messageId;
-    message.commonHeader.flags = 0x2;
-    message.commonHeader.totalMessageSize = sizeof(Data_MultiInitReply_Message);
     message.multiblockId = multiblockId;
     message.status = status;
 
@@ -122,8 +114,6 @@ send_Data_Multi_Static(Session* session,
     CommonMessageEnd end;
     Data_MultiBlock_Header message;
 
-    message.commonHeader.type = MULTIBLOCK_DATA_TYPE;
-    message.commonHeader.subType = DATA_MULTI_STATIC_SUBTYPE;
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = session->increaseMessageIdCounter();
     message.commonHeader.totalMessageSize = totalMessageSize;
@@ -155,11 +145,8 @@ send_Data_Multi_Finish(Session* session,
 {
     Data_MultiFinish_Message message;
 
-    message.commonHeader.type = MULTIBLOCK_DATA_TYPE;
-    message.commonHeader.subType = DATA_MULTI_FINISH_SUBTYPE;
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = session->increaseMessageIdCounter();
-    message.commonHeader.totalMessageSize = sizeof(Data_MultiFinish_Message);
     message.multiblockId = multiblockId;
     message.blockerId = blockerId;
     if(blockerId != 0) {
@@ -181,11 +168,8 @@ send_Data_Multi_Abort_Init(Session* session,
 {
     Data_MultiAbortInit_Message message;
 
-    message.commonHeader.type = MULTIBLOCK_DATA_TYPE;
-    message.commonHeader.subType = DATA_MULTI_ABORT_INIT_SUBTYPE;
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = session->increaseMessageIdCounter();
-    message.commonHeader.totalMessageSize = sizeof(Data_MultiAbortInit_Message);
     message.multiblockId = multiblockId;
 
     SessionHandler::m_sessionHandler->sendMessage(session,
@@ -204,11 +188,8 @@ send_Data_Multi_Abort_Reply(Session* session,
 {
     Data_MultiAbortReply_Message message;
 
-    message.commonHeader.type = MULTIBLOCK_DATA_TYPE;
-    message.commonHeader.subType = DATA_MULTI_ABORT_REPLY_SUBTYPE;
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = messageId;
-    message.commonHeader.totalMessageSize = sizeof(Data_MultiAbortReply_Message);
     message.multiblockId = multiblockId;
 
     SessionHandler::m_sessionHandler->sendMessage(session,

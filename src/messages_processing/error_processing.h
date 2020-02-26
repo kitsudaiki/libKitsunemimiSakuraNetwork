@@ -64,11 +64,8 @@ send_ErrorMessage(Session* session,
             Error_FalseVersion_Message message;
 
             // fill message
-            message.commonHeader.type = ERROR_TYPE;
-            message.commonHeader.subType = ERROR_FALSE_VERSION_SUBTYPE;
             message.commonHeader.sessionId = session->sessionId();
             message.commonHeader.messageId = session->increaseMessageIdCounter();
-            message.commonHeader.totalMessageSize = sizeof(Error_FalseVersion_Message);
             message.messageSize = errorMessage.size();
 
             // check and copy message-content
@@ -92,11 +89,8 @@ send_ErrorMessage(Session* session,
             Error_UnknownSession_Message message;
 
             // fill message
-            message.commonHeader.type = ERROR_TYPE;
-            message.commonHeader.subType = ERROR_UNKNOWN_SESSION_SUBTYPE;
             message.commonHeader.sessionId = session->sessionId();
             message.commonHeader.messageId = session->increaseMessageIdCounter();
-            message.commonHeader.totalMessageSize = sizeof(Error_UnknownSession_Message);
             message.messageSize = errorMessage.size();
 
             // check and copy message-content
@@ -120,11 +114,8 @@ send_ErrorMessage(Session* session,
             Error_InvalidMessage_Message message;
 
             // fill message
-            message.commonHeader.type = ERROR_TYPE;
-            message.commonHeader.subType = ERROR_INVALID_MESSAGE_SUBTYPE;
             message.commonHeader.sessionId = session->sessionId();
             message.commonHeader.messageId = session->increaseMessageIdCounter();
-            message.commonHeader.totalMessageSize = sizeof(Error_InvalidMessage_Message);
             message.messageSize = errorMessage.size();
 
             // check and copy message-content

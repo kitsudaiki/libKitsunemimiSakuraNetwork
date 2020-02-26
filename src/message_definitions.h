@@ -133,22 +133,16 @@ struct Session_Init_Start_Message
     uint64_t sessionIdentifier = 0;
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
-} __attribute__((packed));
 
-inline void
-create_Session_Init_Start_Message(Session_Init_Start_Message &target,
-                                  const uint32_t sessionId,
-                                  const uint32_t messageId,
-                                  const uint64_t sessionIdentifier)
-{
-    target.commonHeader.type = SESSION_TYPE;
-    target.commonHeader.subType = SESSION_INIT_START_SUBTYPE;
-    target.commonHeader.sessionId = sessionId;
-    target.commonHeader.messageId = messageId;
-    target.commonHeader.flags = 0x1;
-    target.commonHeader.totalMessageSize = sizeof(target);
-    target.sessionIdentifier = sessionIdentifier;
-}
+    Session_Init_Start_Message()
+    {
+        commonHeader.type = SESSION_TYPE;
+        commonHeader.subType = SESSION_INIT_START_SUBTYPE;
+        commonHeader.flags = 0x1;
+        commonHeader.totalMessageSize = sizeof(Session_Init_Start_Message);
+    }
+
+} __attribute__((packed));
 
 /**
  * @brief Session_Init_Reply_Message
@@ -159,20 +153,16 @@ struct Session_Init_Reply_Message
     uint32_t clientSessionId = 0;
     uint32_t completeSessionId = 0;
     CommonMessageEnd commonEnd;
-} __attribute__((packed));
 
-inline void
-create_Session_Init_Reply_Message(Session_Init_Reply_Message &target,
-                                  const uint32_t sessionId,
-                                  const uint32_t messageId)
-{
-    target.commonHeader.type = SESSION_TYPE;
-    target.commonHeader.subType = SESSION_INIT_REPLY_SUBTYPE;
-    target.commonHeader.sessionId = sessionId;
-    target.commonHeader.messageId = messageId;
-    target.commonHeader.flags = 0x2;
-    target.commonHeader.totalMessageSize = sizeof(target);
-}
+    Session_Init_Reply_Message()
+    {
+        commonHeader.type = SESSION_TYPE;
+        commonHeader.subType = SESSION_INIT_REPLY_SUBTYPE;
+        commonHeader.flags = 0x2;
+        commonHeader.totalMessageSize = sizeof(Session_Init_Reply_Message);
+    }
+
+} __attribute__((packed));
 
 //==================================================================================================
 
@@ -185,24 +175,15 @@ struct Session_Close_Start_Message
     uint32_t sessionId = 0;
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
-} __attribute__((packed));
 
-inline void
-create_Session_Close_Start_Message(Session_Close_Start_Message &target,
-                                   const uint32_t sessionId,
-                                   const uint32_t messageId,
-                                   const bool replyExpected = false)
-{
-    target.commonHeader.type = SESSION_TYPE;
-    target.commonHeader.subType = SESSION_CLOSE_START_SUBTYPE;
-    target.commonHeader.sessionId = sessionId;
-    target.commonHeader.messageId = messageId;
-    target.commonHeader.totalMessageSize = sizeof(target);
-
-    if(replyExpected) {
-        target.commonHeader.flags = 0x1;
+    Session_Close_Start_Message()
+    {
+        commonHeader.type = SESSION_TYPE;
+        commonHeader.subType = SESSION_CLOSE_START_SUBTYPE;
+        commonHeader.totalMessageSize = sizeof(Session_Close_Start_Message);
     }
-}
+
+} __attribute__((packed));
 
 /**
  * @brief Session_Close_Reply_Message
@@ -213,20 +194,16 @@ struct Session_Close_Reply_Message
     uint32_t sessionId = 0;
     uint8_t padding[4];
     CommonMessageEnd commonEnd;
-} __attribute__((packed));
 
-inline void
-create_Session_Close_Reply_Message(Session_Close_Reply_Message &target,
-                                   const uint32_t sessionId,
-                                   const uint32_t messageId)
-{
-    target.commonHeader.type = SESSION_TYPE;
-    target.commonHeader.subType = SESSION_CLOSE_REPLY_SUBTYPE;
-    target.commonHeader.sessionId = sessionId;
-    target.commonHeader.messageId = messageId;
-    target.commonHeader.flags = 0x2;
-    target.commonHeader.totalMessageSize = sizeof(target);
-}
+    Session_Close_Reply_Message()
+    {
+        commonHeader.type = SESSION_TYPE;
+        commonHeader.subType = SESSION_CLOSE_REPLY_SUBTYPE;
+        commonHeader.flags = 0x2;
+        commonHeader.totalMessageSize = sizeof(Session_Close_Reply_Message);
+    }
+
+} __attribute__((packed));
 
 //==================================================================================================
 
@@ -237,6 +214,15 @@ struct Heartbeat_Start_Message
 {
     CommonMessageHeader commonHeader;
     CommonMessageEnd commonEnd;
+
+    Heartbeat_Start_Message()
+    {
+        commonHeader.type = HEARTBEAT_TYPE;
+        commonHeader.subType = HEARTBEAT_START_SUBTYPE;
+        commonHeader.flags = 0x1;
+        commonHeader.totalMessageSize = sizeof(Heartbeat_Start_Message);
+    }
+
 } __attribute__((packed));
 
 /**
@@ -246,6 +232,15 @@ struct Heartbeat_Reply_Message
 {
     CommonMessageHeader commonHeader;
     CommonMessageEnd commonEnd;
+
+    Heartbeat_Reply_Message()
+    {
+        commonHeader.type = HEARTBEAT_TYPE;
+        commonHeader.subType = HEARTBEAT_REPLY_SUBTYPE;
+        commonHeader.flags = 0x2;
+        commonHeader.totalMessageSize = sizeof(Heartbeat_Reply_Message);
+    }
+
 } __attribute__((packed));
 
 //==================================================================================================
@@ -259,6 +254,14 @@ struct Error_FalseVersion_Message
     uint64_t messageSize = 0;
     char message[MESSAGE_CACHE_SIZE];
     CommonMessageEnd commonEnd;
+
+    Error_FalseVersion_Message()
+    {
+        commonHeader.type = ERROR_TYPE;
+        commonHeader.subType = ERROR_FALSE_VERSION_SUBTYPE;
+        commonHeader.totalMessageSize = sizeof(Error_FalseVersion_Message);
+    }
+
 } __attribute__((packed));
 
 /**
@@ -270,6 +273,14 @@ struct Error_UnknownSession_Message
     uint64_t messageSize = 0;
     char message[MESSAGE_CACHE_SIZE];
     CommonMessageEnd commonEnd;
+
+    Error_UnknownSession_Message()
+    {
+        commonHeader.type = ERROR_TYPE;
+        commonHeader.subType = ERROR_UNKNOWN_SESSION_SUBTYPE;
+        commonHeader.totalMessageSize = sizeof(Error_UnknownSession_Message);
+    }
+
 } __attribute__((packed));
 
 
@@ -282,6 +293,14 @@ struct Error_InvalidMessage_Message
     uint64_t messageSize = 0;
     char message[MESSAGE_CACHE_SIZE];
     CommonMessageEnd commonEnd;
+
+    Error_InvalidMessage_Message()
+    {
+        commonHeader.type = ERROR_TYPE;
+        commonHeader.subType = ERROR_INVALID_MESSAGE_SUBTYPE;
+        commonHeader.totalMessageSize = sizeof(Error_InvalidMessage_Message);
+    }
+
 } __attribute__((packed));
 
 //==================================================================================================
@@ -292,6 +311,13 @@ struct Error_InvalidMessage_Message
 struct Data_Stream_Header
 {
     CommonMessageHeader commonHeader;
+
+    Data_Stream_Header()
+    {
+        commonHeader.type = STREAM_DATA_TYPE;
+        commonHeader.subType = DATA_STREAM_STATIC_SUBTYPE;
+    }
+
 } __attribute__((packed));
 
 /**
@@ -301,6 +327,15 @@ struct Data_StreamReply_Message
 {
     CommonMessageHeader commonHeader;
     CommonMessageEnd commonEnd;
+
+    Data_StreamReply_Message()
+    {
+        commonHeader.type = STREAM_DATA_TYPE;
+        commonHeader.subType = DATA_STREAM_REPLY_SUBTYPE;
+        commonHeader.flags = 0x2;
+        commonHeader.totalMessageSize = sizeof(Data_StreamReply_Message);
+    }
+
 } __attribute__((packed));
 
 //==================================================================================================
@@ -314,6 +349,14 @@ struct Data_SingleBlock_Header
     uint64_t multiblockId = 0;
     uint64_t blockerId = 0;
     uint8_t padding[4];
+
+    Data_SingleBlock_Header()
+    {
+        commonHeader.type = SINGLEBLOCK_DATA_TYPE;
+        commonHeader.subType = DATA_SINGLE_DATA_SUBTYPE;
+        commonHeader.flags = 0x1;
+    }
+
 } __attribute__((packed));
 
 /**
@@ -323,6 +366,15 @@ struct Data_SingleBlockReply_Message
 {
     CommonMessageHeader commonHeader;
     CommonMessageEnd commonEnd;
+
+    Data_SingleBlockReply_Message()
+    {
+        commonHeader.type = SINGLEBLOCK_DATA_TYPE;
+        commonHeader.subType = DATA_SINGLE_REPLY_SUBTYPE;
+        commonHeader.flags = 0x2;
+        commonHeader.totalMessageSize = sizeof(Data_SingleBlockReply_Message);
+    }
+
 } __attribute__((packed));
 
 //==================================================================================================
@@ -336,6 +388,15 @@ struct Data_MultiInit_Message
     uint64_t multiblockId = 0;
     uint64_t totalSize = 0;
     CommonMessageEnd commonEnd;
+
+    Data_MultiInit_Message()
+    {
+        commonHeader.type = MULTIBLOCK_DATA_TYPE;
+        commonHeader.subType = DATA_MULTI_INIT_SUBTYPE;
+        commonHeader.flags = 0x1;
+        commonHeader.totalMessageSize = sizeof(Data_MultiInit_Message);
+    }
+
 } __attribute__((packed));
 
 /**
@@ -354,6 +415,15 @@ struct Data_MultiInitReply_Message
     uint8_t status = UNDEFINED;
     uint8_t padding[7];
     CommonMessageEnd commonEnd;
+
+    Data_MultiInitReply_Message()
+    {
+        commonHeader.type = MULTIBLOCK_DATA_TYPE;
+        commonHeader.subType = DATA_MULTI_INIT_REPLY_SUBTYPE;
+        commonHeader.flags = 0x2;
+        commonHeader.totalMessageSize = sizeof(Data_MultiInitReply_Message);
+    }
+
 } __attribute__((packed));
 
 /**
@@ -365,6 +435,13 @@ struct Data_MultiBlock_Header
     uint64_t multiblockId = 0;
     uint32_t totalPartNumber = 0;
     uint32_t partId = 0;
+
+    Data_MultiBlock_Header()
+    {
+        commonHeader.type = MULTIBLOCK_DATA_TYPE;
+        commonHeader.subType = DATA_MULTI_STATIC_SUBTYPE;
+    }
+
 } __attribute__((packed));
 
 /**
@@ -376,6 +453,14 @@ struct Data_MultiFinish_Message
     uint64_t multiblockId = 0;
     uint64_t blockerId = 0;
     CommonMessageEnd commonEnd;
+
+    Data_MultiFinish_Message()
+    {
+        commonHeader.type = MULTIBLOCK_DATA_TYPE;
+        commonHeader.subType = DATA_MULTI_FINISH_SUBTYPE;
+        commonHeader.totalMessageSize = sizeof(Data_MultiFinish_Message);
+    }
+
 } __attribute__((packed));
 
 /**
@@ -386,6 +471,15 @@ struct Data_MultiAbortInit_Message
     CommonMessageHeader commonHeader;
     uint64_t multiblockId = 0;
     CommonMessageEnd commonEnd;
+
+    Data_MultiAbortInit_Message()
+    {
+        commonHeader.type = MULTIBLOCK_DATA_TYPE;
+        commonHeader.subType = DATA_MULTI_ABORT_INIT_SUBTYPE;
+        commonHeader.flags = 0x1;
+        commonHeader.totalMessageSize = sizeof(Data_MultiAbortInit_Message);
+    }
+
 } __attribute__((packed));
 
 /**
@@ -396,6 +490,15 @@ struct Data_MultiAbortReply_Message
     CommonMessageHeader commonHeader;
     uint64_t multiblockId = 0;
     CommonMessageEnd commonEnd;
+
+    Data_MultiAbortReply_Message()
+    {
+        commonHeader.type = MULTIBLOCK_DATA_TYPE;
+        commonHeader.subType = DATA_MULTI_ABORT_REPLY_SUBTYPE;
+        commonHeader.flags = 0x2;
+        commonHeader.totalMessageSize = sizeof(Data_MultiAbortReply_Message);
+    }
+
 } __attribute__((packed));
 
 //==================================================================================================

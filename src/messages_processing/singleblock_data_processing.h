@@ -66,11 +66,8 @@ send_Data_SingleBlock(Session* session,
     CommonMessageEnd end;
     Data_SingleBlock_Header header;
 
-    header.commonHeader.type = SINGLEBLOCK_DATA_TYPE;
-    header.commonHeader.subType = DATA_SINGLE_DATA_SUBTYPE;
     header.commonHeader.sessionId = session->sessionId();
     header.commonHeader.messageId = session->increaseMessageIdCounter();
-    header.commonHeader.flags = 0x1;
     header.commonHeader.totalMessageSize = totalMessageSize;
     header.commonHeader.payloadSize = size;
     header.blockerId = blockerId;
@@ -100,12 +97,8 @@ send_Data_SingleBlock_Reply(Session* session,
 {
     Data_SingleBlockReply_Message message;
 
-    message.commonHeader.type = SINGLEBLOCK_DATA_TYPE;
-    message.commonHeader.subType = DATA_SINGLE_REPLY_SUBTYPE;
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = messageId;
-    message.commonHeader.flags = 0x2;
-    message.commonHeader.totalMessageSize = sizeof(Data_SingleBlockReply_Message);
 
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,

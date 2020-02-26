@@ -78,8 +78,10 @@ processMessage(void* target,
         return 0;
     }
 
-    // check if there are enough data in the buffer for the complete message
-    if(header->totalMessageSize > recvBuffer->readWriteDiff) {
+    // get complete message from the ringbuffer, if enough data are available
+    const void* rawMessage = static_cast<const void*>(getDataPointer(*recvBuffer,
+                                                      header->totalMessageSize));
+    if(rawMessage == nullptr) {
         return 0;
     }
 
@@ -95,13 +97,6 @@ processMessage(void* target,
     // remove from reply-handler if message is reply
     if(header->flags & 0x2) {
         SessionHandler::m_replyHandler->removeMessage(header->sessionId, header->messageId);
-    }
-
-    // get complete message from the ringbuffer, if enough data are available
-    const void* rawMessage = static_cast<const void*>(getDataPointer(*recvBuffer,
-                                                      header->totalMessageSize));
-    if(rawMessage == nullptr) {
-        return 0;
     }
 
     // check delimiter

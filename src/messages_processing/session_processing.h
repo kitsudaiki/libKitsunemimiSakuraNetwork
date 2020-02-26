@@ -57,10 +57,10 @@ send_Session_Init_Start(Session* session,
     LOG_DEBUG("SEND session init start");
 
     Session_Init_Start_Message message;
-    create_Session_Init_Start_Message(message,
-                                      session->sessionId(),
-                                      session->increaseMessageIdCounter(),
-                                      sessionIdentifier);
+
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = session->increaseMessageIdCounter();
+    message.sessionIdentifier = sessionIdentifier;
     message.clientSessionId = session->sessionId();
 
     SessionHandler::m_sessionHandler->sendMessage(session,
@@ -86,7 +86,9 @@ send_Session_Init_Reply(Session* session,
     LOG_DEBUG("SEND session init reply");
 
     Session_Init_Reply_Message message;
-    create_Session_Init_Reply_Message(message, initialSessionId, messageId);
+
+    message.commonHeader.sessionId = initialSessionId;
+    message.commonHeader.messageId = messageId;
     message.completeSessionId = completeSessionId;
     message.clientSessionId = initialSessionId;
 
@@ -109,10 +111,12 @@ send_Session_Close_Start(Session* session,
     LOG_DEBUG("SEND session close start");
 
     Session_Close_Start_Message message;
-    create_Session_Close_Start_Message(message,
-                                       session->sessionId(),
-                                       session->increaseMessageIdCounter(),
-                                       replyExpected);
+
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = session->increaseMessageIdCounter();
+    if(replyExpected) {
+        message.commonHeader.flags = 0x1;
+    }
 
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
@@ -133,7 +137,9 @@ send_Session_Close_Reply(Session* session,
     LOG_DEBUG("SEND session close reply");
 
     Session_Close_Reply_Message message;
-    create_Session_Close_Reply_Message(message, session->sessionId(), messageId);
+
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = messageId;
 
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,

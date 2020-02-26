@@ -40,10 +40,10 @@ public:
     MessageBlockerHandler();
     ~MessageBlockerHandler();
 
-    DataBuffer* blockMessage(const uint64_t completeMessageId,
+    DataBuffer* blockMessage(const uint64_t blockerId,
                              const uint64_t blockerTimeout,
                              Session* session);
-    bool releaseMessage(const uint64_t completeMessageId,
+    bool releaseMessage(const uint64_t blockerId,
                         DataBuffer* data);
 
 protected:
@@ -53,7 +53,7 @@ private:
     struct MessageBlocker
     {
         Session* session = nullptr;
-        uint64_t completeMessageId = 0;
+        uint64_t blockerId = 0;
         uint64_t timer = 0;
         std::mutex cvMutex;
         std::condition_variable cv;
@@ -62,9 +62,9 @@ private:
 
     std::vector<MessageBlocker*> m_messageList;
 
-    bool releaseMessageInList(const uint64_t completeMessageId,
+    bool releaseMessageInList(const uint64_t blockerId,
                               DataBuffer* data);
-    DataBuffer* removeMessageFromList(const uint64_t completeMessageId);
+    DataBuffer* removeMessageFromList(const uint64_t blockerId);
     void clearList();
     void makeTimerStep();
 };

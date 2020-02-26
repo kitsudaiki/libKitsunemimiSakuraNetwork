@@ -28,27 +28,35 @@ namespace Kitsunemimi
 namespace Project
 {
 
-MessageBlockerHandler::MessageBlockerHandler()
-{
+/**
+ * @brief constructor
+ */
+MessageBlockerHandler::MessageBlockerHandler() {}
 
-}
-
+/**
+ * @brief destructor
+ */
 MessageBlockerHandler::~MessageBlockerHandler()
 {
     clearList();
 }
 
 /**
- * @brief AnswerHandler::addMessage
- * @param completeMessageId
+ * @brief MessageBlockerHandler::blockMessage
+ *
+ * @param blockerId id ot identify the entry within the blocker-handler
+ * @param blockerTimeout time until a timeout appear for the message in seconds
+ * @param session pointer to the session for error-callback in case of a timeout
+ * @return
  */
 DataBuffer*
-MessageBlockerHandler::blockMessage(const uint64_t completeMessageId,
+MessageBlockerHandler::blockMessage(const uint64_t blockerId,
                                     const uint64_t blockerTimeout,
                                     Session* session)
 {
+    // init new blocker entry
     MessageBlocker* messageBlocker = new MessageBlocker();
-    messageBlocker->completeMessageId = completeMessageId;
+    messageBlocker->blockerId = blockerId;
     messageBlocker->timer = blockerTimeout;
     messageBlocker->session = session;
 
@@ -63,25 +71,28 @@ MessageBlockerHandler::blockMessage(const uint64_t completeMessageId,
 
     // remove from list and return result
     spinLock();
-    DataBuffer* result = removeMessageFromList(completeMessageId);
+    DataBuffer* result = removeMessageFromList(blockerId);
     spinUnlock();
 
     return result;
 }
 
 /**
- * @brief AnswerHandler::removeMessage
- * @param completeMessageId
- * @return
+ * @brief MessageBlockerHandler::releaseMessage
+ * @param blockerId
+ * @param data data-buffer, which comes from the other side and should be returned by the
+ *             blocked thread, which called the request-method within the session
+ *
+ * @return true, if blocker-id was found in the list of blocked threads
  */
 bool
-MessageBlockerHandler::releaseMessage(const uint64_t completeMessageId,
+MessageBlockerHandler::releaseMessage(const uint64_t blockerId,
                                       DataBuffer* data)
 {
     bool result = false;
 
     spinLock();
-    result = releaseMessageInList(completeMessageId, data);
+    result = releaseMessageInList(blockerId, data);
     spinUnlock();
 
     return result;
@@ -95,25 +106,23 @@ MessageBlockerHandler::run()
 {
     while(!m_abort)
     {
-        sleepThread(1000000);
-
-        if(m_abort) {
-            break;
-        }
-
         makeTimerStep();
+
+        // sleep for 1 second
+        sleepThread(1000000);
     }
 }
 
 /**
  * @brief MessageBlockerHandler::releaseMessageInList
- * @param completeMessageId
+ *
+ * @param blockerId
  * @param data
- * @param dataSize
+ *
  * @return
  */
 bool
-MessageBlockerHandler::releaseMessageInList(const uint64_t completeMessageId,
+MessageBlockerHandler::releaseMessageInList(const uint64_t blockerId,
                                             DataBuffer* data)
 {
     std::vector<MessageBlocker*>::iterator it;
@@ -122,7 +131,7 @@ MessageBlockerHandler::releaseMessageInList(const uint64_t completeMessageId,
         it++)
     {
         MessageBlocker* tempItem = *it;
-        if(tempItem->completeMessageId == completeMessageId)
+        if(tempItem->blockerId == blockerId)
         {
             tempItem->responseData = data;
             tempItem->cv.notify_one();
@@ -135,11 +144,11 @@ MessageBlockerHandler::releaseMessageInList(const uint64_t completeMessageId,
 
 /**
  * @brief AnswerHandler::removeMessageFromList
- * @param completeMessageId
+ * @param blockerId
  * @return
  */
 DataBuffer*
-MessageBlockerHandler::removeMessageFromList(const uint64_t completeMessageId)
+MessageBlockerHandler::removeMessageFromList(const uint64_t blockerId)
 {
     std::vector<MessageBlocker*>::iterator it;
     for(it = m_messageList.begin();
@@ -147,7 +156,7 @@ MessageBlockerHandler::removeMessageFromList(const uint64_t completeMessageId)
         it++)
     {
         MessageBlocker* tempItem = *it;
-        if(tempItem->completeMessageId == completeMessageId)
+        if(tempItem->blockerId == blockerId)
         {
             if(m_messageList.size() > 1)
             {
@@ -161,8 +170,8 @@ MessageBlockerHandler::removeMessageFromList(const uint64_t completeMessageId)
                 m_messageList.clear();
             }
 
+            // get data-buffer from the blocker-entry and delete the entry afterwards
             DataBuffer* result = tempItem->responseData;
-
             tempItem->responseData = nullptr;
             delete tempItem;
 
@@ -213,11 +222,11 @@ MessageBlockerHandler::makeTimerStep()
 
         if(temp->timer == 0)
         {
-            removeMessageFromList(temp->completeMessageId);
-            releaseMessageInList(temp->completeMessageId, nullptr);
+            removeMessageFromList(temp->blockerId);
+            releaseMessageInList(temp->blockerId, nullptr);
 
             const std::string err = "TIMEOUT of request: "
-                                    + std::to_string(temp->completeMessageId);
+                                    + std::to_string(temp->blockerId);
 
             temp->session->m_processError(temp->session->m_errorTarget,
                                           temp->session,

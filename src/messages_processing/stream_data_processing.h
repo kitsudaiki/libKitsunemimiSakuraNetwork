@@ -65,8 +65,6 @@ send_Data_Stream(Session* session,
     CommonMessageEnd end;
     Data_Stream_Header header;
 
-    header.commonHeader.type = STREAM_DATA_TYPE;
-    header.commonHeader.subType = DATA_STREAM_STATIC_SUBTYPE;
     header.commonHeader.sessionId = session->sessionId();
     header.commonHeader.messageId = session->increaseMessageIdCounter();
     header.commonHeader.totalMessageSize = totalMessageSize;
@@ -97,12 +95,8 @@ send_Data_Stream_Reply(Session* session,
 {
     Data_StreamReply_Message message;
 
-    message.commonHeader.type = STREAM_DATA_TYPE;
-    message.commonHeader.subType = DATA_STREAM_REPLY_SUBTYPE;
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = messageId;
-    message.commonHeader.flags = 0x2;
-    message.commonHeader.totalMessageSize = sizeof(Data_StreamReply_Message);
 
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,

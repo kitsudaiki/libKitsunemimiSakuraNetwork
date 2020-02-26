@@ -53,6 +53,7 @@ MultiblockIO::createOutgoingBuffer(const void* data,
 {
     std::pair<DataBuffer*, uint64_t> result;
 
+    // calculate required number of blocks to allocate within the buffer
     const uint32_t numberOfBlocks = static_cast<uint32_t>(size / 4096) + 1;
 
     // set or create id
@@ -65,17 +66,25 @@ MultiblockIO::createOutgoingBuffer(const void* data,
     newMultiblockMessage.multiblockId = newMultiblockId;
     newMultiblockMessage.blockerId = blockerId;
 
+    // check if memory allocation was successful
+    if(newMultiblockMessage.multiBlockBuffer == nullptr)
+    {
+        result.first = nullptr;
+        result.second = 0;
+        return result;
+    }
+
+    // write data, which should be send, to the temporary buffer
     Kitsunemimi::addDataToBuffer(newMultiblockMessage.multiBlockBuffer, data, size);
 
-    // TODO: check if its really possible and if the memory can not be allocated, return 0
-
+    // put buffer into message-queue to be send in the background
     while(m_outgoing_lock.test_and_set(std::memory_order_acquire)) {
         asm("");
     }
-
     m_outgoing.push_back(newMultiblockMessage);
     m_outgoing_lock.clear(std::memory_order_release);
 
+    // send init-message to initialize the transfer for the data
     send_Data_Multi_Init(m_session, newMultiblockId, size, answerExpected);
 
     result.second = newMultiblockId;
@@ -101,12 +110,15 @@ MultiblockIO::createIncomingBuffer(const uint64_t multiblockId,
     newMultiblockMessage.messageSize = size;
     newMultiblockMessage.multiblockId = multiblockId;
 
-    // TODO: check if its really possible and if the memory can not be allocated, return false
+    // check if memory allocation was successful
+    if(newMultiblockMessage.multiBlockBuffer == nullptr) {
+        return false;
+    }
 
+    // put buffer into message-queue to be filled with incoming data
     while(m_incoming_lock.test_and_set(std::memory_order_acquire)) {
         asm("");
     }
-
     m_incoming.insert(std::pair<uint64_t, MultiblockMessage>(multiblockId, newMultiblockMessage));
     m_incoming_lock.clear(std::memory_order_release);
 
