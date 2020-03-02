@@ -28,17 +28,17 @@
 #include <multiblock_io.h>
 
 #include <libKitsunemimiNetwork/abstract_socket.h>
-#include <libKitsunemimiNetwork/message_ring_buffer.h>
+#include <libKitsunemimiCommon/buffer/ring_buffer.h>
 
 #include <libKitsunemimiProjectNetwork/session_controller.h>
 #include <libKitsunemimiProjectNetwork/session.h>
 
 #include <libKitsunemimiPersistence/logger/logger.h>
 
-using Kitsunemimi::Network::MessageRingBuffer;
+using Kitsunemimi::RingBuffer;
 using Kitsunemimi::Network::AbstractSocket;
-using Kitsunemimi::Network::getObjectFromBuffer;
-using Kitsunemimi::Network::getDataPointer;
+using Kitsunemimi::getObjectFromBuffer;
+using Kitsunemimi::getDataPointer;
 
 namespace Kitsunemimi
 {
@@ -128,7 +128,7 @@ process_Data_SingleBlock(Session* session,
                                  + sizeof(Data_SingleBlock_Header);
 
     // copy messagy-payload into buffer
-    addDataToBuffer(buffer, payloadData, header->commonHeader.payloadSize);
+    addDataToBuffer(*buffer, payloadData, header->commonHeader.payloadSize);
 
     // check if normal standalone-message or if message is response
     if(header->commonHeader.flags & 0x8)
@@ -139,7 +139,7 @@ process_Data_SingleBlock(Session* session,
     }
     else
     {
-        // use callback
+        // trigger callback
         session->m_processStandaloneData(session->m_standaloneDataTarget,
                                          session,
                                          header->multiblockId,

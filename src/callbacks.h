@@ -24,9 +24,9 @@
 #define CALLBACKS_H
 
 #include <libKitsunemimiNetwork/abstract_socket.h>
-#include <libKitsunemimiNetwork/message_ring_buffer.h>
+#include <libKitsunemimiCommon/buffer/ring_buffer.h>
 
-#include <libKitsunemimiCommon/data_buffer.h>
+#include <libKitsunemimiCommon/buffer/data_buffer.h>
 
 #include <libKitsunemimiProjectNetwork/session_controller.h>
 
@@ -37,7 +37,7 @@
 #include <messages_processing/multiblock_data_processing.h>
 #include <messages_processing/singleblock_data_processing.h>
 
-using Kitsunemimi::Network::MessageRingBuffer;
+using Kitsunemimi::RingBuffer;
 using Kitsunemimi::Network::AbstractSocket;
 using Kitsunemimi::DataBuffer;
 
@@ -56,13 +56,13 @@ namespace Project
  */
 inline uint64_t
 processMessage(void* target,
-               MessageRingBuffer* recvBuffer)
+               RingBuffer* recvBuffer)
 {
     // gsession, which is related to the message
     Session* session = static_cast<Session*>(target);
 
     // et header of message and check if header was complete within the buffer
-    const CommonMessageHeader* header = getObjectFromBuffer<CommonMessageHeader>(recvBuffer);
+    const CommonMessageHeader* header = getObjectFromBuffer<CommonMessageHeader>(*recvBuffer);
     if(header == nullptr) {
         return 0;
     }
@@ -144,7 +144,7 @@ processMessage(void* target,
  */
 uint64_t
 processMessage_callback(void* target,
-                        MessageRingBuffer* recvBuffer,
+                        RingBuffer* recvBuffer,
                         AbstractSocket*)
 {
     return processMessage(target, recvBuffer);

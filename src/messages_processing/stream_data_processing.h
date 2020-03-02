@@ -28,22 +28,65 @@
 #include <multiblock_io.h>
 
 #include <libKitsunemimiNetwork/abstract_socket.h>
-#include <libKitsunemimiNetwork/message_ring_buffer.h>
+#include <libKitsunemimiCommon/buffer/ring_buffer.h>
 
 #include <libKitsunemimiProjectNetwork/session_controller.h>
 #include <libKitsunemimiProjectNetwork/session.h>
 
 #include <libKitsunemimiPersistence/logger/logger.h>
 
-using Kitsunemimi::Network::MessageRingBuffer;
+using Kitsunemimi::RingBuffer;
 using Kitsunemimi::Network::AbstractSocket;
-using Kitsunemimi::Network::getObjectFromBuffer;
-using Kitsunemimi::Network::getDataPointer;
+using Kitsunemimi::getObjectFromBuffer;
+using Kitsunemimi::getDataPointer;
 
 namespace Kitsunemimi
 {
 namespace Project
 {
+
+/**
+ * @brief send_Data_Stream_Static
+ */
+inline void
+send_Data_Stream(Session* session,
+                 DataBuffer* data,
+                 const bool replyExpected)
+{
+    // bring message-size to a multiple of 8
+    const uint32_t size = static_cast<const uint32_t>(data->bufferPosition)
+                          - sizeof(CommonMessageEnd)
+                          - sizeof(Data_Stream_Header);
+    const uint32_t totalMessageSize = sizeof(Data_Stream_Header)
+                                      + size
+                                      + (8-(size % 8)) % 8  // fill up to a multiple of 8
+                                      + sizeof(CommonMessageEnd);
+
+    CommonMessageEnd end;
+    Data_Stream_Header header;
+
+    // fill message
+    header.commonHeader.sessionId = session->sessionId();
+    header.commonHeader.messageId = session->increaseMessageIdCounter();
+    header.commonHeader.totalMessageSize = totalMessageSize;
+    header.commonHeader.payloadSize = size;
+    if(replyExpected) {
+        header.commonHeader.flags = 0x1;
+    }
+
+    uint8_t* dataPtr = static_cast<uint8_t*>(data->data);
+    // fill buffer to build the complete message
+    memcpy(&dataPtr[0], &header, sizeof(Data_Stream_Header));
+    memcpy(&dataPtr[(totalMessageSize - sizeof(CommonMessageEnd))],
+           &end,
+           sizeof(CommonMessageEnd));
+
+    // send
+    SessionHandler::m_sessionHandler->sendMessage(session,
+                                                  header.commonHeader,
+                                                  dataPtr,
+                                                  totalMessageSize);
+}
 
 /**
  * @brief send_Data_Stream_Static

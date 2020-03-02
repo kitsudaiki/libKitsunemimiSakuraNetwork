@@ -28,17 +28,17 @@
 #include <multiblock_io.h>
 
 #include <libKitsunemimiNetwork/abstract_socket.h>
-#include <libKitsunemimiNetwork/message_ring_buffer.h>
+#include <libKitsunemimiCommon/buffer/ring_buffer.h>
 
 #include <libKitsunemimiProjectNetwork/session_controller.h>
 #include <libKitsunemimiProjectNetwork/session.h>
 
 #include <libKitsunemimiPersistence/logger/logger.h>
 
-using Kitsunemimi::Network::MessageRingBuffer;
+using Kitsunemimi::RingBuffer;
 using Kitsunemimi::Network::AbstractSocket;
-using Kitsunemimi::Network::getObjectFromBuffer;
-using Kitsunemimi::Network::getDataPointer;
+using Kitsunemimi::getObjectFromBuffer;
+using Kitsunemimi::getDataPointer;
 
 namespace Kitsunemimi
 {
@@ -239,6 +239,7 @@ process_Data_Multi_Init_Reply(Session* session,
     }
     else
     {
+        // trigger callback
         session->m_processError(session->m_errorTarget,
                                 session,
                                 Session::errorCodes::MULTIBLOCK_FAILED,
@@ -250,9 +251,9 @@ process_Data_Multi_Init_Reply(Session* session,
  * @brief process_Data_Multi_Static
  */
 inline void
-process_Data_Multi_Static(Session* session,
-                          const Data_MultiBlock_Header* message,
-                          const void* rawMessage)
+process_Data_Multiblock(Session* session,
+                        const Data_MultiBlock_Header* message,
+                        const void* rawMessage)
 {
     const uint8_t* payloadData = static_cast<const uint8_t*>(rawMessage)
                                  + sizeof(Data_SingleBlock_Header);
@@ -271,15 +272,16 @@ process_Data_Multi_Finish(Session* session,
     MultiblockIO::MultiblockMessage buffer =
             session->m_multiblockIo->getIncomingBuffer(message->multiblockId);
 
-    // remove from answer-handler
+    // check if normal standalone-message or if message is response
     if(message->commonHeader.flags & 0x8)
     {
-        bool found = SessionHandler::m_blockerHandler->releaseMessage(message->blockerId,
-                                                                      buffer.multiBlockBuffer);
-        assert(found);
+        // release thread, which is related to the blocker-id
+        SessionHandler::m_blockerHandler->releaseMessage(message->blockerId,
+                                                         buffer.multiBlockBuffer);
     }
     else
     {
+        // trigger callback
         session->m_processStandaloneData(session->m_standaloneDataTarget,
                                          session,
                                          message->multiblockId,
@@ -298,6 +300,7 @@ process_Data_Multi_Abort_Init(Session* session,
 {
     session->m_multiblockIo->removeOutgoingMessage(message->multiblockId);
 
+    // send reply
     send_Data_Multi_Abort_Reply(session,
                                 message->multiblockId,
                                 message->commonHeader.messageId);
@@ -348,7 +351,7 @@ process_MultiBlock_Data_Type(Session* session,
             {
                 const Data_MultiBlock_Header* message =
                     static_cast<const Data_MultiBlock_Header*>(rawMessage);
-                process_Data_Multi_Static(session, message, rawMessage);
+                process_Data_Multiblock(session, message, rawMessage);
                 break;
             }
         //------------------------------------------------------------------------------------------

@@ -98,7 +98,8 @@ int main(int argc, char *argv[])
     // precheck transfer-type
     if(transferType != "stream"
             && transferType != "standalone"
-            && transferType != "request")
+            && transferType != "request"
+            && transferType != "stack_stream")
     {
         std::cout<<"ERROR: transfer-type \""<<transferType<<"\" is unknown. "
                    "Choose \"stream\", \"standalone\" or \"request\"."<<std::endl;;

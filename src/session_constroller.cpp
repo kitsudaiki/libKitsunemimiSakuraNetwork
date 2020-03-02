@@ -373,16 +373,19 @@ SessionController::closeAllSession()
 }
 
 /**
- * @brief SessionController::linkSessions
- * @param session1
- * @param session2
- * @return
+ * @brief link two sessions with each other
+ *
+ * @param session1 first session to link
+ * @param session2 second session to link
+ *
+ * @return false, if a least one of the sessions is already linked, else true
  */
 bool
 SessionController::linkSessions(Session* session1, Session* session2)
 {
     bool result = false;
 
+    // lock both spin-locks
     while(session1->m_linkSession_lock.test_and_set(std::memory_order_acquire))  {
         asm("");
     }
@@ -390,6 +393,7 @@ SessionController::linkSessions(Session* session1, Session* session2)
         asm("");
     }
 
+    // check and link sessions
     if(session1->m_linkedSession != nullptr
             || session2->m_linkedSession != nullptr)
     {
@@ -397,6 +401,7 @@ SessionController::linkSessions(Session* session1, Session* session2)
         session2->m_linkedSession = session1->m_linkedSession;
     }
 
+    // releads spin-locks
     session2->m_linkSession_lock.clear(std::memory_order_release);
     session1->m_linkSession_lock.clear(std::memory_order_release);
 
@@ -404,9 +409,11 @@ SessionController::linkSessions(Session* session1, Session* session2)
 }
 
 /**
- * @brief SessionController::unlinkSession
- * @param session
- * @return
+ * @brief remove the link between two sessions
+ *
+ * @param session one of the sessions of the already existing link
+ *
+ * @return false, if session is not linked, else true
  */
 bool
 SessionController::unlinkSession(Session* session)
@@ -429,9 +436,11 @@ SessionController::unlinkSession(Session* session)
         asm("");
     }
 
+    // unlink both sessions
     session->m_linkedSession = nullptr;
     session2->m_linkedSession = nullptr;
 
+    // releads spin-locks
     session2->m_linkSession_lock.clear(std::memory_order_release);
     session->m_linkSession_lock.clear(std::memory_order_release);
 

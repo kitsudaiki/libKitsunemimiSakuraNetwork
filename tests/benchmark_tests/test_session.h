@@ -11,6 +11,7 @@
 #include <libKitsunemimiCommon/test_helper/speed_test_helper.h>
 
 namespace Kitsunemimi {
+struct StackBuffer;
 namespace Project {
 class SessionController;
 class Session;
@@ -42,6 +43,7 @@ public:
     uint64_t m_totalSize = 0;
     uint64_t m_sizeCounter = 0;
     uint8_t* m_dataBuffer = nullptr;
+    Kitsunemimi::StackBuffer* m_stackBuffer = nullptr;
 
     Kitsunemimi::Project::SessionController* m_controller = nullptr;
     Kitsunemimi::Project::Session* m_clientSession = nullptr;

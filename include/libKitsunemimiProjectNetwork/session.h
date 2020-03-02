@@ -28,7 +28,8 @@
 #include <atomic>
 
 #include <libKitsunemimiCommon/statemachine.h>
-#include <libKitsunemimiCommon/data_buffer.h>
+#include <libKitsunemimiCommon/buffer/data_buffer.h>
+#include <libKitsunemimiCommon/buffer/stack_buffer.h>
 
 namespace Kitsunemimi
 {
@@ -47,6 +48,9 @@ class Session
 {
 public:
     ~Session(); 
+
+    bool sendStreamData(StackBuffer &stackBuffer,
+                        const bool replyExpected = false);
 
     bool sendStreamData(const void* data,
                         const uint64_t size,

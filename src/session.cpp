@@ -74,6 +74,32 @@ Session::~Session()
 }
 
 /**
+ * @brief Session::sendStreamData
+ * @param stackBuffer
+ * @param replyExpected
+ * @return
+ */
+bool
+Session::sendStreamData(StackBuffer &stackBuffer,
+                        const bool replyExpected)
+{
+    if(m_statemachine.isInState(ACTIVE))
+    {
+        std::deque<DataBuffer*>::iterator it;
+        for(it = stackBuffer.blocks.begin();
+            it != stackBuffer.blocks.end();
+            it++)
+        {
+            send_Data_Stream(this, (*it), replyExpected);
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * @brief send data as stream
  *
  * @param data data-pointer

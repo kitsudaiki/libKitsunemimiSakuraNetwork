@@ -1,10 +1,12 @@
 ﻿#include "test_session.h"
 
+#include <libKitsunemimiCommon/buffer/stack_buffer.h>
+
 #include <libKitsunemimiProjectNetwork/session.h>
 #include <libKitsunemimiProjectNetwork/session_controller.h>
 
 #include <libKitsunemimiCommon/common_methods/string_methods.h>
-#include <libKitsunemimiCommon/data_buffer.h>
+#include <libKitsunemimiCommon/buffer/data_buffer.h>
 #include <libKitsunemimiCommon/common_items/table_item.h>
 
 /**
@@ -19,6 +21,7 @@ void streamDataCallback(void* target,
     if(session->isClientSide() == false)
     {
         testClass->m_sizeCounter += dataSize;
+        //std::cout<<"testClass->m_sizeCounter: "<<testClass->m_sizeCounter<<std::endl;
         if(testClass->m_sizeCounter == testClass->m_totalSize)
         {
             uint8_t data[10];
@@ -77,7 +80,7 @@ void standaloneDataCallback(void* target,
  */
 void errorCallback(void*,
                    Kitsunemimi::Project::Session*,
-                   const uint8_t,
+                   const uint8_t errorType,
                    const std::string message)
 {
     std::cout<<"ERROR: "<<message<<std::endl;
@@ -130,6 +133,7 @@ TestSession::TestSession(const std::string &address,
     // init global values
     m_totalSize = 1024l*1024l*1024l*10l;
     m_dataBuffer = new uint8_t[128*1024*1024];
+
     m_transferType = transferType;
     if(socket == "tcp") {
         m_isTcp = true;
@@ -192,6 +196,33 @@ TestSession::runTest()
         }
 
         std::unique_lock<std::mutex> lock(m_cvMutex);
+
+        // send stack_stream-messages
+        if(m_transferType == "stack_stream")
+        {
+            m_stackBuffer = new Kitsunemimi::StackBuffer(20, 4);
+            for(uint32_t i = 0; i < 8*1024; i++)
+            {
+                Kitsunemimi::DataBuffer* temp = new Kitsunemimi::DataBuffer((256*1024) / 4096);
+                temp->bufferPosition = 128*1024+24;
+                m_stackBuffer->blocks.push_back(temp);
+            }
+
+            m_timeSlot.name = "stack_stream-speed";
+            for(int j = 0; j < 10; j++)
+            {
+                std::cout<<"stack_stream"<<std::endl;
+                m_timeSlot.startTimer();
+                for(int i = 0; i < 10; i++)
+                {
+                    assert(m_clientSession->sendStreamData(*m_stackBuffer));
+                }
+                m_cv.wait(lock);
+
+                m_timeSlot.stopTimer();
+                m_timeSlot.values.push_back(calculateSpeed(m_timeSlot.getDuration(MICRO_SECONDS)));
+            }
+        }
 
         // send stream-messages
         if(m_transferType == "stream")

@@ -41,9 +41,12 @@ MultiblockIO::MultiblockIO(Session* session)
  * @brief initialize multiblock-message by data-buffer for a new multiblock and bring statemachine
  *        into required state
  *
+ * @param data payload of the message to send
  * @param size total size of the payload of the message (no header)
+ * @param answerExpected true, if message is a request-message
+ * @param blockerId blocker-id in case that the message is a response
  *
- * @return false, if session is already in send/receive of a multiblock-message
+ * @return
  */
 std::pair<DataBuffer*, uint64_t>
 MultiblockIO::createOutgoingBuffer(const void* data,
@@ -75,7 +78,7 @@ MultiblockIO::createOutgoingBuffer(const void* data,
     }
 
     // write data, which should be send, to the temporary buffer
-    Kitsunemimi::addDataToBuffer(newMultiblockMessage.multiBlockBuffer, data, size);
+    Kitsunemimi::addDataToBuffer(*newMultiblockMessage.multiBlockBuffer, data, size);
 
     // put buffer into message-queue to be send in the background
     while(m_outgoing_lock.test_and_set(std::memory_order_acquire)) {
@@ -175,7 +178,7 @@ MultiblockIO::sendOutgoingData(const MultiblockMessage& messageBuffer)
 
     // static values
     const uint32_t totalPartNumber = static_cast<uint32_t>(totalSize / MAX_SINGLE_MESSAGE_SIZE) + 1;
-    const uint8_t* dataPointer = getBlock(messageBuffer.multiBlockBuffer, 0);
+    const uint8_t* dataPointer = getBlock(*messageBuffer.multiBlockBuffer, 0);
 
     while(totalSize != 0
           && m_aborCurrentMessage == false)
@@ -276,7 +279,7 @@ MultiblockIO::writeIntoIncomingBuffer(const uint64_t multiblockId,
 
     if(it != m_incoming.end())
     {
-        result = Kitsunemimi::addDataToBuffer(it->second.multiBlockBuffer,
+        result = Kitsunemimi::addDataToBuffer(*it->second.multiBlockBuffer,
                                               data,
                                               size);
     }

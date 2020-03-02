@@ -34,9 +34,8 @@
 
 #include <libKitsunemimiPersistence/logger/logger.h>
 
-using Kitsunemimi::Network::MessageRingBuffer;
+using Kitsunemimi::RingBuffer;
 using Kitsunemimi::Network::AbstractSocket;
-using Kitsunemimi::Network::getObjectFromBuffer;
 
 namespace Kitsunemimi
 {
@@ -94,6 +93,7 @@ send_Session_Init_Reply(Session* session,
     message.completeSessionId = completeSessionId;
     message.clientSessionId = initialSessionId;
 
+    // send
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -121,6 +121,7 @@ send_Session_Close_Start(Session* session,
         message.commonHeader.flags = 0x1;
     }
 
+    // send
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -145,6 +146,7 @@ send_Session_Close_Reply(Session* session,
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = messageId;
 
+    // send
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -174,7 +176,7 @@ process_Session_Init_Start(Session* session,
     session->connectiSession(sessionId);
     session->makeSessionReady(sessionId, sessionIdentifier);
 
-    // confirm id
+    // send
     send_Session_Init_Reply(session,
                             clientSessionId,
                             message->commonHeader.messageId,
