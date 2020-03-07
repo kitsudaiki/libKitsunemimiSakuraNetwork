@@ -42,7 +42,7 @@ class SessionController
 {
 public:
     SessionController(void* sessionTarget,
-                      void (*processSession)(void*, bool, Session*, const uint64_t),
+                      void (*processSession)(void*, bool, Session*, const std::string),
                       void* streamDataTarget,
                       void (*processStreamData)(void*, Session*, const void*, const uint64_t),
                       void* standaloneDataTarget,
@@ -54,25 +54,25 @@ public:
     static Kitsunemimi::Project::SessionController* m_sessionController;
 
     // server
-    uint32_t addUnixDomainServer(const std::string socketFile);
+    uint32_t addUnixDomainServer(const std::string &socketFile);
     uint32_t addTcpServer(const uint16_t port);
     uint32_t addTlsTcpServer(const uint16_t port,
-                             const std::string certFile,
-                             const std::string keyFile);
+                             const std::string &certFile,
+                             const std::string &keyFile);
     bool closeServer(const uint32_t id);
     void cloesAllServers();
 
     // session
-    bool startUnixDomainSession(const std::string socketFile,
-                                const uint64_t sessionIdentifier = 0);
-    bool startTcpSession(const std::string address,
+    bool startUnixDomainSession(const std::string &socketFile,
+                                const std::string &sessionIdentifier = "");
+    bool startTcpSession(const std::string &address,
                          const uint16_t port,
-                         const uint64_t sessionIdentifier = 0);
-    bool startTlsTcpSession(const std::string address,
+                         const std::string &sessionIdentifier = "");
+    bool startTlsTcpSession(const std::string &address,
                             const uint16_t port,
-                            const std::string certFile,
-                            const std::string keyFile,
-                            const uint64_t sessionIdentifier = 0);
+                            const std::string &certFile,
+                            const std::string &keyFile,
+                            const std::string &sessionIdentifier = "");
     bool closeSession(const uint32_t id);
     Session* getSession(const uint32_t id);
     void closeAllSession();
@@ -85,7 +85,7 @@ private:
     uint32_t m_serverIdCounter = 0;
 
     bool startSession(Network::AbstractSocket* socket,
-                      const uint64_t sessionIdentifier);
+                      const std::string &sessionIdentifier);
 };
 
 } // namespace Project

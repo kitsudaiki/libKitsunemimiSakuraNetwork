@@ -109,7 +109,7 @@ void errorCallback(void*,
 void sessionCallback(void* target,
                      bool isInit,
                      Kitsunemimi::Project::Session* session,
-                     const uint64_t sessionIdentifier)
+                     const std::string sessionIdentifier)
 {
 
     Session_Test* testClass = static_cast<Session_Test*>(target);
@@ -121,7 +121,7 @@ void sessionCallback(void* target,
         testClass->m_numberOfInitSessions++;
 
         if(session->isClientSide() == false) {
-            testClass->compare(sessionIdentifier,  (uint64_t)42);
+            testClass->compare(sessionIdentifier, std::string("test"));
         }
 
         if(session->isClientSide())
@@ -243,7 +243,7 @@ Session_Test::runTest()
                                                             this, &errorCallback);
 
     TEST_EQUAL(m_controller->addTcpServer(1234), 1);
-    TEST_EQUAL(m_controller->startTcpSession("127.0.0.1", 1234, 42), 1);
+    TEST_EQUAL(m_controller->startTcpSession("127.0.0.1", 1234, "test"), 1);
 
     sleep(3);
 

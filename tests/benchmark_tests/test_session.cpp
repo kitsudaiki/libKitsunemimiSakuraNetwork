@@ -92,7 +92,7 @@ void errorCallback(void*,
 void sessionCallback(void* target,
                      bool isInit,
                      Kitsunemimi::Project::Session* session,
-                     const uint64_t)
+                     const std::string)
 {
     TestSession* testClass = static_cast<TestSession*>(target);
 

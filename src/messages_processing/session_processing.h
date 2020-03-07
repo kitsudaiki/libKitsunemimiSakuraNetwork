@@ -51,7 +51,7 @@ namespace Project
  */
 inline void
 send_Session_Init_Start(Session* session,
-                        const uint64_t sessionIdentifier)
+                        const std::string &sessionIdentifier)
 {
     LOG_DEBUG("SEND session init start");
 
@@ -60,9 +60,13 @@ send_Session_Init_Start(Session* session,
     // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = session->increaseMessageIdCounter();
-    message.sessionIdentifier = sessionIdentifier;
     message.clientSessionId = session->sessionId();
+    message.sessionIdentifierSize = static_cast<uint32_t>(sessionIdentifier.size());
+    memcpy(message.sessionIdentifier,
+           sessionIdentifier.c_str(),
+           sessionIdentifier.size());
 
+    // send
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -169,7 +173,7 @@ process_Session_Init_Start(Session* session,
     const uint32_t clientSessionId = message->clientSessionId;
     const uint16_t serverSessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
     const uint32_t sessionId = clientSessionId + (serverSessionId * 0x10000);
-    const uint64_t sessionIdentifier = message->sessionIdentifier;
+    const std::string sessionIdentifier(message->sessionIdentifier, message->sessionIdentifierSize);
 
     // create new session and make it ready
     SessionHandler::m_sessionHandler->addSession(sessionId, session);
@@ -202,7 +206,7 @@ process_Session_Init_Reply(Session* session,
     SessionHandler::m_sessionHandler->removeSession(initialId);
     SessionHandler::m_sessionHandler->addSession(completeSessionId, session);
     // TODO: handle return-value of makeSessionReady
-    session->makeSessionReady(completeSessionId, 0);
+    session->makeSessionReady(completeSessionId, "");
 }
 
 /**

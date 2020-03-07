@@ -373,7 +373,7 @@ Session::connectiSession(const uint32_t sessionId)
  */
 bool
 Session::makeSessionReady(const uint32_t sessionId,
-                          const uint64_t sessionIdentifier)
+                          const std::string &sessionIdentifier)
 {
     LOG_DEBUG("CALL make session ready: " + std::to_string(m_sessionId));
 

@@ -46,7 +46,7 @@ SessionHandler* SessionHandler::m_sessionHandler = nullptr;
  * @brief constructor
  */
 SessionHandler::SessionHandler(void* sessionTarget,
-                               void (*processSession)(void*, bool, Session*, const uint64_t),
+                               void (*processSession)(void*, bool, Session*, const std::string),
                                void* streamDataTarget,
                                void (*processStreamData)(void*, Session*,
                                                          const void*, const uint64_t),

@@ -131,8 +131,8 @@ struct Session_Init_Start_Message
 {
     CommonMessageHeader commonHeader;
     uint32_t clientSessionId = 0;
-    uint64_t sessionIdentifier = 0;
-    uint8_t padding[4];
+    char sessionIdentifier[64];
+    uint32_t sessionIdentifierSize = 0;
     CommonMessageEnd commonEnd;
 
     Session_Init_Start_Message()
