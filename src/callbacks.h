@@ -24,9 +24,9 @@
 #define CALLBACKS_H
 
 #include <libKitsunemimiNetwork/abstract_socket.h>
-#include <libKitsunemimiNetwork/message_ring_buffer.h>
+#include <libKitsunemimiCommon/buffer/ring_buffer.h>
 
-#include <libKitsunemimiCommon/data_buffer.h>
+#include <libKitsunemimiCommon/buffer/data_buffer.h>
 
 #include <libKitsunemimiProjectNetwork/session_controller.h>
 
@@ -37,7 +37,7 @@
 #include <messages_processing/multiblock_data_processing.h>
 #include <messages_processing/singleblock_data_processing.h>
 
-using Kitsunemimi::Network::MessageRingBuffer;
+using Kitsunemimi::RingBuffer;
 using Kitsunemimi::Network::AbstractSocket;
 using Kitsunemimi::DataBuffer;
 
@@ -56,30 +56,38 @@ namespace Project
  */
 inline uint64_t
 processMessage(void* target,
-               MessageRingBuffer* recvBuffer)
+               RingBuffer* recvBuffer)
 {
-    if(DEBUG_MODE) {
-        LOG_DEBUG("process message");
-    }
-
-    const CommonMessageHeader* header = getObjectFromBuffer<CommonMessageHeader>(recvBuffer);
+    // gsession, which is related to the message
     Session* session = static_cast<Session*>(target);
 
-    // precheck
+    // et header of message and check if header was complete within the buffer
+    const CommonMessageHeader* header = getObjectFromBuffer<CommonMessageHeader>(*recvBuffer);
     if(header == nullptr) {
         return 0;
     }
 
-    // check version
+    // check version in header
     if(header->version != 0x1)
     {
         LOG_ERROR("false message-version");
-        send_ErrorMessage(session, Session::errorCodes::FALSE_VERSION, "++++++++++++++++++FAIL");
+        send_ErrorMessage(session, Session::errorCodes::FALSE_VERSION, "");
         return 0;
     }
 
-    // check if there are enough data in the buffer for the complete message
-    if(header->totalMessageSize > recvBuffer->readWriteDiff) {
+    // get complete message from the ringbuffer, if enough data are available
+    const void* rawMessage = static_cast<const void*>(getDataPointer(*recvBuffer,
+                                                      header->totalMessageSize));
+    if(rawMessage == nullptr) {
+        return 0;
+    }
+
+    // check delimiter of the message
+    const uint32_t* end = static_cast<const uint32_t*>(rawMessage)
+                          + ((header->totalMessageSize)/4)
+                          - 1;
+    if(*end != MESSAGE_DELIMITER) {
+        // TODO: ERROR
         return 0;
     }
 
@@ -96,23 +104,6 @@ processMessage(void* target,
     if(header->flags & 0x2) {
         SessionHandler::m_replyHandler->removeMessage(header->sessionId, header->messageId);
     }
-
-    // get complete message from the ringbuffer, if enough data are available
-    const void* rawMessage = static_cast<const void*>(getDataPointer(*recvBuffer,
-                                                      header->totalMessageSize));
-    if(rawMessage == nullptr) {
-        return 0;
-    }
-
-    // check delimiter
-    const uint32_t* end = static_cast<const uint32_t*>(rawMessage)
-                          + ((header->totalMessageSize)/4)
-                          - 1;
-    if(*end != MESSAGE_DELIMITER) {
-        // TODO: ERROR
-        return 0;
-    }
-
 
     // process message by type
     switch(header->type)
@@ -153,7 +144,7 @@ processMessage(void* target,
  */
 uint64_t
 processMessage_callback(void* target,
-                        MessageRingBuffer* recvBuffer,
+                        RingBuffer* recvBuffer,
                         AbstractSocket*)
 {
     return processMessage(target, recvBuffer);

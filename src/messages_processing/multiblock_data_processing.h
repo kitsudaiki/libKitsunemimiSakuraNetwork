@@ -28,17 +28,17 @@
 #include <multiblock_io.h>
 
 #include <libKitsunemimiNetwork/abstract_socket.h>
-#include <libKitsunemimiNetwork/message_ring_buffer.h>
+#include <libKitsunemimiCommon/buffer/ring_buffer.h>
 
 #include <libKitsunemimiProjectNetwork/session_controller.h>
 #include <libKitsunemimiProjectNetwork/session.h>
 
 #include <libKitsunemimiPersistence/logger/logger.h>
 
-using Kitsunemimi::Network::MessageRingBuffer;
+using Kitsunemimi::RingBuffer;
 using Kitsunemimi::Network::AbstractSocket;
-using Kitsunemimi::Network::getObjectFromBuffer;
-using Kitsunemimi::Network::getDataPointer;
+using Kitsunemimi::getObjectFromBuffer;
+using Kitsunemimi::getDataPointer;
 
 namespace Kitsunemimi
 {
@@ -55,12 +55,15 @@ send_Data_Multi_Init(Session* session,
                      const bool answerExpected)
 {
     Data_MultiInit_Message message;
-    create_Data_MultiInit_Message(message,
-                                  session->sessionId(),
-                                  session->increaseMessageIdCounter(),
-                                  multiblockId,
-                                  answerExpected);
+
+    // fill message
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = session->increaseMessageIdCounter();
+    message.multiblockId = multiblockId;
     message.totalSize = requestedSize;
+    if(answerExpected) {
+        message.commonHeader.flags |= 0x4;
+    }
 
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
@@ -78,10 +81,11 @@ send_Data_Multi_Init_Reply(Session* session,
                            const uint8_t status)
 {
     Data_MultiInitReply_Message message;
-    create_Data_MultiInitReply_Message(message,
-                                       session->sessionId(),
-                                       messageId,
-                                       multiblockId);
+
+    // fill message
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = messageId;
+    message.multiblockId = multiblockId;
     message.status = status;
 
     SessionHandler::m_sessionHandler->sendMessage(session,
@@ -104,31 +108,30 @@ send_Data_Multi_Static(Session* session,
     uint8_t messageBuffer[MESSAGE_CACHE_SIZE];
 
     // bring message-size to a multiple of 8
-    const uint32_t totalMessageSize = sizeof(Data_MultiStatic_Message)
+    const uint32_t totalMessageSize = sizeof(Data_MultiBlock_Header)
                                       + size
                                       + (8-(size % 8)) % 8  // fill up to a multiple of 8
                                       + sizeof(CommonMessageEnd);
 
     CommonMessageEnd end;
-    Data_MultiStatic_Message message;
-    create_Data_MultiStatic_Message(message,
-                                    session->sessionId(),
-                                    session->increaseMessageIdCounter(),
-                                    multiblockId,
-                                    totalMessageSize,
-                                    size);
+    Data_MultiBlock_Header message;
 
+    // fill message
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = session->increaseMessageIdCounter();
+    message.commonHeader.totalMessageSize = totalMessageSize;
+    message.commonHeader.payloadSize = size;
+    message.multiblockId = multiblockId;
     message.totalPartNumber = totalPartNumber;
     message.partId = partId;
 
     // fill buffer to build the complete message
-    memcpy(&messageBuffer[0], &message, sizeof(Data_MultiStatic_Message));
-    memcpy(&messageBuffer[sizeof(Data_MultiStatic_Message)], data, size);
+    memcpy(&messageBuffer[0], &message, sizeof(Data_MultiBlock_Header));
+    memcpy(&messageBuffer[sizeof(Data_MultiBlock_Header)], data, size);
     memcpy(&messageBuffer[(totalMessageSize - sizeof(CommonMessageEnd))],
            &end,
            sizeof(CommonMessageEnd));
 
-    return;
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   messageBuffer,
@@ -144,11 +147,15 @@ send_Data_Multi_Finish(Session* session,
                        const uint64_t blockerId)
 {
     Data_MultiFinish_Message message;
-    create_Data_MultiFinish_Message(message,
-                                    session->sessionId(),
-                                    session->increaseMessageIdCounter(),
-                                    multiblockId,
-                                    blockerId);
+
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = session->increaseMessageIdCounter();
+    message.multiblockId = multiblockId;
+    message.blockerId = blockerId;
+    if(blockerId != 0) {
+        message.commonHeader.flags |= 0x8;
+    }
+
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -163,10 +170,11 @@ send_Data_Multi_Abort_Init(Session* session,
                            const uint64_t multiblockId)
 {
     Data_MultiAbortInit_Message message;
-    create_Data_MultiAbortInit_Message(message,
-                                       session->sessionId(),
-                                       session->increaseMessageIdCounter(),
-                                       multiblockId);
+
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = session->increaseMessageIdCounter();
+    message.multiblockId = multiblockId;
+
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -182,10 +190,11 @@ send_Data_Multi_Abort_Reply(Session* session,
                             const uint32_t messageId)
 {
     Data_MultiAbortReply_Message message;
-    create_Data_MultiAbortReply_Message(message,
-                                        session->sessionId(),
-                                        messageId,
-                                        multiblockId);
+
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = messageId;
+    message.multiblockId = multiblockId;
+
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -230,6 +239,7 @@ process_Data_Multi_Init_Reply(Session* session,
     }
     else
     {
+        // trigger callback
         session->m_processError(session->m_errorTarget,
                                 session,
                                 Session::errorCodes::MULTIBLOCK_FAILED,
@@ -241,12 +251,12 @@ process_Data_Multi_Init_Reply(Session* session,
  * @brief process_Data_Multi_Static
  */
 inline void
-process_Data_Multi_Static(Session* session,
-                          const Data_MultiStatic_Message* message,
-                          const void* rawMessage)
+process_Data_Multiblock(Session* session,
+                        const Data_MultiBlock_Header* message,
+                        const void* rawMessage)
 {
     const uint8_t* payloadData = static_cast<const uint8_t*>(rawMessage)
-                                 + sizeof(Data_SingleBlock_Heaser);
+                                 + sizeof(Data_SingleBlock_Header);
     session->m_multiblockIo->writeIntoIncomingBuffer(message->multiblockId,
                                                      payloadData,
                                                      message->commonHeader.payloadSize);
@@ -262,15 +272,16 @@ process_Data_Multi_Finish(Session* session,
     MultiblockIO::MultiblockMessage buffer =
             session->m_multiblockIo->getIncomingBuffer(message->multiblockId);
 
-    // remove from answer-handler
+    // check if normal standalone-message or if message is response
     if(message->commonHeader.flags & 0x8)
     {
-        bool found = SessionHandler::m_blockerHandler->releaseMessage(message->blockerId,
-                                                                      buffer.multiBlockBuffer);
-        assert(found);
+        // release thread, which is related to the blocker-id
+        SessionHandler::m_blockerHandler->releaseMessage(message->blockerId,
+                                                         buffer.multiBlockBuffer);
     }
     else
     {
+        // trigger callback
         session->m_processStandaloneData(session->m_standaloneDataTarget,
                                          session,
                                          message->multiblockId,
@@ -289,6 +300,7 @@ process_Data_Multi_Abort_Init(Session* session,
 {
     session->m_multiblockIo->removeOutgoingMessage(message->multiblockId);
 
+    // send reply
     send_Data_Multi_Abort_Reply(session,
                                 message->multiblockId,
                                 message->commonHeader.messageId);
@@ -309,9 +321,7 @@ process_Data_Multi_Abort_Reply(Session* session,
  *
  * @param session pointer to the session
  * @param header pointer to the common header of the message within the message-ring-buffer
- * @param recvBuffer pointer to the message-ring-buffer
- *
- * @return number of processed bytes
+ * @param rawMessage pointer to the raw data of the complete message (header + payload + end)
  */
 inline void
 process_MultiBlock_Data_Type(Session* session,
@@ -339,9 +349,9 @@ process_MultiBlock_Data_Type(Session* session,
         //------------------------------------------------------------------------------------------
         case DATA_MULTI_STATIC_SUBTYPE:
             {
-                const Data_MultiStatic_Message* message =
-                    static_cast<const Data_MultiStatic_Message*>(rawMessage);
-                process_Data_Multi_Static(session, message, rawMessage);
+                const Data_MultiBlock_Header* message =
+                    static_cast<const Data_MultiBlock_Header*>(rawMessage);
+                process_Data_Multiblock(session, message, rawMessage);
                 break;
             }
         //------------------------------------------------------------------------------------------

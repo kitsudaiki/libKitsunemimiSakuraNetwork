@@ -31,7 +31,7 @@
 #include <map>
 #include <string>
 
-#include <libKitsunemimiCommon/data_buffer.h>
+#include <libKitsunemimiCommon/buffer/data_buffer.h>
 #include <libKitsunemimiCommon/threading/thread.h>
 
 namespace Kitsunemimi

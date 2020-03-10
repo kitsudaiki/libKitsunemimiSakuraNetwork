@@ -8,42 +8,49 @@
 #include <mutex>
 #include <condition_variable>
 
+#include <libKitsunemimiCommon/test_helper/speed_test_helper.h>
+
 namespace Kitsunemimi {
+struct StackBuffer;
 namespace Project {
 class SessionController;
 class Session;
 }
 }
 
-typedef std::chrono::microseconds  chronoMicroSec;
-typedef std::chrono::nanoseconds  chronoNanoSec;
-typedef std::chrono::seconds  chronoSec;
+typedef std::chrono::microseconds chronoMicroSec;
+typedef std::chrono::nanoseconds chronoNanoSec;
+typedef std::chrono::seconds chronoSec;
 typedef std::chrono::high_resolution_clock::time_point chronoTimePoint;
 typedef std::chrono::high_resolution_clock chronoClock;
 
 class TestSession
+        : public Kitsunemimi::SpeedTestHelper
 {
 public:
     TestSession(const std::string &address,
                 const uint16_t port,
-                const std::string &type);
-    void sendLoop(const std::string &transferType);
+                const std::string &socket,
+                const std::string &transferType);
+    void runTest();
+    double calculateSpeed(double duration);
 
     bool m_isClient = false;
     bool m_isTcp = false;
     std::string m_transferType = "";
 
     uint64_t m_size = 0;
+    uint64_t m_totalSize = 0;
     uint64_t m_sizeCounter = 0;
     uint8_t* m_dataBuffer = nullptr;
+    Kitsunemimi::StackBuffer* m_stackBuffer = nullptr;
 
     Kitsunemimi::Project::SessionController* m_controller = nullptr;
     Kitsunemimi::Project::Session* m_clientSession = nullptr;
     Kitsunemimi::Project::Session* m_serverSession = nullptr;
 
-    std::chrono::high_resolution_clock::time_point m_start;
-    std::chrono::high_resolution_clock::time_point m_end;
 
+    TimerSlot m_timeSlot;
     std::mutex m_cvMutex;
     std::condition_variable m_cv;
 };

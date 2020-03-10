@@ -74,11 +74,36 @@ Session::~Session()
 }
 
 /**
+ * @brief Session::sendStreamData
+ * @param stackBuffer
+ * @param replyExpected
+ * @return
+ */
+bool
+Session::sendStreamData(StackBuffer &stackBuffer,
+                        const bool replyExpected)
+{
+    if(m_statemachine.isInState(ACTIVE))
+    {
+        std::deque<DataBuffer*>::iterator it;
+        for(it = stackBuffer.blocks.begin();
+            it != stackBuffer.blocks.end();
+            it++)
+        {
+            send_Data_Stream(this, (*it), replyExpected);
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * @brief send data as stream
  *
  * @param data data-pointer
  * @param size number of bytes
- * @param dynamic if true, packets are not bigger as necessary, but its slower
  * @param replyExpected if true, the other side sends a reply-message to check timeouts
  *
  * @return false if session is NOT ready to send, else true
@@ -86,7 +111,6 @@ Session::~Session()
 bool
 Session::sendStreamData(const void* data,
                         const uint64_t size,
-                        const bool dynamic,
                         const bool replyExpected)
 {
     if(m_statemachine.isInState(ACTIVE))
@@ -167,7 +191,10 @@ Session::sendRequest(const void *data,
         if(size <= MAX_SINGLE_MESSAGE_SIZE)
         {
             id = m_multiblockIo->getRandValue();
-            send_Data_SingleBlock(this, id, data, size);
+            send_Data_SingleBlock(this,
+                                  id,
+                                  data,
+                                  static_cast<uint32_t>(size));
         }
         else
         {
@@ -199,7 +226,11 @@ Session::sendResponse(const void *data,
         if(size < MAX_SINGLE_MESSAGE_SIZE)
         {
             const uint64_t singleblockId = m_multiblockIo->getRandValue();
-            send_Data_SingleBlock(this, singleblockId, data, size, blockerId);
+            send_Data_SingleBlock(this,
+                                  singleblockId,
+                                  data,
+                                  static_cast<uint32_t>(size),
+                                  blockerId);
             return singleblockId;
         }
         else
@@ -342,7 +373,7 @@ Session::connectiSession(const uint32_t sessionId)
  */
 bool
 Session::makeSessionReady(const uint32_t sessionId,
-                          const uint64_t sessionIdentifier)
+                          const std::string &sessionIdentifier)
 {
     LOG_DEBUG("CALL make session ready: " + std::to_string(m_sessionId));
 
@@ -444,10 +475,10 @@ Session::initStatemachine()
     assert(m_statemachine.setInitialChildState(SESSION_READY, ACTIVE));
 
     // init transitions
-    assert(m_statemachine.addTransition(NOT_CONNECTED,     CONNECT,            CONNECTED));
-    assert(m_statemachine.addTransition(CONNECTED,         DISCONNECT,         NOT_CONNECTED));
-    assert(m_statemachine.addTransition(SESSION_NOT_READY, START_SESSION,      SESSION_READY));
-    assert(m_statemachine.addTransition(SESSION_READY,     STOP_SESSION,       SESSION_NOT_READY));
+    assert(m_statemachine.addTransition(NOT_CONNECTED,     CONNECT,       CONNECTED));
+    assert(m_statemachine.addTransition(CONNECTED,         DISCONNECT,    NOT_CONNECTED));
+    assert(m_statemachine.addTransition(SESSION_NOT_READY, START_SESSION, SESSION_READY));
+    assert(m_statemachine.addTransition(SESSION_READY,     STOP_SESSION,  SESSION_NOT_READY));
 }
 
 /**
@@ -465,6 +496,7 @@ Session::increaseMessageIdCounter()
 
     m_messageIdCounter++;
     tempId = m_messageIdCounter;
+
     m_messageIdCounter_lock.clear(std::memory_order_release);
     return tempId;
 }

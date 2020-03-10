@@ -1,29 +1,28 @@
 ﻿#include "test_session.h"
 
+#include <libKitsunemimiCommon/buffer/stack_buffer.h>
+
 #include <libKitsunemimiProjectNetwork/session.h>
 #include <libKitsunemimiProjectNetwork/session_controller.h>
 
 #include <libKitsunemimiCommon/common_methods/string_methods.h>
-#include <libKitsunemimiCommon/data_buffer.h>
+#include <libKitsunemimiCommon/buffer/data_buffer.h>
 #include <libKitsunemimiCommon/common_items/table_item.h>
 
 /**
- * @brief standaloneDataCallback
- * @param target
- * @param data
- * @param dataSize
+ * @brief streamDataCallback
  */
 void streamDataCallback(void* target,
                         Kitsunemimi::Project::Session* session,
-                        const void* data,
+                        const void*,
                         const uint64_t dataSize)
 {
     TestSession* testClass = static_cast<TestSession*>(target);
     if(session->isClientSide() == false)
     {
         testClass->m_sizeCounter += dataSize;
-
-        if(testClass->m_sizeCounter == testClass->m_size*10)
+        //std::cout<<"testClass->m_sizeCounter: "<<testClass->m_sizeCounter<<std::endl;
+        if(testClass->m_sizeCounter == testClass->m_totalSize)
         {
             uint8_t data[10];
             testClass->m_serverSession->sendStreamData(data, 10);
@@ -31,34 +30,13 @@ void streamDataCallback(void* target,
     }
     else
     {
-        testClass->m_end = std::chrono::system_clock::now();
-        float duration = std::chrono::duration_cast<chronoMicroSec>(testClass->m_end
-                                                                    - testClass->m_start).count();
-        duration /= 1000000.0f;
-        const float speed = ((static_cast<float>(testClass->m_size*10)
-                             / (1024.0f*1024.0f*1024.0f))
-                             / duration) * 8;
-
-        Kitsunemimi::TableItem result;
-
-        result.addColumn("key");
-        result.addColumn("value");
-
-        result.addRow(std::vector<std::string>{"duration", std::to_string(duration) + " seconds"});
-        result.addRow(std::vector<std::string>{"speed", std::to_string(speed) + " Gbits/sec"});
-
-        std::cout<<result.toString()<<std::endl;
-
-        exit(0);
+        testClass->m_sizeCounter = 0;
+        testClass->m_cv.notify_all();
     }
 }
 
 /**
  * @brief standaloneDataCallback
- * @param target
- * @param isStream
- * @param data
- * @param dataSize
  */
 void standaloneDataCallback(void* target,
                             Kitsunemimi::Project::Session* session,
@@ -67,6 +45,7 @@ void standaloneDataCallback(void* target,
 {
     TestSession* testClass = static_cast<TestSession*>(target);
 
+    // handling for request transfer-type
     if(testClass->m_transferType == "request")
     {
         if(session->isClientSide() == false)
@@ -78,6 +57,7 @@ void standaloneDataCallback(void* target,
         }
     }
 
+    // handling for standalone transfer-type
     if(testClass->m_transferType == "standalone")
     {
         if(session->isClientSide() == false)
@@ -89,6 +69,7 @@ void standaloneDataCallback(void* target,
         }
         else
         {
+            testClass->m_sizeCounter = 0;
             testClass->m_cv.notify_all();
         }
     }
@@ -99,7 +80,7 @@ void standaloneDataCallback(void* target,
  */
 void errorCallback(void*,
                    Kitsunemimi::Project::Session*,
-                   const uint8_t,
+                   const uint8_t errorType,
                    const std::string message)
 {
     std::cout<<"ERROR: "<<message<<std::endl;
@@ -107,14 +88,11 @@ void errorCallback(void*,
 
 /**
  * @brief sessionCallback
- * @param target
- * @param isInit
- * @param session
  */
 void sessionCallback(void* target,
                      bool isInit,
                      Kitsunemimi::Project::Session* session,
-                     const uint64_t)
+                     const std::string)
 {
     TestSession* testClass = static_cast<TestSession*>(target);
 
@@ -140,28 +118,38 @@ void sessionCallback(void* target,
 }
 
 /**
- * @brief TestSession::TestSession
- * @param address
- * @param port
+ * @brief iniitialize test-class
+ *
+ * @param address ip address
+ * @param port port-number
+ * @param socket socket-type (tcp or uds)
+ * @param transferType transfer-type (stream, standalone or request)
  */
 TestSession::TestSession(const std::string &address,
                          const uint16_t port,
-                         const std::string &type)
+                         const std::string &socket,
+                         const std::string &transferType)
 {
-    m_size = 1024*1024*1024;
+    // init global values
+    m_totalSize = 1024l*1024l*1024l*10l;
     m_dataBuffer = new uint8_t[128*1024*1024];
 
-    if(type == "tcp") {
+    m_transferType = transferType;
+    if(socket == "tcp") {
         m_isTcp = true;
     } else {
         m_isTcp = false;
     }
 
+    m_timeSlot.unitName = "Gbits/s";
+
+    // create controller and connect callbacks
     m_controller = new Kitsunemimi::Project::SessionController(this, &sessionCallback,
                                                                this, &streamDataCallback,
                                                                this, &standaloneDataCallback,
                                                                this, &errorCallback);
 
+    // start test
     if(port == 0)
     {
         if(m_isTcp)
@@ -194,97 +182,116 @@ TestSession::TestSession(const std::string &address,
 }
 
 /**
- * @brief TestSession::sendLoop
+ * @brief run test
  */
 void
-TestSession::sendLoop(const std::string &transferType)
+TestSession::runTest()
 {
-    m_transferType = transferType;
 
     if(m_isClient)
     {
+        // wait until connection is complete and session-client is initialized
         while(m_clientSession == nullptr) {
             usleep(10000);
         }
 
-        m_start = std::chrono::system_clock::now();
+        std::unique_lock<std::mutex> lock(m_cvMutex);
 
-        if(transferType == "stream")
+        // send stack_stream-messages
+        if(m_transferType == "stack_stream")
         {
+            m_stackBuffer = new Kitsunemimi::StackBuffer(20, 4);
+            for(uint32_t i = 0; i < 8*1024; i++)
+            {
+                Kitsunemimi::DataBuffer* temp = new Kitsunemimi::DataBuffer((256*1024) / 4096);
+                temp->bufferPosition = 128*1024+24;
+                m_stackBuffer->blocks.push_back(temp);
+            }
+
+            m_timeSlot.name = "stack_stream-speed";
             for(int j = 0; j < 10; j++)
             {
-                for(int i = 0; i < 8*1024; i++)
+                std::cout<<"stack_stream"<<std::endl;
+                m_timeSlot.startTimer();
+                for(int i = 0; i < 10; i++)
                 {
-                    assert(m_clientSession->sendStreamData(m_dataBuffer, 128*1024));
+                    assert(m_clientSession->sendStreamData(*m_stackBuffer));
                 }
+                m_cv.wait(lock);
+
+                m_timeSlot.stopTimer();
+                m_timeSlot.values.push_back(calculateSpeed(m_timeSlot.getDuration(MICRO_SECONDS)));
             }
         }
-        if(transferType == "standalone")
-        {
-            std::unique_lock<std::mutex> lock(m_cvMutex);
 
+        // send stream-messages
+        if(m_transferType == "stream")
+        {
+            m_timeSlot.name = "stream-speed";
             for(int j = 0; j < 10; j++)
             {
-                for(int i = 0; i < 8; i++)
+                std::cout<<"stream"<<std::endl;
+                m_timeSlot.startTimer();
+                for(int i = 0; i < 10*8; i++)
+                {
+                    assert(m_clientSession->sendStreamData(m_dataBuffer, 128*1024*1024));
+                }
+                m_cv.wait(lock);
+
+                m_timeSlot.stopTimer();
+                m_timeSlot.values.push_back(calculateSpeed(m_timeSlot.getDuration(MICRO_SECONDS)));
+            }
+        }
+
+        // send standalone-messages
+        if(m_transferType == "standalone")
+        {
+            m_timeSlot.name = "standalone-speed";
+            for(int j = 0; j < 10; j++)
+            {
+                std::cout<<"standalone"<<std::endl;
+                m_timeSlot.startTimer();
+                for(int i = 0; i < 10*8; i++)
                 {
                     m_clientSession->sendStandaloneData(m_dataBuffer, 128*1024*1024);
                     m_cv.wait(lock);
                 }
+                m_timeSlot.stopTimer();
+                m_timeSlot.values.push_back(calculateSpeed(m_timeSlot.getDuration(MICRO_SECONDS)));
             }
-
-            m_end = std::chrono::system_clock::now();
-            float duration = std::chrono::duration_cast<chronoMicroSec>(m_end - m_start).count();
-
-            duration /= 1000000.0f;
-            const float speed = ((static_cast<float>(m_size*10)
-                                 / (1024.0f*1024.0f*1024.0f))
-                                 / duration) * 8;
-
-            Kitsunemimi::TableItem result;
-
-            result.addColumn("key");
-            result.addColumn("value");
-
-            result.addRow(std::vector<std::string>{"duration", std::to_string(duration) + " seconds"});
-            result.addRow(std::vector<std::string>{"speed", std::to_string(speed) + " Gbits/sec"});
-
-            std::cout<<result.toString()<<std::endl;
-
-            exit(0);
         }
-        if(transferType == "request")
+
+        // send request-messages
+        if(m_transferType == "request")
         {
+            m_timeSlot.name = "request-speed";
             for(int j = 0; j < 10; j++)
             {
-                for(int i = 0; i < 8; i++)
+                std::cout<<"request"<<std::endl;
+                m_timeSlot.startTimer();
+                for(int i = 0; i < 10*8; i++)
                 {
                     m_clientSession->sendRequest(m_dataBuffer, 128*1024*1024, 10000);
                 }
+                m_sizeCounter = 0;
+                m_timeSlot.stopTimer();
+                m_timeSlot.values.push_back(calculateSpeed(m_timeSlot.getDuration(MICRO_SECONDS)));
             }
-
-            m_end = std::chrono::system_clock::now();
-            float duration = std::chrono::duration_cast<chronoMicroSec>(m_end - m_start).count();
-            duration /= 1000000.0f;
-            const float speed = ((static_cast<float>(m_size*10)
-                                 / (1024.0f*1024.0f*1024.0f))
-                                 / duration) * 8;
-
-            Kitsunemimi::TableItem result;
-
-            result.addColumn("key");
-            result.addColumn("value");
-
-            result.addRow(std::vector<std::string>{"duration", std::to_string(duration) + " seconds"});
-            result.addRow(std::vector<std::string>{"speed", std::to_string(speed) + " Gbits/sec"});
-
-            std::cout<<result.toString()<<std::endl;
-
-            exit(0);
         }
-    }
 
-    while(true)
-    {
-        usleep(10000);
+        // create output of the test-result
+        addToResult(m_timeSlot);
+        printResult();
     }
+}
+
+double
+TestSession::calculateSpeed(double duration)
+{
+    duration /= 1000000.0;
+
+    const double speed = ((static_cast<double>(m_totalSize)
+                          / (1024.0*1024.0*1024.0))
+                          / duration) * 8.0;
+    return speed;
 }

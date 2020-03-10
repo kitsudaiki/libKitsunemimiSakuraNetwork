@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
         (
             "address,a",
             argParser::value<std::string>(),
-            "address to connect"
+            "address to connect (Default: 127.0.0.1)"
         )
         (
             "port,p",
@@ -47,12 +47,12 @@ int main(int argc, char *argv[])
             "port where to listen"
         )
         (
-            "type,t",
+            "socket,s",
             argParser::value<std::string>(),
             "type: tcp or uds (Default: tcp)"
         )
         (
-            "transfer-type,s",
+            "transfer-type,t",
             argParser::value<std::string>(),
             "type of transfer: stream, standalone or request (Default: stream)"
         )
@@ -70,8 +70,8 @@ int main(int argc, char *argv[])
     }
 
     uint16_t port = 0;
-    std::string address = "";
-    std::string type = "tcp";
+    std::string address = "127.0.0.1";
+    std::string socket = "tcp";
     std::string transferType = "stream";
 
     if(vm.count("address")) {
@@ -80,35 +80,41 @@ int main(int argc, char *argv[])
     if(vm.count("port")) {
         port = vm["port"].as<uint16_t>();
     }
-    if(vm.count("type")) {
-        type = vm["type"].as<std::string>();
+    if(vm.count("socket")) {
+        socket = vm["socket"].as<std::string>();
     }
     if(vm.count("transfer-type")) {
         transferType = vm["transfer-type"].as<std::string>();
     }
 
-    if(type != "tcp"
-            && type != "uds")
+    // precheck type
+    if(socket != "tcp"
+            && socket != "uds")
     {
-        std::cout<<"ERROR: type \""<<type<<"\" is unknown. Choose \"tcp\" or \"uds\"."<<std::endl;;
+        std::cout<<"ERROR: type \""<<socket<<"\" is unknown. Choose \"tcp\" or \"uds\"."<<std::endl;;
         exit(1);
     }
 
+    // precheck transfer-type
     if(transferType != "stream"
             && transferType != "standalone"
-            && transferType != "request")
+            && transferType != "request"
+            && transferType != "stack_stream")
     {
         std::cout<<"ERROR: transfer-type \""<<transferType<<"\" is unknown. "
                    "Choose \"stream\", \"standalone\" or \"request\"."<<std::endl;;
         exit(1);
     }
 
+    // ouptput set values
+    std::cout<<"--------------------------------------"<<std::endl;
     std::cout<<"address: "<<address<<std::endl;
-    std::cout<<"port: "<<(int)port<<std::endl;
-    std::cout<<"type: "<<type<<std::endl;
+    std::cout<<"port: "<<static_cast<int>(port)<<std::endl;
+    std::cout<<"socket: "<<socket<<std::endl;
     std::cout<<"transfer-type: "<<transferType<<std::endl;
+    std::cout<<"--------------------------------------"<<std::endl;
 
-    TestSession testSession(address, port, type);
+    TestSession testSession(address, port, socket, transferType);
 
-    testSession.sendLoop(transferType);
+    testSession.runTest();
 }

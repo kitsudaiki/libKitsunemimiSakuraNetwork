@@ -28,22 +28,65 @@
 #include <multiblock_io.h>
 
 #include <libKitsunemimiNetwork/abstract_socket.h>
-#include <libKitsunemimiNetwork/message_ring_buffer.h>
+#include <libKitsunemimiCommon/buffer/ring_buffer.h>
 
 #include <libKitsunemimiProjectNetwork/session_controller.h>
 #include <libKitsunemimiProjectNetwork/session.h>
 
 #include <libKitsunemimiPersistence/logger/logger.h>
 
-using Kitsunemimi::Network::MessageRingBuffer;
+using Kitsunemimi::RingBuffer;
 using Kitsunemimi::Network::AbstractSocket;
-using Kitsunemimi::Network::getObjectFromBuffer;
-using Kitsunemimi::Network::getDataPointer;
+using Kitsunemimi::getObjectFromBuffer;
+using Kitsunemimi::getDataPointer;
 
 namespace Kitsunemimi
 {
 namespace Project
 {
+
+/**
+ * @brief send_Data_Stream_Static
+ */
+inline void
+send_Data_Stream(Session* session,
+                 DataBuffer* data,
+                 const bool replyExpected)
+{
+    // bring message-size to a multiple of 8
+    const uint32_t size = static_cast<const uint32_t>(data->bufferPosition)
+                          - sizeof(CommonMessageEnd)
+                          - sizeof(Data_Stream_Header);
+    const uint32_t totalMessageSize = sizeof(Data_Stream_Header)
+                                      + size
+                                      + (8-(size % 8)) % 8  // fill up to a multiple of 8
+                                      + sizeof(CommonMessageEnd);
+
+    CommonMessageEnd end;
+    Data_Stream_Header header;
+
+    // fill message
+    header.commonHeader.sessionId = session->sessionId();
+    header.commonHeader.messageId = session->increaseMessageIdCounter();
+    header.commonHeader.totalMessageSize = totalMessageSize;
+    header.commonHeader.payloadSize = size;
+    if(replyExpected) {
+        header.commonHeader.flags = 0x1;
+    }
+
+    uint8_t* dataPtr = static_cast<uint8_t*>(data->data);
+    // fill buffer to build the complete message
+    memcpy(&dataPtr[0], &header, sizeof(Data_Stream_Header));
+    memcpy(&dataPtr[(totalMessageSize - sizeof(CommonMessageEnd))],
+           &end,
+           sizeof(CommonMessageEnd));
+
+    // send
+    SessionHandler::m_sessionHandler->sendMessage(session,
+                                                  header.commonHeader,
+                                                  dataPtr,
+                                                  totalMessageSize);
+}
 
 /**
  * @brief send_Data_Stream_Static
@@ -59,27 +102,31 @@ send_Data_Stream(Session* session,
     // bring message-size to a multiple of 8
     const uint32_t totalMessageSize = sizeof(Data_Stream_Header)
                                       + size
-                                      + (8-(size % 8))  // fill up to a multiple of 8
+                                      + (8-(size % 8)) % 8  // fill up to a multiple of 8
                                       + sizeof(CommonMessageEnd);
 
     CommonMessageEnd end;
-    Data_Stream_Header message;
-    create_Data_StreamStatic_Message(message,
-                                     session->sessionId(),
-                                     session->increaseMessageIdCounter(),
-                                     totalMessageSize,
-                                     size,
-                                     replyExpected);
+    Data_Stream_Header header;
+
+    // fill message
+    header.commonHeader.sessionId = session->sessionId();
+    header.commonHeader.messageId = session->increaseMessageIdCounter();
+    header.commonHeader.totalMessageSize = totalMessageSize;
+    header.commonHeader.payloadSize = size;
+    if(replyExpected) {
+        header.commonHeader.flags = 0x1;
+    }
 
     // fill buffer to build the complete message
-    memcpy(&messageBuffer[0], &message, sizeof(Data_Stream_Header));
+    memcpy(&messageBuffer[0], &header, sizeof(Data_Stream_Header));
     memcpy(&messageBuffer[sizeof(Data_Stream_Header)], data, size);
     memcpy(&messageBuffer[(totalMessageSize - sizeof(CommonMessageEnd))],
            &end,
            sizeof(CommonMessageEnd));
 
+    // send
     SessionHandler::m_sessionHandler->sendMessage(session,
-                                                  message.commonHeader,
+                                                  header.commonHeader,
                                                   messageBuffer,
                                                   totalMessageSize);
 }
@@ -92,7 +139,12 @@ send_Data_Stream_Reply(Session* session,
                        const uint32_t messageId)
 {
     Data_StreamReply_Message message;
-    create_Data_StreamReply_Message(message, session->sessionId(), messageId);
+
+    // fill message
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = messageId;
+
+    // send
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -107,14 +159,17 @@ process_Data_Stream(Session* session,
                     const Data_Stream_Header* header,
                     const void* rawMessage)
 {
+    // get pointer to the beginning of the payload
     const uint8_t* payloadData = static_cast<const uint8_t*>(rawMessage)
                                  + sizeof(Data_Stream_Header);
 
+    // trigger callback
     session->m_processStreamData(session->m_streamDataTarget,
                                  session,
                                  static_cast<const void*>(payloadData),
                                  header->commonHeader.payloadSize);
 
+    // send reply if necessary
     if(header->commonHeader.flags & 0x1) {
         send_Data_Stream_Reply(session, header->commonHeader.messageId);
     }
@@ -135,9 +190,7 @@ process_Data_Stream_Reply(Session*,
  *
  * @param session pointer to the session
  * @param header pointer to the common header of the message within the message-ring-buffer
- * @param recvBuffer pointer to the message-ring-buffer
- *
- * @return number of processed bytes
+ * @param rawMessage pointer to the raw data of the complete message (header + payload + end)
  */
 inline void
 process_Stream_Data_Type(Session* session,

@@ -53,7 +53,7 @@ SessionController::SessionController(void* sessionTarget,
                                      void (*processSession)(void*,
                                                             bool,
                                                             Session*,
-                                                            const uint64_t),
+                                                            const std::string),
                                      void* streamDataTarget,
                                      void (*processStreamData)(void*,
                                                                Session*,
@@ -110,7 +110,7 @@ SessionController::~SessionController()
  * @return id of the new server
  */
 uint32_t
-SessionController::addUnixDomainServer(const std::string socketFile)
+SessionController::addUnixDomainServer(const std::string &socketFile)
 {
     Network::UnixDomainServer* server = new Network::UnixDomainServer(this,
                                                                       &processConnection_Callback);
@@ -163,8 +163,8 @@ SessionController::addTcpServer(const uint16_t port)
  */
 uint32_t
 SessionController::addTlsTcpServer(const uint16_t port,
-                                   const std::string certFile,
-                                   const std::string keyFile)
+                                   const std::string &certFile,
+                                   const std::string &keyFile)
 {
     Network::TlsTcpServer* server = new Network::TlsTcpServer(this,
                                                               &processConnection_Callback,
@@ -245,8 +245,8 @@ SessionController::cloesAllServers()
  * @return true, if session was successfully created and connected, else false
  */
 bool
-SessionController::startUnixDomainSession(const std::string socketFile,
-                                          const uint64_t sessionIdentifier)
+SessionController::startUnixDomainSession(const std::string &socketFile,
+                                          const std::string &sessionIdentifier)
 {
     Network::UnixDomainSocket* unixDomainSocket = new Network::UnixDomainSocket(socketFile);
     return startSession(unixDomainSocket, sessionIdentifier);
@@ -262,9 +262,9 @@ SessionController::startUnixDomainSession(const std::string socketFile,
  * @return true, if session was successfully created and connected, else false
  */
 bool
-SessionController::startTcpSession(const std::string address,
+SessionController::startTcpSession(const std::string &address,
                                    const uint16_t port,
-                                   const uint64_t sessionIdentifier)
+                                   const std::string &sessionIdentifier)
 {
     Network::TcpSocket* tcpSocket = new Network::TcpSocket(address, port);
     return startSession(tcpSocket, sessionIdentifier);
@@ -282,11 +282,11 @@ SessionController::startTcpSession(const std::string address,
  * @return true, if session was successfully created and connected, else false
  */
 bool
-SessionController::startTlsTcpSession(const std::string address,
+SessionController::startTlsTcpSession(const std::string &address,
                                       const uint16_t port,
-                                      const std::string certFile,
-                                      const std::string keyFile,
-                                      const uint64_t sessionIdentifier)
+                                      const std::string &certFile,
+                                      const std::string &keyFile,
+                                      const std::string &sessionIdentifier)
 {
     Network::TlsTcpSocket* tlsTcpSocket = new Network::TlsTcpSocket(address,
                                                                     port,
@@ -373,16 +373,19 @@ SessionController::closeAllSession()
 }
 
 /**
- * @brief SessionController::linkSessions
- * @param session1
- * @param session2
- * @return
+ * @brief link two sessions with each other
+ *
+ * @param session1 first session to link
+ * @param session2 second session to link
+ *
+ * @return false, if a least one of the sessions is already linked, else true
  */
 bool
 SessionController::linkSessions(Session* session1, Session* session2)
 {
     bool result = false;
 
+    // lock both spin-locks
     while(session1->m_linkSession_lock.test_and_set(std::memory_order_acquire))  {
         asm("");
     }
@@ -390,6 +393,7 @@ SessionController::linkSessions(Session* session1, Session* session2)
         asm("");
     }
 
+    // check and link sessions
     if(session1->m_linkedSession != nullptr
             || session2->m_linkedSession != nullptr)
     {
@@ -397,6 +401,7 @@ SessionController::linkSessions(Session* session1, Session* session2)
         session2->m_linkedSession = session1->m_linkedSession;
     }
 
+    // releads spin-locks
     session2->m_linkSession_lock.clear(std::memory_order_release);
     session1->m_linkSession_lock.clear(std::memory_order_release);
 
@@ -404,9 +409,11 @@ SessionController::linkSessions(Session* session1, Session* session2)
 }
 
 /**
- * @brief SessionController::unlinkSession
- * @param session
- * @return
+ * @brief remove the link between two sessions
+ *
+ * @param session one of the sessions of the already existing link
+ *
+ * @return false, if session is not linked, else true
  */
 bool
 SessionController::unlinkSession(Session* session)
@@ -429,9 +436,11 @@ SessionController::unlinkSession(Session* session)
         asm("");
     }
 
+    // unlink both sessions
     session->m_linkedSession = nullptr;
     session2->m_linkedSession = nullptr;
 
+    // releads spin-locks
     session2->m_linkSession_lock.clear(std::memory_order_release);
     session->m_linkSession_lock.clear(std::memory_order_release);
 
@@ -448,14 +457,20 @@ SessionController::unlinkSession(Session* session)
  */
 bool
 SessionController::startSession(Network::AbstractSocket *socket,
-                                const uint64_t sessionIdentifier)
+                                const std::string &sessionIdentifier)
 {
-    Session* newSession = new Session(socket);
-    socket->setMessageCallback(newSession, &processMessage_callback);
+    // precheck
+    if(sessionIdentifier.size() > 64) {
+        return false;
+    }
 
+    // create new session
+    Session* newSession = new Session(socket);
     const uint32_t newId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
+    socket->setMessageCallback(newSession, &processMessage_callback);
     SessionHandler::m_sessionHandler->addSession(newId, newSession);
 
+    // connect session
     if(newSession->connectiSession(newId))
     {
         send_Session_Init_Start(newSession, sessionIdentifier);

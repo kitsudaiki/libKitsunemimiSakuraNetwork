@@ -3,7 +3,7 @@
 #include <libKitsunemimiProjectNetwork/session.h>
 #include <libKitsunemimiProjectNetwork/session_controller.h>
 #include <libKitsunemimiCommon/common_methods/string_methods.h>
-#include <libKitsunemimiCommon/data_buffer.h>
+#include <libKitsunemimiCommon/buffer/data_buffer.h>
 
 /**
  * @brief standaloneDataCallback
@@ -73,7 +73,7 @@ void errorCallback(void*,
 void sessionCallback(void* target,
                      bool isInit,
                      Kitsunemimi::Project::Session* session,
-                     const uint64_t)
+                     const std::string)
 {
     TestSession* testClass = static_cast<TestSession*>(target);
 

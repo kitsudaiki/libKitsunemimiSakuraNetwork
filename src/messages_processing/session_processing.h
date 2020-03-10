@@ -34,9 +34,8 @@
 
 #include <libKitsunemimiPersistence/logger/logger.h>
 
-using Kitsunemimi::Network::MessageRingBuffer;
+using Kitsunemimi::RingBuffer;
 using Kitsunemimi::Network::AbstractSocket;
-using Kitsunemimi::Network::getObjectFromBuffer;
 
 namespace Kitsunemimi
 {
@@ -52,17 +51,22 @@ namespace Project
  */
 inline void
 send_Session_Init_Start(Session* session,
-                        const uint64_t sessionIdentifier)
+                        const std::string &sessionIdentifier)
 {
     LOG_DEBUG("SEND session init start");
 
     Session_Init_Start_Message message;
-    create_Session_Init_Start_Message(message,
-                                      session->sessionId(),
-                                      session->increaseMessageIdCounter(),
-                                      sessionIdentifier);
-    message.clientSessionId = session->sessionId();
 
+    // fill message
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = session->increaseMessageIdCounter();
+    message.clientSessionId = session->sessionId();
+    message.sessionIdentifierSize = static_cast<uint32_t>(sessionIdentifier.size());
+    memcpy(message.sessionIdentifier,
+           sessionIdentifier.c_str(),
+           sessionIdentifier.size());
+
+    // send
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -86,10 +90,14 @@ send_Session_Init_Reply(Session* session,
     LOG_DEBUG("SEND session init reply");
 
     Session_Init_Reply_Message message;
-    create_Session_Init_Reply_Message(message, initialSessionId, messageId);
+
+    // fill message
+    message.commonHeader.sessionId = initialSessionId;
+    message.commonHeader.messageId = messageId;
     message.completeSessionId = completeSessionId;
     message.clientSessionId = initialSessionId;
 
+    // send
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -109,11 +117,15 @@ send_Session_Close_Start(Session* session,
     LOG_DEBUG("SEND session close start");
 
     Session_Close_Start_Message message;
-    create_Session_Close_Start_Message(message,
-                                       session->sessionId(),
-                                       session->increaseMessageIdCounter(),
-                                       replyExpected);
 
+    // fill message
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = session->increaseMessageIdCounter();
+    if(replyExpected) {
+        message.commonHeader.flags = 0x1;
+    }
+
+    // send
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -133,8 +145,12 @@ send_Session_Close_Reply(Session* session,
     LOG_DEBUG("SEND session close reply");
 
     Session_Close_Reply_Message message;
-    create_Session_Close_Reply_Message(message, session->sessionId(), messageId);
 
+    // fill message
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = messageId;
+
+    // send
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -157,14 +173,14 @@ process_Session_Init_Start(Session* session,
     const uint32_t clientSessionId = message->clientSessionId;
     const uint16_t serverSessionId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
     const uint32_t sessionId = clientSessionId + (serverSessionId * 0x10000);
-    const uint64_t sessionIdentifier = message->sessionIdentifier;
+    const std::string sessionIdentifier(message->sessionIdentifier, message->sessionIdentifierSize);
 
     // create new session and make it ready
     SessionHandler::m_sessionHandler->addSession(sessionId, session);
     session->connectiSession(sessionId);
     session->makeSessionReady(sessionId, sessionIdentifier);
 
-    // confirm id
+    // send
     send_Session_Init_Reply(session,
                             clientSessionId,
                             message->commonHeader.messageId,
@@ -190,7 +206,7 @@ process_Session_Init_Reply(Session* session,
     SessionHandler::m_sessionHandler->removeSession(initialId);
     SessionHandler::m_sessionHandler->addSession(completeSessionId, session);
     // TODO: handle return-value of makeSessionReady
-    session->makeSessionReady(completeSessionId, 0);
+    session->makeSessionReady(completeSessionId, "");
 }
 
 /**
@@ -236,9 +252,7 @@ process_Session_Close_Reply(Session* session,
  *
  * @param session pointer to the session
  * @param header pointer to the common header of the message within the message-ring-buffer
- * @param recvBuffer pointer to the message-ring-buffer
- *
- * @return number of processed bytes
+ * @param rawMessage pointer to the raw data of the complete message (header + payload + end)
  */
 inline void
 process_Session_Type(Session* session,

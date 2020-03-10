@@ -47,7 +47,7 @@ function get_required_kitsune_lib_repo () {
 
 get_required_kitsune_lib_repo "libKitsunemimiCommon" "master"
 
-get_required_kitsune_lib_repo "libKitsunemimiPersistence" "v0.7.0"
+get_required_kitsune_lib_repo "libKitsunemimiPersistence" "master"
 
 get_required_kitsune_lib_repo "libKitsunemimiNetwork" "master"
 

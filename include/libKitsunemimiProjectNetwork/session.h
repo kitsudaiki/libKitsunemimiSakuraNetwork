@@ -28,7 +28,8 @@
 #include <atomic>
 
 #include <libKitsunemimiCommon/statemachine.h>
-#include <libKitsunemimiCommon/data_buffer.h>
+#include <libKitsunemimiCommon/buffer/data_buffer.h>
+#include <libKitsunemimiCommon/buffer/stack_buffer.h>
 
 namespace Kitsunemimi
 {
@@ -48,9 +49,11 @@ class Session
 public:
     ~Session(); 
 
+    bool sendStreamData(StackBuffer &stackBuffer,
+                        const bool replyExpected = false);
+
     bool sendStreamData(const void* data,
                         const uint64_t size,
-                        const bool dynamic = false,
                         const bool replyExpected = false);
 
     uint64_t sendStandaloneData(const void* data,
@@ -94,13 +97,13 @@ public:
     Network::AbstractSocket* m_socket = nullptr;
     MultiblockIO* m_multiblockIo = nullptr;
     uint32_t m_sessionId = 0;
-    uint64_t m_sessionIdentifier = 0;
+    std::string m_sessionIdentifier = "";
     Session* m_linkedSession = nullptr;
 
     // init session
     bool connectiSession(const uint32_t sessionId);
     bool makeSessionReady(const uint32_t sessionId,
-                          const uint64_t sessionIdentifier);
+                          const std::string &sessionIdentifier);
 
     // end session
     bool endSession();
@@ -111,7 +114,7 @@ public:
 
     // callbacks
     void* m_sessionTarget = nullptr;
-    void (*m_processSession)(void*, bool, Session*, const uint64_t);
+    void (*m_processSession)(void*, bool, Session*, const std::string);
     void* m_streamDataTarget = nullptr;
     void (*m_processStreamData)(void*, Session*, const void*, const uint64_t);
     void* m_standaloneDataTarget = nullptr;

@@ -30,16 +30,16 @@
 #include <multiblock_io.h>
 
 #include <libKitsunemimiNetwork/abstract_socket.h>
-#include <libKitsunemimiNetwork/message_ring_buffer.h>
+#include <libKitsunemimiCommon/buffer/ring_buffer.h>
 
 #include <libKitsunemimiProjectNetwork/session_controller.h>
 #include <libKitsunemimiProjectNetwork/session.h>
 
 #include <libKitsunemimiPersistence/logger/logger.h>
 
-using Kitsunemimi::Network::MessageRingBuffer;
+using Kitsunemimi::RingBuffer;
 using Kitsunemimi::Network::AbstractSocket;
-using Kitsunemimi::Network::getObjectFromBuffer;
+using Kitsunemimi::getObjectFromBuffer;
 
 namespace Kitsunemimi
 {
@@ -55,9 +55,12 @@ inline void
 send_Heartbeat_Start(Session* session)
 {
     Heartbeat_Start_Message message;
-    create_Heartbeat_Start_Message(message,
-                                   session->sessionId(),
-                                   session->increaseMessageIdCounter());
+
+    // fill message
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = session->increaseMessageIdCounter();
+
+    // send
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -75,9 +78,12 @@ send_Heartbeat_Reply(Session* session,
                      const uint32_t messageId)
 {
     Heartbeat_Reply_Message message;
-    create_Heartbeat_Reply_Message(message,
-                                   session->sessionId(),
-                                   messageId);
+
+    // fill message
+    message.commonHeader.sessionId = session->sessionId();
+    message.commonHeader.messageId = messageId;
+
+    // send
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,
                                                   &message,
@@ -113,9 +119,7 @@ process_Heartbeat_Reply(Session*,
  *
  * @param session pointer to the session
  * @param header pointer to the common header of the message within the message-ring-buffer
- * @param recvBuffer pointer to the message-ring-buffer
- *
- * @return number of processed bytes
+ * @param rawMessage pointer to the raw data of the complete message (header + payload + end)
  */
 inline void
 process_Heartbeat_Type(Session* session,

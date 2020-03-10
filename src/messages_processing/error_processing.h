@@ -30,15 +30,12 @@
 #include <multiblock_io.h>
 
 #include <libKitsunemimiNetwork/abstract_socket.h>
-#include <libKitsunemimiNetwork/message_ring_buffer.h>
+#include <libKitsunemimiCommon/buffer/ring_buffer.h>
 
 #include <libKitsunemimiProjectNetwork/session_controller.h>
 #include <libKitsunemimiProjectNetwork/session.h>
 
 #include <libKitsunemimiPersistence/logger/logger.h>
-
-using Kitsunemimi::Network::MessageRingBuffer;
-using Kitsunemimi::Network::getObjectFromBuffer;
 
 namespace Kitsunemimi
 {
@@ -65,10 +62,21 @@ send_ErrorMessage(Session* session,
         case Session::errorCodes::FALSE_VERSION:
         {
             Error_FalseVersion_Message message;
-            create_Error_FalseVersion_Message(message,
-                                              session->sessionId(),
-                                              session->increaseMessageIdCounter(),
-                                              errorMessage);
+
+            // fill message
+            message.commonHeader.sessionId = session->sessionId();
+            message.commonHeader.messageId = session->increaseMessageIdCounter();
+            message.messageSize = errorMessage.size();
+
+            // check and copy message-content
+            if(message.messageSize > MAX_SINGLE_MESSAGE_SIZE-1) {
+                message.messageSize = MAX_SINGLE_MESSAGE_SIZE-1;
+            }
+            strncpy(message.message,
+                    errorMessage.c_str(),
+                    message.messageSize);
+
+            // send
             SessionHandler::m_sessionHandler->sendMessage(session,
                                                           message.commonHeader,
                                                           &message,
@@ -79,10 +87,21 @@ send_ErrorMessage(Session* session,
         case Session::errorCodes::UNKNOWN_SESSION:
         {
             Error_UnknownSession_Message message;
-            create_Error_UnknownSession_Message(message,
-                                                session->sessionId(),
-                                                session->increaseMessageIdCounter(),
-                                                errorMessage);
+
+            // fill message
+            message.commonHeader.sessionId = session->sessionId();
+            message.commonHeader.messageId = session->increaseMessageIdCounter();
+            message.messageSize = errorMessage.size();
+
+            // check and copy message-content
+            if(message.messageSize > MAX_SINGLE_MESSAGE_SIZE-1) {
+                message.messageSize = MAX_SINGLE_MESSAGE_SIZE-1;
+            }
+            strncpy(message.message,
+                    errorMessage.c_str(),
+                    message.messageSize);
+
+            // send
             SessionHandler::m_sessionHandler->sendMessage(session,
                                                           message.commonHeader,
                                                           &message,
@@ -93,10 +112,21 @@ send_ErrorMessage(Session* session,
         case Session::errorCodes::INVALID_MESSAGE_SIZE:
         {
             Error_InvalidMessage_Message message;
-            create_Error_InvalidMessage_Message(message,
-                                                session->sessionId(),
-                                                session->increaseMessageIdCounter(),
-                                                errorMessage);
+
+            // fill message
+            message.commonHeader.sessionId = session->sessionId();
+            message.commonHeader.messageId = session->increaseMessageIdCounter();
+            message.messageSize = errorMessage.size();
+
+            // check and copy message-content
+            if(message.messageSize > MAX_SINGLE_MESSAGE_SIZE-1) {
+                message.messageSize = MAX_SINGLE_MESSAGE_SIZE-1;
+            }
+            strncpy(message.message,
+                    errorMessage.c_str(),
+                    message.messageSize);
+
+            // send
             SessionHandler::m_sessionHandler->sendMessage(session,
                                                           message.commonHeader,
                                                           &message,
@@ -114,9 +144,7 @@ send_ErrorMessage(Session* session,
  *
  * @param session pointer to the session
  * @param header pointer to the common header of the message within the message-ring-buffer
- * @param recvBuffer pointer to the message-ring-buffer
- *
- * @return number of processed bytes
+ * @param rawMessage pointer to the raw data of the complete message (header + payload + end)
  */
 inline void
 process_Error_Type(Session* session,

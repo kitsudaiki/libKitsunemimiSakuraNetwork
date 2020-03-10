@@ -109,7 +109,7 @@ void errorCallback(void*,
 void sessionCallback(void* target,
                      bool isInit,
                      Kitsunemimi::Project::Session* session,
-                     const uint64_t sessionIdentifier)
+                     const std::string sessionIdentifier)
 {
 
     Session_Test* testClass = static_cast<Session_Test*>(target);
@@ -121,36 +121,27 @@ void sessionCallback(void* target,
         testClass->m_numberOfInitSessions++;
 
         if(session->isClientSide() == false) {
-            testClass->compare(sessionIdentifier,  (uint64_t)42);
+            testClass->compare(sessionIdentifier, std::string("test"));
         }
 
         if(session->isClientSide())
         {
             bool ret = false;
 
-            // static size
+            // stream-message
             const std::string staticTestString = testClass->m_staticMessage;
             ret = session->sendStreamData(staticTestString.c_str(),
                                           staticTestString.size(),
-                                          false,
                                           true);
             testClass->compare(ret,  true);
 
-            // dynamic size
-            const std::string dynamicTestString = testClass->m_dynamicMessage;
-            ret = session->sendStreamData(dynamicTestString.c_str(),
-                                          dynamicTestString.size(),
-                                          true,
-                                          true);
-            testClass->compare(ret,  true);
-
-            // singleblock
+            // singleblock-message
             const std::string singleblockTestString = testClass->m_singleBlockMessage;
             ret = session->sendStandaloneData(singleblockTestString.c_str(),
                                               singleblockTestString.size());
             testClass->compare(ret,  true);
 
-            // multiblock
+            // multiblock-message
             const std::string multiblockTestString = testClass->m_multiBlockMessage;
             ret = session->sendStandaloneData(multiblockTestString.c_str(),
                                               multiblockTestString.size());
@@ -167,7 +158,7 @@ void sessionCallback(void* target,
  * @brief Session_Test::Session_Test
  */
 Session_Test::Session_Test() :
-    Kitsunemimi::Test("Session_Test")
+    Kitsunemimi::CompareTestHelper("Session_Test")
 {
     initTestCase();
     runTest();
@@ -252,7 +243,7 @@ Session_Test::runTest()
                                                             this, &errorCallback);
 
     TEST_EQUAL(m_controller->addTcpServer(1234), 1);
-    TEST_EQUAL(m_controller->startTcpSession("127.0.0.1", 1234, 42), 1);
+    TEST_EQUAL(m_controller->startTcpSession("127.0.0.1", 1234, "test"), 1);
 
     sleep(3);
 
