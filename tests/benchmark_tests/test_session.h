@@ -49,7 +49,6 @@ public:
     Kitsunemimi::Project::Session* m_clientSession = nullptr;
     Kitsunemimi::Project::Session* m_serverSession = nullptr;
 
-
     TimerSlot m_timeSlot;
     std::mutex m_cvMutex;
     std::condition_variable m_cv;

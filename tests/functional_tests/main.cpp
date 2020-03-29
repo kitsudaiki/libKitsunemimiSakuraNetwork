@@ -24,12 +24,12 @@
 
 #include <session_test.h>
 
-using Kitsunemimi::Persistence::initLogger;
+using Kitsunemimi::Persistence::initConsoleLogger;
 
 
 int main()
 {
-    //initLogger("/tmp", "testlog", true, true);
+    initConsoleLogger(true);
 
     Kitsunemimi::Project::Session_Test();
 }
