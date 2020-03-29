@@ -11,7 +11,7 @@
  * @param data
  * @param dataSize
  */
-void streamDataCallback(void* target,
+void streamDataCallback(void*,
                         Kitsunemimi::Project::Session* session,
                         const void* data,
                         const uint64_t dataSize)
@@ -35,7 +35,7 @@ void streamDataCallback(void* target,
  * @param data
  * @param dataSize
  */
-void standaloneDataCallback(void* target,
+void standaloneDataCallback(void*,
                             Kitsunemimi::Project::Session* session,
                             const uint64_t blockerId,
                             Kitsunemimi::DataBuffer* data)
