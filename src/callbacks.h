@@ -62,7 +62,7 @@ processMessage(void* target,
     Session* session = static_cast<Session*>(target);
 
     // et header of message and check if header was complete within the buffer
-    const CommonMessageHeader* header = getObjectFromBuffer<CommonMessageHeader>(*recvBuffer);
+    CommonMessageHeader* header = getObjectFromBuffer<CommonMessageHeader>(*recvBuffer);
     if(header == nullptr) {
         return 0;
     }
@@ -76,8 +76,8 @@ processMessage(void* target,
     }
 
     // get complete message from the ringbuffer, if enough data are available
-    const void* rawMessage = static_cast<const void*>(getDataPointer(*recvBuffer,
-                                                      header->totalMessageSize));
+    void* rawMessage = static_cast<void*>(getDataPointer(*recvBuffer,
+                                                         header->totalMessageSize));
     if(rawMessage == nullptr) {
         return 0;
     }
@@ -95,8 +95,10 @@ processMessage(void* target,
     if(session->m_linkedSession != nullptr)
     {
         Session* linkedSession = session->getLinkedSession();
-        linkedSession->m_socket->sendMessage(getDataPointer(*recvBuffer, header->totalMessageSize),
-                                             header->totalMessageSize);
+
+        header->sessionId = linkedSession->sessionId();
+        linkedSession->m_socket->sendMessage(rawMessage, header->totalMessageSize);
+
         return header->totalMessageSize;
     }
 
