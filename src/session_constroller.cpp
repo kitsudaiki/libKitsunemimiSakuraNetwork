@@ -244,7 +244,7 @@ SessionController::cloesAllServers()
  *
  * @return true, if session was successfully created and connected, else false
  */
-bool
+Session*
 SessionController::startUnixDomainSession(const std::string &socketFile,
                                           const std::string &sessionIdentifier)
 {
@@ -261,7 +261,7 @@ SessionController::startUnixDomainSession(const std::string &socketFile,
  *
  * @return true, if session was successfully created and connected, else false
  */
-bool
+Session*
 SessionController::startTcpSession(const std::string &address,
                                    const uint16_t port,
                                    const std::string &sessionIdentifier)
@@ -281,7 +281,7 @@ SessionController::startTcpSession(const std::string &address,
  *
  * @return true, if session was successfully created and connected, else false
  */
-bool
+Session*
 SessionController::startTlsTcpSession(const std::string &address,
                                       const uint16_t port,
                                       const std::string &certFile,
@@ -455,29 +455,38 @@ SessionController::unlinkSession(Session* session)
  *
  * @return true, if session was successfully created and connected, else false
  */
-bool
+Session*
 SessionController::startSession(Network::AbstractSocket *socket,
                                 const std::string &sessionIdentifier)
 {
     // precheck
     if(sessionIdentifier.size() > 64) {
-        return false;
+        return nullptr;
     }
 
     // create new session
     Session* newSession = new Session(socket);
     const uint32_t newId = SessionHandler::m_sessionHandler->increaseSessionIdCounter();
     socket->setMessageCallback(newSession, &processMessage_callback);
-    SessionHandler::m_sessionHandler->addSession(newId, newSession);
 
     // connect session
     if(newSession->connectiSession(newId))
     {
+        SessionHandler::m_sessionHandler->addSession(newId, newSession);
         send_Session_Init_Start(newSession, sessionIdentifier);
-        return true;
+
+        std::unique_lock<std::mutex> lock(newSession->m_cvMutex);
+        newSession->m_cv.wait(lock);
+
+        return newSession;
+    }
+    else
+    {
+        newSession->closeSession();
+        delete newSession;
     }
 
-    return false;
+    return nullptr;
 }
 
 //==================================================================================================

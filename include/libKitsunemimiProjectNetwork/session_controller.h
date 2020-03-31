@@ -63,16 +63,16 @@ public:
     void cloesAllServers();
 
     // session
-    bool startUnixDomainSession(const std::string &socketFile,
+    Session* startUnixDomainSession(const std::string &socketFile,
+                                    const std::string &sessionIdentifier = "");
+    Session* startTcpSession(const std::string &address,
+                             const uint16_t port,
+                             const std::string &sessionIdentifier = "");
+    Session* startTlsTcpSession(const std::string &address,
+                                const uint16_t port,
+                                const std::string &certFile,
+                                const std::string &keyFile,
                                 const std::string &sessionIdentifier = "");
-    bool startTcpSession(const std::string &address,
-                         const uint16_t port,
-                         const std::string &sessionIdentifier = "");
-    bool startTlsTcpSession(const std::string &address,
-                            const uint16_t port,
-                            const std::string &certFile,
-                            const std::string &keyFile,
-                            const std::string &sessionIdentifier = "");
     bool closeSession(const uint32_t id);
     Session* getSession(const uint32_t id);
     void closeAllSession();
@@ -84,8 +84,8 @@ public:
 private:
     uint32_t m_serverIdCounter = 0;
 
-    bool startSession(Network::AbstractSocket* socket,
-                      const std::string &sessionIdentifier);
+    Session* startSession(Network::AbstractSocket* socket,
+                          const std::string &sessionIdentifier);
 };
 
 } // namespace Project

@@ -26,6 +26,8 @@
 #include <iostream>
 #include <assert.h>
 #include <atomic>
+#include <mutex>
+#include <condition_variable>
 
 #include <libKitsunemimiCommon/statemachine.h>
 #include <libKitsunemimiCommon/buffer/data_buffer.h>
@@ -117,6 +119,10 @@ public:
     uint32_t m_sessionId = 0;
     std::string m_sessionIdentifier = "";
     Session* m_linkedSession = nullptr;
+
+    // wait for initialized
+    std::mutex m_cvMutex;
+    std::condition_variable m_cv;
 
     // init session
     bool connectiSession(const uint32_t sessionId);

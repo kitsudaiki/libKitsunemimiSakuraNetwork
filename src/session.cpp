@@ -390,12 +390,16 @@ Session::connectiSession(const uint32_t sessionId)
     if(m_statemachine.isInState(NOT_CONNECTED))
     {
         // connect socket
-        if(m_socket->initClientSide() == false) {
+        if(m_socket->initClientSide() == false)
+        {
+            m_cv.notify_one();
             return false;
         }
 
         // git into connected state
-        if(m_statemachine.goToNextState(CONNECT) == false) {
+        if(m_statemachine.goToNextState(CONNECT) == false)
+        {
+            m_cv.notify_one();
             return false;
         }
         m_sessionId = sessionId;
@@ -403,6 +407,8 @@ Session::connectiSession(const uint32_t sessionId)
 
         return true;
     }
+
+    m_cv.notify_one();
 
     return false;
 }
@@ -429,8 +435,13 @@ Session::makeSessionReady(const uint32_t sessionId,
 
         m_processSession(m_sessionTarget, true, this, m_sessionIdentifier);
 
+        // release blocked session on client-side
+        m_cv.notify_one();
+
         return true;
     }
+
+    m_cv.notify_one();
 
     return false;
 }
