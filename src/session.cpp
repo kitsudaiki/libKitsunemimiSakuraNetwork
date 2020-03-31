@@ -258,6 +258,51 @@ Session::abortMessages(const uint64_t multiblockMessageId)
 }
 
 /**
+ * @brief Session::setStreamMessageCallback
+ * @param streamDataTarget
+ */
+void
+Session::setStreamMessageCallback(void* streamDataTarget,
+                              void (*processStreamData)(void*,
+                                                        Session*,
+                                                        const void*,
+                                                        const uint64_t))
+{
+    m_streamDataTarget = streamDataTarget;
+    m_processStreamData = processStreamData;
+}
+
+/**
+ * @brief Session::setStandaloneMessageCallback
+ * @param standaloneDataTarget
+ */
+void
+Session::setStandaloneMessageCallback(void* standaloneDataTarget,
+                             void (*processStandaloneData)(void*,
+                                                           Session*,
+                                                           const uint64_t,
+                                                           DataBuffer*))
+{
+    m_standaloneDataTarget = standaloneDataTarget;
+    m_processStandaloneData = processStandaloneData;
+}
+
+/**
+ * @brief Session::setErrorCallback
+ * @param errorTarget
+ */
+void
+Session::setErrorCallback(void* errorTarget,
+                          void (*processError)(void*,
+                                               Session*,
+                                               const uint8_t,
+                                               const std::string))
+{
+    m_errorTarget = errorTarget;
+    m_processError = processError;
+}
+
+/**
  * @brief close the session inclusive multiblock-messages, statemachine, message to the other side
  *        and close the socket
  *
@@ -345,12 +390,16 @@ Session::connectiSession(const uint32_t sessionId)
     if(m_statemachine.isInState(NOT_CONNECTED))
     {
         // connect socket
-        if(m_socket->initClientSide() == false) {
+        if(m_socket->initClientSide() == false)
+        {
+            m_cv.notify_one();
             return false;
         }
 
         // git into connected state
-        if(m_statemachine.goToNextState(CONNECT) == false) {
+        if(m_statemachine.goToNextState(CONNECT) == false)
+        {
+            m_cv.notify_one();
             return false;
         }
         m_sessionId = sessionId;
@@ -358,6 +407,8 @@ Session::connectiSession(const uint32_t sessionId)
 
         return true;
     }
+
+    m_cv.notify_one();
 
     return false;
 }
@@ -384,8 +435,13 @@ Session::makeSessionReady(const uint32_t sessionId,
 
         m_processSession(m_sessionTarget, true, this, m_sessionIdentifier);
 
+        // release blocked session on client-side
+        m_cv.notify_one();
+
         return true;
     }
+
+    m_cv.notify_one();
 
     return false;
 }

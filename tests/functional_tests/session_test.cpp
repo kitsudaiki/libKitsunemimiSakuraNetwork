@@ -243,9 +243,8 @@ Session_Test::runTest()
                                                             this, &errorCallback);
 
     TEST_EQUAL(m_controller->addTcpServer(1234), 1);
-    TEST_EQUAL(m_controller->startTcpSession("127.0.0.1", 1234, "test"), 1);
-
-    sleep(3);
+    bool isNullptr = m_controller->startTcpSession("127.0.0.1", 1234, "test") == nullptr;
+    TEST_EQUAL(isNullptr, false);
 
     TEST_EQUAL(m_controller->getSession(131073)->closeSession(), true);
     const bool isNull = m_controller->getSession(131073) == nullptr;

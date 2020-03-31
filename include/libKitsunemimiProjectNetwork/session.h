@@ -26,6 +26,8 @@
 #include <iostream>
 #include <assert.h>
 #include <atomic>
+#include <mutex>
+#include <condition_variable>
 
 #include <libKitsunemimiCommon/statemachine.h>
 #include <libKitsunemimiCommon/buffer/data_buffer.h>
@@ -49,6 +51,7 @@ class Session
 public:
     ~Session(); 
 
+    // send-messages
     bool sendStreamData(StackBuffer &stackBuffer,
                         const bool replyExpected = false);
 
@@ -58,6 +61,7 @@ public:
 
     uint64_t sendStandaloneData(const void* data,
                                 const uint64_t size);
+    void abortMessages(const uint64_t multiblockMessageId=0);
 
     DataBuffer* sendRequest(const void* data,
                             const uint64_t size,
@@ -66,8 +70,24 @@ public:
                           const uint64_t size,
                           const uint64_t blockerId);
 
-    void abortMessages(const uint64_t multiblockMessageId=0);
+    // setter for changing callbacks
+    void setStreamMessageCallback(void* streamDataTarget,
+                                  void (*processStreamData)(void*,
+                                                            Session*,
+                                                            const void*,
+                                                            const uint64_t));
+    void setStandaloneMessageCallback(void* standaloneDataTarget,
+                                      void (*processStandaloneData)(void*,
+                                                                    Session*,
+                                                                    const uint64_t,
+                                                                    DataBuffer*));
+    void setErrorCallback(void* errorTarget,
+                          void (*processError)(void*,
+                                               Session*,
+                                               const uint8_t,
+                                               const std::string));
 
+    // session-controlling functions
     bool closeSession(const bool replyExpected = false);
     uint32_t sessionId() const;
     bool isClientSide() const;
@@ -99,6 +119,10 @@ public:
     uint32_t m_sessionId = 0;
     std::string m_sessionIdentifier = "";
     Session* m_linkedSession = nullptr;
+
+    // wait for initialized
+    std::mutex m_cvMutex;
+    std::condition_variable m_cv;
 
     // init session
     bool connectiSession(const uint32_t sessionId);
