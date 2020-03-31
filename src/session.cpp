@@ -258,6 +258,51 @@ Session::abortMessages(const uint64_t multiblockMessageId)
 }
 
 /**
+ * @brief Session::setStreamMessageCallback
+ * @param streamDataTarget
+ */
+void
+Session::setStreamMessageCallback(void* streamDataTarget,
+                              void (*processStreamData)(void*,
+                                                        Session*,
+                                                        const void*,
+                                                        const uint64_t))
+{
+    m_streamDataTarget = streamDataTarget;
+    m_processStreamData = processStreamData;
+}
+
+/**
+ * @brief Session::setStandaloneMessageCallback
+ * @param standaloneDataTarget
+ */
+void
+Session::setStandaloneMessageCallback(void* standaloneDataTarget,
+                             void (*processStandaloneData)(void*,
+                                                           Session*,
+                                                           const uint64_t,
+                                                           DataBuffer*))
+{
+    m_standaloneDataTarget = standaloneDataTarget;
+    m_processStandaloneData = processStandaloneData;
+}
+
+/**
+ * @brief Session::setErrorCallback
+ * @param errorTarget
+ */
+void
+Session::setErrorCallback(void* errorTarget,
+                          void (*processError)(void*,
+                                               Session*,
+                                               const uint8_t,
+                                               const std::string))
+{
+    m_errorTarget = errorTarget;
+    m_processError = processError;
+}
+
+/**
  * @brief close the session inclusive multiblock-messages, statemachine, message to the other side
  *        and close the socket
  *
