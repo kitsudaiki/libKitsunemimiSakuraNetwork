@@ -120,9 +120,7 @@ void sessionCallback(void* target,
     {
         testClass->m_numberOfInitSessions++;
 
-        if(session->isClientSide() == false) {
-            testClass->compare(sessionIdentifier, std::string("test"));
-        }
+        testClass->compare(sessionIdentifier, std::string("test"));
 
         if(session->isClientSide())
         {

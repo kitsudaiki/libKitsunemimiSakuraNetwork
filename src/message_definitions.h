@@ -153,6 +153,9 @@ struct Session_Init_Reply_Message
     CommonMessageHeader commonHeader;
     uint32_t clientSessionId = 0;
     uint32_t completeSessionId = 0;
+    char sessionIdentifier[64];
+    uint32_t sessionIdentifierSize = 0;
+    uint8_t padding[4];
     CommonMessageEnd commonEnd;
 
     Session_Init_Reply_Message()

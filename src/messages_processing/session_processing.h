@@ -85,7 +85,8 @@ inline void
 send_Session_Init_Reply(Session* session,
                         const uint32_t initialSessionId,
                         const uint32_t messageId,
-                        const uint32_t completeSessionId)
+                        const uint32_t completeSessionId,
+                        const std::string &sessionIdentifier)
 {
     LOG_DEBUG("SEND session init reply");
 
@@ -96,6 +97,11 @@ send_Session_Init_Reply(Session* session,
     message.commonHeader.messageId = messageId;
     message.completeSessionId = completeSessionId;
     message.clientSessionId = initialSessionId;
+
+    message.sessionIdentifierSize = static_cast<uint32_t>(sessionIdentifier.size());
+    memcpy(message.sessionIdentifier,
+           sessionIdentifier.c_str(),
+           sessionIdentifier.size());
 
     // send
     SessionHandler::m_sessionHandler->sendMessage(session,
@@ -184,7 +190,8 @@ process_Session_Init_Start(Session* session,
     send_Session_Init_Reply(session,
                             clientSessionId,
                             message->commonHeader.messageId,
-                            sessionId);
+                            sessionId,
+                            sessionIdentifier);
 }
 
 /**
@@ -201,12 +208,13 @@ process_Session_Init_Reply(Session* session,
 
     const uint32_t completeSessionId = message->completeSessionId;
     const uint32_t initialId = message->clientSessionId;
+    const std::string sessionIdentifier(message->sessionIdentifier, message->sessionIdentifierSize);
 
     // readd session under the new complete session-id and make session ready
     SessionHandler::m_sessionHandler->removeSession(initialId);
     SessionHandler::m_sessionHandler->addSession(completeSessionId, session);
     // TODO: handle return-value of makeSessionReady
-    session->makeSessionReady(completeSessionId, "");
+    session->makeSessionReady(completeSessionId, sessionIdentifier);
 }
 
 /**
