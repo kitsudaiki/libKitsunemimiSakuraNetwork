@@ -26,6 +26,7 @@ void streamDataCallback(void* target,
         {
             uint8_t data[10];
             testClass->m_serverSession->sendStreamData(data, 10);
+            testClass->m_sizeCounter = 0;
         }
     }
     else
@@ -160,7 +161,7 @@ TestSession::TestSession(const std::string &address,
         }
         else
         {
-            if(address != "")
+            if(address != "server")
             {
                 m_isClient = true;
                 m_controller->startTcpSession(address, port);
@@ -280,6 +281,11 @@ TestSession::runTest(const long packageSize)
         // create output of the test-result
         addToResult(m_timeSlot);
         printResult();
+    }
+    else
+    {
+        std::unique_lock<std::mutex> lock(m_cvMutex);
+        m_cv.wait(lock);
     }
 }
 
