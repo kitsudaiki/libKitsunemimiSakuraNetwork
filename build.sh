@@ -51,6 +51,8 @@ get_required_kitsune_lib_repo "libKitsunemimiPersistence" "v0.8.1"
 
 get_required_kitsune_lib_repo "libKitsunemimiNetwork" "v0.6.1"
 
+get_required_kitsune_lib_repo "libKitsunemimiArgs" "v0.1.2"
+
 #-----------------------------------------------------------------------------------------------------------------
 
 build_kitsune_lib_repo "libKitsunemimiProjectNetwork"

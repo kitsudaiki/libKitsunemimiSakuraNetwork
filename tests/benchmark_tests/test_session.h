@@ -32,7 +32,7 @@ public:
                 const uint16_t port,
                 const std::string &socket,
                 const std::string &transferType);
-    void runTest();
+    void runTest(const long packageSize);
     double calculateSpeed(double duration);
 
     bool m_isClient = false;

@@ -149,35 +149,34 @@ TestSession::TestSession(const std::string &address,
                                                                this, &standaloneDataCallback,
                                                                this, &errorCallback);
 
-    // start test
-    if(port == 0)
+    if(m_isTcp)
     {
-        if(m_isTcp)
+        if(address == "127.0.0.1")
         {
             m_isClient = true;
-            m_controller->addTcpServer(4321);
+            m_controller->addTcpServer(port);
             usleep(10000);
-            m_controller->startTcpSession("127.0.0.1", 4321);
-        }
-        else
-        {
-            m_isClient = true;
-            m_controller->addUnixDomainServer("/tmp/sock.uds");
-            usleep(10000);
-            m_controller->startUnixDomainSession("/tmp/sock.uds");
-        }
-    }
-    else
-    {
-        if(address != "")
-        {
-            m_isClient = true;
             m_controller->startTcpSession(address, port);
         }
         else
         {
-            m_controller->addTcpServer(port);
+            if(address != "")
+            {
+                m_isClient = true;
+                m_controller->startTcpSession(address, port);
+            }
+            else
+            {
+                m_controller->addTcpServer(port);
+            }
         }
+    }
+    else
+    {
+        m_isClient = true;
+        m_controller->addUnixDomainServer("/tmp/sock.uds");
+        usleep(10000);
+        m_controller->startUnixDomainSession("/tmp/sock.uds");
     }
 }
 
@@ -185,16 +184,11 @@ TestSession::TestSession(const std::string &address,
  * @brief run test
  */
 void
-TestSession::runTest()
+TestSession::runTest(const long packageSize)
 {
 
     if(m_isClient)
     {
-        // wait until connection is complete and session-client is initialized
-        while(m_clientSession == nullptr) {
-            usleep(10000);
-        }
-
         std::unique_lock<std::mutex> lock(m_cvMutex);
 
         // send stack_stream-messages
@@ -232,9 +226,10 @@ TestSession::runTest()
             {
                 std::cout<<"stream"<<std::endl;
                 m_timeSlot.startTimer();
-                for(int i = 0; i < 10*8; i++)
+                for(long i = 0; i < (10l*1024l*1024l*1024l) / packageSize; i++)
                 {
-                    assert(m_clientSession->sendStreamData(m_dataBuffer, 128*1024*1024));
+                    assert(m_clientSession->sendStreamData(m_dataBuffer,
+                                                           static_cast<uint64_t>(packageSize)));
                 }
                 m_cv.wait(lock);
 
@@ -251,9 +246,10 @@ TestSession::runTest()
             {
                 std::cout<<"standalone"<<std::endl;
                 m_timeSlot.startTimer();
-                for(int i = 0; i < 10*8; i++)
+                for(int i = 0; i < (10l*1024l*1024l*1024l) / packageSize; i++)
                 {
-                    m_clientSession->sendStandaloneData(m_dataBuffer, 128*1024*1024);
+                    m_clientSession->sendStandaloneData(m_dataBuffer,
+                                                        static_cast<uint64_t>(packageSize));
                     m_cv.wait(lock);
                 }
                 m_timeSlot.stopTimer();
@@ -269,9 +265,11 @@ TestSession::runTest()
             {
                 std::cout<<"request"<<std::endl;
                 m_timeSlot.startTimer();
-                for(int i = 0; i < 10*8; i++)
+                for(int i = 0; i < (10l*1024l*1024l*1024l) / packageSize; i++)
                 {
-                    m_clientSession->sendRequest(m_dataBuffer, 128*1024*1024, 10000);
+                    m_clientSession->sendRequest(m_dataBuffer,
+                                                 static_cast<uint64_t>(packageSize),
+                                                 10000);
                 }
                 m_sizeCounter = 0;
                 m_timeSlot.stopTimer();

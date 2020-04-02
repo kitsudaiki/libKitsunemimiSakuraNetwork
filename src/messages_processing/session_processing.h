@@ -80,6 +80,8 @@ send_Session_Init_Start(Session* session,
  * @param initialSessionId initial id, which was sended by the client
  * @param messageId id of the original incoming message
  * @param completeSessionId completed session-id based on the id of the server and the client
+ * @param sessionIdentifier custom value, which is sended within the init-message to pre-identify
+ *                          the message on server-side
  */
 inline void
 send_Session_Init_Reply(Session* session,

@@ -24,7 +24,7 @@ LIBS += -L../../../libKitsunemimiPersistence/src/release -lKitsunemimiPersistenc
 INCLUDEPATH += ../../../libKitsunemimiPersistence/include
 
 LIBS +=  -lssl -lcrypt
-LIBS +=  -lboost_filesystem -lboost_program_options -lboost_system -lsqlite3
+LIBS +=  -lboost_filesystem -lboost_program_options -lboost_system
 
 
 SOURCES += \
