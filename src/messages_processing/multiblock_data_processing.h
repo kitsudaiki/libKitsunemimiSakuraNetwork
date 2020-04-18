@@ -37,8 +37,6 @@
 
 using Kitsunemimi::RingBuffer;
 using Kitsunemimi::Network::AbstractSocket;
-using Kitsunemimi::getObjectFromBuffer;
-using Kitsunemimi::getDataPointer;
 
 namespace Kitsunemimi
 {

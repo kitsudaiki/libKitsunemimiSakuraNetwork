@@ -107,14 +107,16 @@ SessionController::~SessionController()
  *
  * @param socketFile file-path for the server
  *
- * @return id of the new server
+ * @return id of the new server if sussessful, else return 0
  */
 uint32_t
 SessionController::addUnixDomainServer(const std::string &socketFile)
 {
     Network::UnixDomainServer* server = new Network::UnixDomainServer(this,
                                                                       &processConnection_Callback);
-    server->initServer(socketFile);
+    if(server->initServer(socketFile) == false) {
+        return 0;
+    }
     server->startThread();
 
     SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
@@ -132,14 +134,16 @@ SessionController::addUnixDomainServer(const std::string &socketFile)
  *
  * @param port port where the server should listen
  *
- * @return id of the new server
+ * @return id of the new server if sussessful, else return 0
  */
 uint32_t
 SessionController::addTcpServer(const uint16_t port)
 {
     Network::TcpServer* server = new Network::TcpServer(this,
                                                         &processConnection_Callback);
-    server->initServer(port);
+    if(server->initServer(port) == false) {
+        return 0;
+    }
     server->startThread();
 
     SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
@@ -159,7 +163,7 @@ SessionController::addTcpServer(const uint16_t port)
  * @param certFile certificate-file for tls-encryption
  * @param keyFile key-file for tls-encryption
  *
- * @return id of the new server
+ * @return id of the new server if sussessful, else return 0
  */
 uint32_t
 SessionController::addTlsTcpServer(const uint16_t port,
@@ -170,7 +174,9 @@ SessionController::addTlsTcpServer(const uint16_t port,
                                                               &processConnection_Callback,
                                                               certFile,
                                                               keyFile);
-    server->initServer(port);
+    if(server->initServer(port) == false) {
+        return 0;
+    }
     server->startThread();
 
     SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;

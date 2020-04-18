@@ -78,7 +78,7 @@ MultiblockIO::createOutgoingBuffer(const void* data,
     }
 
     // write data, which should be send, to the temporary buffer
-    Kitsunemimi::addDataToBuffer(*newMultiblockMessage.multiBlockBuffer, data, size);
+    Kitsunemimi::addData_DataBuffer(*newMultiblockMessage.multiBlockBuffer, data, size);
 
     // put buffer into message-queue to be send in the background
     while(m_outgoing_lock.test_and_set(std::memory_order_acquire)) {
@@ -178,7 +178,7 @@ MultiblockIO::sendOutgoingData(const MultiblockMessage& messageBuffer)
 
     // static values
     const uint32_t totalPartNumber = static_cast<uint32_t>(totalSize / MAX_SINGLE_MESSAGE_SIZE) + 1;
-    const uint8_t* dataPointer = getBlock(*messageBuffer.multiBlockBuffer, 0);
+    const uint8_t* dataPointer = getBlock_DataBuffer(*messageBuffer.multiBlockBuffer, 0);
 
     while(totalSize != 0
           && m_aborCurrentMessage == false)
@@ -279,9 +279,9 @@ MultiblockIO::writeIntoIncomingBuffer(const uint64_t multiblockId,
 
     if(it != m_incoming.end())
     {
-        result = Kitsunemimi::addDataToBuffer(*it->second.multiBlockBuffer,
-                                              data,
-                                              size);
+        result = Kitsunemimi::addData_DataBuffer(*it->second.multiBlockBuffer,
+                                                 data,
+                                                 size);
     }
 
     m_incoming_lock.clear(std::memory_order_release);

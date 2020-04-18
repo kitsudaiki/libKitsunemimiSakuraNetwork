@@ -37,8 +37,6 @@
 
 using Kitsunemimi::RingBuffer;
 using Kitsunemimi::Network::AbstractSocket;
-using Kitsunemimi::getObjectFromBuffer;
-using Kitsunemimi::getDataPointer;
 
 namespace Kitsunemimi
 {
@@ -128,7 +126,7 @@ process_Data_SingleBlock(Session* session,
                                  + sizeof(Data_SingleBlock_Header);
 
     // copy messagy-payload into buffer
-    addDataToBuffer(*buffer, payloadData, header->commonHeader.payloadSize);
+    addData_DataBuffer(*buffer, payloadData, header->commonHeader.payloadSize);
 
     // check if normal standalone-message or if message is response
     if(header->commonHeader.flags & 0x8)
