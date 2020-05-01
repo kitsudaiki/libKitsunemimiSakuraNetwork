@@ -109,9 +109,9 @@ send_Data_Multi_Static(Session* session,
     const uint32_t totalMessageSize = sizeof(Data_MultiBlock_Header)
                                       + size
                                       + (8-(size % 8)) % 8  // fill up to a multiple of 8
-                                      + sizeof(CommonMessageEnd);
+                                      + sizeof(CommonMessageFooter);
 
-    CommonMessageEnd end;
+    CommonMessageFooter end;
     Data_MultiBlock_Header message;
 
     // fill message
@@ -126,9 +126,9 @@ send_Data_Multi_Static(Session* session,
     // fill buffer to build the complete message
     memcpy(&messageBuffer[0], &message, sizeof(Data_MultiBlock_Header));
     memcpy(&messageBuffer[sizeof(Data_MultiBlock_Header)], data, size);
-    memcpy(&messageBuffer[(totalMessageSize - sizeof(CommonMessageEnd))],
+    memcpy(&messageBuffer[(totalMessageSize - sizeof(CommonMessageFooter))],
            &end,
-           sizeof(CommonMessageEnd));
+           sizeof(CommonMessageFooter));
 
     SessionHandler::m_sessionHandler->sendMessage(session,
                                                   message.commonHeader,

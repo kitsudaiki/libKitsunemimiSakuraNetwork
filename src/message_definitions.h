@@ -102,7 +102,7 @@ enum multiblock_data_subTypes
 /**
  * @brief CommonMessageHeader
  *
- * header-size = 20
+ * header-size = 24
  */
 struct CommonMessageHeader
 {
@@ -111,15 +111,22 @@ struct CommonMessageHeader
     uint8_t subType = 0;
     uint8_t flags = 0;   // 0x1 = reply required; 0x2 = is reply;
                          // 0x4 = is request; 0x8 = is response
+    uint32_t additionalValues = 0;  // not used at the momment
     uint32_t sessionId = 0;
     uint32_t messageId = 0;
     uint32_t totalMessageSize = 0;
     uint32_t payloadSize = 0;
 } __attribute__((packed));
 
-struct CommonMessageEnd
+/**
+ * @brief CommonMessageFooter
+ *
+ * footer-size = 8
+ */
+struct CommonMessageFooter
 {
-    const uint32_t end = MESSAGE_DELIMITER;
+    uint32_t additionalValues = 0;  // not used at the momment
+    const uint32_t delimiter = MESSAGE_DELIMITER;
 } __attribute__((packed));
 
 //==================================================================================================
@@ -133,7 +140,7 @@ struct Session_Init_Start_Message
     uint32_t clientSessionId = 0;
     char sessionIdentifier[64];
     uint32_t sessionIdentifierSize = 0;
-    CommonMessageEnd commonEnd;
+    CommonMessageFooter commonEnd;
 
     Session_Init_Start_Message()
     {
@@ -156,7 +163,7 @@ struct Session_Init_Reply_Message
     char sessionIdentifier[64];
     uint32_t sessionIdentifierSize = 0;
     uint8_t padding[4];
-    CommonMessageEnd commonEnd;
+    CommonMessageFooter commonEnd;
 
     Session_Init_Reply_Message()
     {
@@ -178,7 +185,7 @@ struct Session_Close_Start_Message
     CommonMessageHeader commonHeader;
     uint32_t sessionId = 0;
     uint8_t padding[4];
-    CommonMessageEnd commonEnd;
+    CommonMessageFooter commonEnd;
 
     Session_Close_Start_Message()
     {
@@ -197,7 +204,7 @@ struct Session_Close_Reply_Message
     CommonMessageHeader commonHeader;
     uint32_t sessionId = 0;
     uint8_t padding[4];
-    CommonMessageEnd commonEnd;
+    CommonMessageFooter commonEnd;
 
     Session_Close_Reply_Message()
     {
@@ -217,7 +224,7 @@ struct Session_Close_Reply_Message
 struct Heartbeat_Start_Message
 {
     CommonMessageHeader commonHeader;
-    CommonMessageEnd commonEnd;
+    CommonMessageFooter commonEnd;
 
     Heartbeat_Start_Message()
     {
@@ -235,7 +242,7 @@ struct Heartbeat_Start_Message
 struct Heartbeat_Reply_Message
 {
     CommonMessageHeader commonHeader;
-    CommonMessageEnd commonEnd;
+    CommonMessageFooter commonEnd;
 
     Heartbeat_Reply_Message()
     {
@@ -257,7 +264,7 @@ struct Error_FalseVersion_Message
     CommonMessageHeader commonHeader;
     uint64_t messageSize = 0;
     char message[MESSAGE_CACHE_SIZE];
-    CommonMessageEnd commonEnd;
+    CommonMessageFooter commonEnd;
 
     Error_FalseVersion_Message()
     {
@@ -276,7 +283,7 @@ struct Error_UnknownSession_Message
     CommonMessageHeader commonHeader;
     uint64_t messageSize = 0;
     char message[MESSAGE_CACHE_SIZE];
-    CommonMessageEnd commonEnd;
+    CommonMessageFooter commonEnd;
 
     Error_UnknownSession_Message()
     {
@@ -296,7 +303,7 @@ struct Error_InvalidMessage_Message
     CommonMessageHeader commonHeader;
     uint64_t messageSize = 0;
     char message[MESSAGE_CACHE_SIZE];
-    CommonMessageEnd commonEnd;
+    CommonMessageFooter commonEnd;
 
     Error_InvalidMessage_Message()
     {
@@ -330,7 +337,7 @@ struct Data_Stream_Header
 struct Data_StreamReply_Message
 {
     CommonMessageHeader commonHeader;
-    CommonMessageEnd commonEnd;
+    CommonMessageFooter commonEnd;
 
     Data_StreamReply_Message()
     {
@@ -369,7 +376,7 @@ struct Data_SingleBlock_Header
 struct Data_SingleBlockReply_Message
 {
     CommonMessageHeader commonHeader;
-    CommonMessageEnd commonEnd;
+    CommonMessageFooter commonEnd;
 
     Data_SingleBlockReply_Message()
     {
@@ -391,7 +398,7 @@ struct Data_MultiInit_Message
     CommonMessageHeader commonHeader;
     uint64_t multiblockId = 0;
     uint64_t totalSize = 0;
-    CommonMessageEnd commonEnd;
+    CommonMessageFooter commonEnd;
 
     Data_MultiInit_Message()
     {
@@ -418,7 +425,7 @@ struct Data_MultiInitReply_Message
     uint64_t multiblockId = 0;
     uint8_t status = UNDEFINED;
     uint8_t padding[7];
-    CommonMessageEnd commonEnd;
+    CommonMessageFooter commonEnd;
 
     Data_MultiInitReply_Message()
     {
@@ -456,7 +463,7 @@ struct Data_MultiFinish_Message
     CommonMessageHeader commonHeader;
     uint64_t multiblockId = 0;
     uint64_t blockerId = 0;
-    CommonMessageEnd commonEnd;
+    CommonMessageFooter commonEnd;
 
     Data_MultiFinish_Message()
     {
@@ -474,7 +481,7 @@ struct Data_MultiAbortInit_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t multiblockId = 0;
-    CommonMessageEnd commonEnd;
+    CommonMessageFooter commonEnd;
 
     Data_MultiAbortInit_Message()
     {
@@ -493,7 +500,7 @@ struct Data_MultiAbortReply_Message
 {
     CommonMessageHeader commonHeader;
     uint64_t multiblockId = 0;
-    CommonMessageEnd commonEnd;
+    CommonMessageFooter commonEnd;
 
     Data_MultiAbortReply_Message()
     {

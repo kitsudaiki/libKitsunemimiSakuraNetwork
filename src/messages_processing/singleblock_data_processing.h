@@ -59,9 +59,9 @@ send_Data_SingleBlock(Session* session,
     const uint32_t totalMessageSize = sizeof(Data_SingleBlock_Header)
                                       + size
                                       + (8-(size % 8)) % 8  // fill up to a multiple of 8
-                                      + sizeof(CommonMessageEnd);
+                                      + sizeof(CommonMessageFooter);
 
-    CommonMessageEnd end;
+    CommonMessageFooter end;
     Data_SingleBlock_Header header;
 
     // fill message
@@ -78,9 +78,9 @@ send_Data_SingleBlock(Session* session,
     // fill buffer with all parts of the message
     memcpy(&messageBuffer[0], &header, sizeof(Data_SingleBlock_Header));
     memcpy(&messageBuffer[sizeof(Data_SingleBlock_Header)], data, size);
-    memcpy(&messageBuffer[(totalMessageSize - sizeof(CommonMessageEnd))],
+    memcpy(&messageBuffer[(totalMessageSize - sizeof(CommonMessageFooter))],
            &end,
-           sizeof(CommonMessageEnd));
+           sizeof(CommonMessageFooter));
 
     // send
     SessionHandler::m_sessionHandler->sendMessage(session,

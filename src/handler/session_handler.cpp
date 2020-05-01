@@ -79,6 +79,8 @@ SessionHandler::SessionHandler(void* sessionTarget,
     }
 
     // check if messages have the size of a multiple of 8
+    assert(sizeof(CommonMessageHeader) % 8 == 0);
+    assert(sizeof(CommonMessageFooter) % 8 == 0);
     assert(sizeof(Session_Init_Start_Message) % 8 == 0);
     assert(sizeof(Session_Init_Reply_Message) % 8 == 0);
     assert(sizeof(Session_Close_Start_Message) % 8 == 0);

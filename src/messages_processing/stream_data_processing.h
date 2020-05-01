@@ -53,14 +53,14 @@ send_Data_Stream(Session* session,
 {
     // bring message-size to a multiple of 8
     const uint32_t size = static_cast<const uint32_t>(data->bufferPosition)
-                          - sizeof(CommonMessageEnd)
+                          - sizeof(CommonMessageFooter)
                           - sizeof(Data_Stream_Header);
     const uint32_t totalMessageSize = sizeof(Data_Stream_Header)
                                       + size
                                       + (8-(size % 8)) % 8  // fill up to a multiple of 8
-                                      + sizeof(CommonMessageEnd);
+                                      + sizeof(CommonMessageFooter);
 
-    CommonMessageEnd end;
+    CommonMessageFooter end;
     Data_Stream_Header header;
 
     // fill message
@@ -75,9 +75,9 @@ send_Data_Stream(Session* session,
     uint8_t* dataPtr = static_cast<uint8_t*>(data->data);
     // fill buffer to build the complete message
     memcpy(&dataPtr[0], &header, sizeof(Data_Stream_Header));
-    memcpy(&dataPtr[(totalMessageSize - sizeof(CommonMessageEnd))],
+    memcpy(&dataPtr[(totalMessageSize - sizeof(CommonMessageFooter))],
            &end,
-           sizeof(CommonMessageEnd));
+           sizeof(CommonMessageFooter));
 
     // send
     SessionHandler::m_sessionHandler->sendMessage(session,
@@ -101,9 +101,9 @@ send_Data_Stream(Session* session,
     const uint32_t totalMessageSize = sizeof(Data_Stream_Header)
                                       + size
                                       + (8-(size % 8)) % 8  // fill up to a multiple of 8
-                                      + sizeof(CommonMessageEnd);
+                                      + sizeof(CommonMessageFooter);
 
-    CommonMessageEnd end;
+    CommonMessageFooter end;
     Data_Stream_Header header;
 
     // fill message
@@ -118,9 +118,9 @@ send_Data_Stream(Session* session,
     // fill buffer to build the complete message
     memcpy(&messageBuffer[0], &header, sizeof(Data_Stream_Header));
     memcpy(&messageBuffer[sizeof(Data_Stream_Header)], data, size);
-    memcpy(&messageBuffer[(totalMessageSize - sizeof(CommonMessageEnd))],
+    memcpy(&messageBuffer[(totalMessageSize - sizeof(CommonMessageFooter))],
            &end,
-           sizeof(CommonMessageEnd));
+           sizeof(CommonMessageFooter));
 
     // send
     SessionHandler::m_sessionHandler->sendMessage(session,
