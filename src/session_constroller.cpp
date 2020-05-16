@@ -122,8 +122,7 @@ SessionController::addUnixDomainServer(const std::string &socketFile)
     SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
     m_serverIdCounter++;
     sessionHandler->lockServerMap();
-    sessionHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
-                                     m_serverIdCounter, server));
+    sessionHandler->m_servers.insert(std::make_pair(m_serverIdCounter, server));
     sessionHandler->unlockServerMap();
 
     return m_serverIdCounter;
@@ -149,8 +148,7 @@ SessionController::addTcpServer(const uint16_t port)
     SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
     m_serverIdCounter++;
     sessionHandler->lockServerMap();
-    sessionHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
-                                     m_serverIdCounter, server));
+    sessionHandler->m_servers.insert(std::make_pair(m_serverIdCounter, server));
     sessionHandler->unlockServerMap();
 
     return m_serverIdCounter;

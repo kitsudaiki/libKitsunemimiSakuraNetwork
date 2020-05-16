@@ -137,7 +137,7 @@ SessionHandler::addSession(const uint32_t id, Session* session)
     session->m_processError = m_processError;
 
     lockSessionMap();
-    m_sessions.insert(std::pair<uint32_t, Session*>(id, session));
+    m_sessions.insert(std::make_pair(id, session));
     unlockSessionMap();
 }
 

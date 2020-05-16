@@ -122,7 +122,7 @@ MultiblockIO::createIncomingBuffer(const uint64_t multiblockId,
     while(m_incoming_lock.test_and_set(std::memory_order_acquire)) {
         asm("");
     }
-    m_incoming.insert(std::pair<uint64_t, MultiblockMessage>(multiblockId, newMultiblockMessage));
+    m_incoming.insert(std::make_pair(multiblockId, newMultiblockMessage));
     m_incoming_lock.clear(std::memory_order_release);
 
     return true;
