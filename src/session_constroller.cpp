@@ -361,11 +361,16 @@ void
 SessionController::closeAllSession()
 {
     SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
+
+    // copy to avoid problems, when the close-process reduce the list, while there is a iteration
+    // over the same list
     sessionHandler->lockSessionMap();
+    std::map<uint32_t, Session*> copy = SessionHandler::m_sessionHandler->m_sessions;
+    sessionHandler->unlockSessionMap();
 
     std::map<uint32_t, Session*>::iterator it;
-    for(it = SessionHandler::m_sessionHandler->m_sessions.begin();
-        it != SessionHandler::m_sessionHandler->m_sessions.end();
+    for(it = copy.begin();
+        it != copy.end();
         it++)
     {
         it->second->closeSession();
@@ -373,7 +378,7 @@ SessionController::closeAllSession()
 
     SessionHandler::m_sessionHandler->m_sessions.clear();
 
-    sessionHandler->unlockSessionMap();
+
 }
 
 /**
