@@ -377,8 +377,6 @@ SessionController::closeAllSession()
     }
 
     SessionHandler::m_sessionHandler->m_sessions.clear();
-
-
 }
 
 /**

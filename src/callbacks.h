@@ -27,6 +27,7 @@
 #include <libKitsunemimiCommon/buffer/ring_buffer.h>
 
 #include <libKitsunemimiCommon/buffer/data_buffer.h>
+#include <libKitsunemimiCommon/common_methods/string_methods.h>
 
 #include <libKitsunemimiProjectNetwork/session_controller.h>
 
@@ -72,6 +73,9 @@ processMessage(void* target,
     {
         LOG_ERROR("false message-version");
         send_ErrorMessage(session, Session::errorCodes::FALSE_VERSION, "");
+        std::string headerContent = "";
+        Kitsunemimi::hexlify(headerContent, header);
+        LOG_ERROR("header: " + headerContent);
         return 0;
     }
 
@@ -88,6 +92,7 @@ processMessage(void* target,
                           - 1;
     if(*end != MESSAGE_DELIMITER) {
         // TODO: ERROR
+        assert(false);
         return 0;
     }
 
