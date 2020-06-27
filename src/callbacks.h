@@ -76,6 +76,7 @@ processMessage(void* target,
         std::string headerContent = "";
         Kitsunemimi::hexlify(headerContent, header);
         LOG_ERROR("header: " + headerContent);
+        assert(false);
         return 0;
     }
 
@@ -90,8 +91,13 @@ processMessage(void* target,
     const uint32_t* end = static_cast<const uint32_t*>(rawMessage)
                           + ((header->totalMessageSize)/4)
                           - 1;
-    if(*end != MESSAGE_DELIMITER) {
-        // TODO: ERROR
+    if(*end != MESSAGE_DELIMITER)
+    {
+        LOG_ERROR("delimiter does not match");
+        send_ErrorMessage(session, Session::errorCodes::FALSE_VERSION, "");
+        std::string headerContent = "";
+        Kitsunemimi::hexlify(headerContent, header);
+        LOG_ERROR("header: " + headerContent);
         assert(false);
         return 0;
     }
