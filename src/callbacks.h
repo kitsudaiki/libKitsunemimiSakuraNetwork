@@ -82,7 +82,7 @@ processMessage(void* target,
 
     // get complete message from the ringbuffer, if enough data are available
     void* rawMessage = static_cast<void*>(getDataPointer_RingBuffer(*recvBuffer,
-                                                         header->totalMessageSize));
+                                                                    header->totalMessageSize));
     if(rawMessage == nullptr) {
         return 0;
     }
