@@ -27,7 +27,7 @@
 #include <libKitsunemimiCommon/buffer/ring_buffer.h>
 
 #include <libKitsunemimiCommon/buffer/data_buffer.h>
-#include <libKitsunemimiCommon/common_methods/string_methods.h>
+#include <libKitsunemimiCommon/common_methods/object_methods.h>
 
 #include <libKitsunemimiProjectNetwork/session_controller.h>
 
