@@ -36,7 +36,7 @@ function get_required_kitsune_lib_repo () {
     TAG_OR_BRANCH=$2
 
     # clone repo
-    git clone  https://github.com/tobiasanker/$REPO_NAME.git "$PARENT_DIR/$REPO_NAME"
+    git clone  https://github.com/kitsudaiki/$REPO_NAME.git "$PARENT_DIR/$REPO_NAME"
     cd "$PARENT_DIR/$REPO_NAME"
     git checkout $TAG_OR_BRANCH
 
