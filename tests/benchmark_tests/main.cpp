@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
     if(socket != "tcp"
             && socket != "uds")
     {
-        std::cout<<"ERROR: type \""<<socket<<"\" is unknown. Choose \"tcp\" or \"uds\"."<<std::endl;;
+        std::cout<<"ERROR: type \""<<socket<<"\" is unknown. Choose \"tcp\" or \"uds\"."<<std::endl;
         exit(1);
     }
 
