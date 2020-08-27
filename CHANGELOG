@@ -1,11 +1,28 @@
 # Changelog
 
+## [0.2.0] - 2020-08-27
+
+### Added 
+- request-response messages for synchronized data-transfers
+- cli-tests
+- benchmark-tests
+
+### Changed
+- renamed timeout-thread ot reply-handler
+- renamed messages-types (dynamic to multi-block and static to stream)
+- session-identifier from int to string
+- session-creation on client-side is blocking until session-creation is complete
+
+### Fixed
+- different little fixes
+
+
 ## [0.1.0] - 2020-01-18
 
 ### Added
 - first implementation of the protocol with:
-	- session start and end
-	- stream-messages
-	- multiblock-messages with separate send-thread and message-queue
-	- heartbeat-messsages
-	- some error-messages
+    - session start and end
+    - stream-messages
+    - multiblock-messages with separate send-thread and message-queue
+    - heartbeat-messsages
+    - some error-messages
