@@ -20,7 +20,7 @@
  *      limitations under the License.
  */
 
-#include <libKitsunemimiProjectNetwork/session_controller.h>
+#include <libKitsunemimiSakuraNetwork/session_controller.h>
 
 #include <handler/reply_handler.h>
 #include <handler/message_blocker_handler.h>

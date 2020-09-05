@@ -1,8 +1,8 @@
-# libKitsunemimiProjectNetwork
+# libKitsunemimiSakuraNetwork
 
-![Gitlab pipeline status](https://img.shields.io/gitlab/pipeline/kitsudaiki/libKitsunemimiProjectNetwork?label=build%20and%20test&style=flat-square)
-![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/kitsudaiki/libKitsunemimiProjectNetwork?label=version&style=flat-square)
-![GitHub](https://img.shields.io/github/license/kitsudaiki/libKitsunemimiProjectNetwork?style=flat-square)
+![Gitlab pipeline status](https://img.shields.io/gitlab/pipeline/kitsudaiki/libKitsunemimiSakuraNetwork?label=build%20and%20test&style=flat-square)
+![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/kitsudaiki/libKitsunemimiSakuraNetwork?label=version&style=flat-square)
+![GitHub](https://img.shields.io/github/license/kitsudaiki/libKitsunemimiSakuraNetwork?style=flat-square)
 ![C++Version](https://img.shields.io/badge/c%2B%2B-14-blue?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-Linux--x64-lightgrey?style=flat-square)
 
@@ -76,8 +76,8 @@ In all of my repositories you will find a `build.sh`. You only have to run this 
 Run the following commands:
 
 ```
-git clone https://github.com/kitsudaiki/libKitsunemimiProjectNetwork.git
-cd libKitsunemimiProjectNetwork
+git clone https://github.com/kitsudaiki/libKitsunemimiSakuraNetwork.git
+cd libKitsunemimiSakuraNetwork
 ./build.sh
 cd ../result
 ```
