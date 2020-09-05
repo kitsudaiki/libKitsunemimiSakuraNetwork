@@ -20,7 +20,7 @@
  *      limitations under the License.
  */
 
-#include <libKitsunemimiProjectNetwork/session.h>
+#include <libKitsunemimiSakuraNetwork/session.h>
 #include <libKitsunemimiNetwork/abstract_socket.h>
 
 #include <messages_processing/session_processing.h>

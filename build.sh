@@ -62,9 +62,9 @@ get_required_kitsune_lib_repo "libKitsunemimiArgs" "v0.2.0" 4 "staticlib"
 #-----------------------------------------------------------------------------------------------------------------
 
 if [ $1 = "test" ]; then
-    build_kitsune_lib_repo "libKitsunemimiProjectNetwork" 4 "staticlib run_tests"
+    build_kitsune_lib_repo "libKitsunemimiSakuraNetwork" 4 "staticlib run_tests"
 else
-    build_kitsune_lib_repo "libKitsunemimiProjectNetwork" 4 "staticlib"
+    build_kitsune_lib_repo "libKitsunemimiSakuraNetwork" 4 "staticlib"
 fi
 
 #-----------------------------------------------------------------------------------------------------------------

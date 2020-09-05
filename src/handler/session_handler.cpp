@@ -26,8 +26,8 @@
 #include <handler/message_blocker_handler.h>
 #include <handler/session_handler.h>
 
-#include <libKitsunemimiProjectNetwork/session.h>
-#include <libKitsunemimiProjectNetwork/session_controller.h>
+#include <libKitsunemimiSakuraNetwork/session.h>
+#include <libKitsunemimiSakuraNetwork/session_controller.h>
 
 #include <libKitsunemimiPersistence/logger/logger.h>
 #include <libKitsunemimiNetwork/abstract_socket.h>

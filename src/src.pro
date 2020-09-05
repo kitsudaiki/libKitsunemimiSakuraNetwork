@@ -1,6 +1,6 @@
 QT       -= qt core gui
 
-TARGET = KitsunemimiProjectNetwork
+TARGET = KitsunemimiSakuraNetwork
 TEMPLATE = lib
 CONFIG += c++14
 VERSION = 0.2.0
@@ -26,8 +26,8 @@ INCLUDEPATH += $$PWD \
                $$PWD/../include
 
 HEADERS += \
-    ../include/libKitsunemimiProjectNetwork/session.h \
-    ../include/libKitsunemimiProjectNetwork/session_controller.h \
+    ../include/libKitsunemimiSakuraNetwork/session.h \
+    ../include/libKitsunemimiSakuraNetwork/session_controller.h \
     callbacks.h \
     message_definitions.h \
     messages_processing/session_processing.h \

@@ -21,7 +21,7 @@
  */
 
 #include "message_blocker_handler.h"
-#include <libKitsunemimiProjectNetwork/session.h>
+#include <libKitsunemimiSakuraNetwork/session.h>
 
 namespace Kitsunemimi
 {

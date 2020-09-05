@@ -14,7 +14,7 @@ build:
     - ./build.sh test
     - mkdir upload
     - cp -r ../result/* upload/
-    - cp ../build/libKitsunemimiProjectNetwork/tests/functional_tests/functional_tests upload/
+    - cp ../build/libKitsunemimiSakuraNetwork/tests/functional_tests/functional_tests upload/
   artifacts:
     paths:
       - upload

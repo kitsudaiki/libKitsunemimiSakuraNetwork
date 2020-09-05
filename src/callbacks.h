@@ -29,7 +29,7 @@
 #include <libKitsunemimiCommon/buffer/data_buffer.h>
 #include <libKitsunemimiCommon/common_methods/object_methods.h>
 
-#include <libKitsunemimiProjectNetwork/session_controller.h>
+#include <libKitsunemimiSakuraNetwork/session_controller.h>
 
 #include <messages_processing/session_processing.h>
 #include <messages_processing/heartbeat_processing.h>
