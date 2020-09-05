@@ -12,7 +12,7 @@
  * @param dataSize
  */
 void streamDataCallback(void*,
-                        Kitsunemimi::Project::Session* session,
+                        Kitsunemimi::Sakura::Session* session,
                         const void* data,
                         const uint64_t dataSize)
 {
@@ -36,7 +36,7 @@ void streamDataCallback(void*,
  * @param dataSize
  */
 void standaloneDataCallback(void*,
-                            Kitsunemimi::Project::Session* session,
+                            Kitsunemimi::Sakura::Session* session,
                             const uint64_t blockerId,
                             Kitsunemimi::DataBuffer* data)
 {
@@ -57,7 +57,7 @@ void standaloneDataCallback(void*,
  * @brief errorCallback
  */
 void errorCallback(void*,
-                   Kitsunemimi::Project::Session*,
+                   Kitsunemimi::Sakura::Session*,
                    const uint8_t,
                    const std::string message)
 {
@@ -72,7 +72,7 @@ void errorCallback(void*,
  */
 void sessionCallback(void* target,
                      bool isInit,
-                     Kitsunemimi::Project::Session* session,
+                     Kitsunemimi::Sakura::Session* session,
                      const std::string)
 {
     TestSession* testClass = static_cast<TestSession*>(target);
@@ -98,7 +98,7 @@ void sessionCallback(void* target,
 TestSession::TestSession(const std::string &address,
                          const uint16_t port)
 {
-    m_controller = new Kitsunemimi::Project::SessionController(this, &sessionCallback,
+    m_controller = new Kitsunemimi::Sakura::SessionController(this, &sessionCallback,
                                                                this, &streamDataCallback,
                                                                this, &standaloneDataCallback,
                                                                this, &errorCallback);

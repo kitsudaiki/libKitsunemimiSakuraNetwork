@@ -39,7 +39,7 @@ struct DataBuffer;
 namespace Network {
 class AbstractSocket;
 }
-namespace Project
+namespace Sakura
 {
 class SessionHandler;
 class SessionController;
@@ -152,7 +152,7 @@ public:
     uint32_t m_messageIdCounter = 0;
 };
 
-} // namespace Project
+} // namespace Sakura
 } // namespace Kitsunemimi
 
 #endif // SESSION_H

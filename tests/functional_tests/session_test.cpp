@@ -24,7 +24,7 @@
 
 namespace Kitsunemimi
 {
-namespace Project
+namespace Sakura
 {
 
 /**
@@ -92,7 +92,7 @@ void standaloneDataCallback(void* target,
  * @brief errorCallback
  */
 void errorCallback(void*,
-                   Kitsunemimi::Project::Session*,
+                   Kitsunemimi::Sakura::Session*,
                    const uint8_t,
                    const std::string message)
 {
@@ -108,7 +108,7 @@ void errorCallback(void*,
  */
 void sessionCallback(void* target,
                      bool isInit,
-                     Kitsunemimi::Project::Session* session,
+                     Kitsunemimi::Sakura::Session* session,
                      const std::string sessionIdentifier)
 {
 
@@ -256,5 +256,5 @@ Session_Test::runTest()
     delete m_controller;
 }
 
-} // namespace Project
+} // namespace Sakura
 } // namespace Kitsunemimi

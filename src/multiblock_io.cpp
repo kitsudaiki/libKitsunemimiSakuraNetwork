@@ -28,7 +28,7 @@
 
 namespace Kitsunemimi
 {
-namespace Project
+namespace Sakura
 {
 
 MultiblockIO::MultiblockIO(Session* session)
@@ -430,5 +430,5 @@ MultiblockIO::run()
     }
 }
 
-} // namespace Project
+} // namespace Sakura
 } // namespace Kitsunemimi

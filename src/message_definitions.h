@@ -35,7 +35,7 @@
 
 namespace Kitsunemimi
 {
-namespace Project
+namespace Sakura
 {
 
 #define MESSAGE_DELIMITER 1314472257
@@ -514,7 +514,7 @@ struct Data_MultiAbortReply_Message
 
 //==================================================================================================
 
-} // namespace Project
+} // namespace Sakura
 } // namespace Kitsunemimi
 
 #endif // MESSAGE_DEFINITIONS_H

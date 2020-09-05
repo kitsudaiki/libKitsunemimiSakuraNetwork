@@ -12,7 +12,7 @@
 
 namespace Kitsunemimi {
 struct StackBuffer;
-namespace Project {
+namespace Sakura {
 class SessionController;
 class Session;
 }
@@ -45,9 +45,9 @@ public:
     uint8_t* m_dataBuffer = nullptr;
     Kitsunemimi::StackBuffer* m_stackBuffer = nullptr;
 
-    Kitsunemimi::Project::SessionController* m_controller = nullptr;
-    Kitsunemimi::Project::Session* m_clientSession = nullptr;
-    Kitsunemimi::Project::Session* m_serverSession = nullptr;
+    Kitsunemimi::Sakura::SessionController* m_controller = nullptr;
+    Kitsunemimi::Sakura::Session* m_clientSession = nullptr;
+    Kitsunemimi::Sakura::Session* m_serverSession = nullptr;
 
     TimerSlot m_timeSlot;
     std::mutex m_cvMutex;

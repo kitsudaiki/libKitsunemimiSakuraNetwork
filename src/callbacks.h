@@ -44,7 +44,7 @@ using Kitsunemimi::DataBuffer;
 
 namespace Kitsunemimi
 {
-namespace Project
+namespace Sakura
 {
 
 /**
@@ -177,7 +177,7 @@ processConnection_Callback(void*,
     socket->startThread();
 }
 
-} // namespace Project
+} // namespace Sakura
 } // namespace Kitsunemimi
 
 #endif // CALLBACKS_H

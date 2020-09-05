@@ -48,7 +48,7 @@ enum statemachineItems {
 
 namespace Kitsunemimi
 {
-namespace Project
+namespace Sakura
 {
 
 /**
@@ -557,5 +557,5 @@ Session::increaseMessageIdCounter()
     return tempId;
 }
 
-} // namespace Project
+} // namespace Sakura
 } // namespace Kitsunemimi

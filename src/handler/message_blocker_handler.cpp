@@ -25,7 +25,7 @@
 
 namespace Kitsunemimi
 {
-namespace Project
+namespace Sakura
 {
 
 /**
@@ -238,5 +238,5 @@ MessageBlockerHandler::makeTimerStep()
     spinUnlock();
 }
 
-} // namespace Project
+} // namespace Sakura
 } // namespace Kitsunemimi

@@ -34,7 +34,7 @@
 
 namespace Kitsunemimi
 {
-namespace Project
+namespace Sakura
 {
 
 class Session_Test
@@ -61,7 +61,7 @@ public:
     uint32_t m_numberOfEndSessions = 0;
 };
 
-} // namespace Project
+} // namespace Sakura
 } // namespace Kitsunemimi
 
 #endif // SESSION_TEST_H

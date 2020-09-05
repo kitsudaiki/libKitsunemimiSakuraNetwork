@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 namespace Kitsunemimi {
-namespace Project {
+namespace Sakura {
 class SessionController;
 class Session;
 }
@@ -21,8 +21,8 @@ public:
 
     bool m_isClient = false;
 
-    Kitsunemimi::Project::SessionController* m_controller = nullptr;
-    Kitsunemimi::Project::Session* m_session = nullptr;
+    Kitsunemimi::Sakura::SessionController* m_controller = nullptr;
+    Kitsunemimi::Sakura::Session* m_session = nullptr;
 };
 
 #endif // TEST_SESSION_H

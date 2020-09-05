@@ -40,7 +40,7 @@ using Kitsunemimi::Network::AbstractSocket;
 
 namespace Kitsunemimi
 {
-namespace Project
+namespace Sakura
 {
 
 /**
@@ -196,7 +196,7 @@ process_SingleBlock_Data_Type(Session* session,
     }
 }
 
-} // namespace Project
+} // namespace Sakura
 } // namespace Kitsunemimi
 
 #endif // SINGLE_DATA_PROCESSING_H

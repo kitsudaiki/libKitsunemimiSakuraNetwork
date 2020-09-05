@@ -34,7 +34,7 @@
 
 namespace Kitsunemimi
 {
-namespace Project
+namespace Sakura
 {
 
 // init static variables
@@ -273,5 +273,5 @@ SessionHandler::sendMessage(Session* session,
     session->m_socket->sendMessage(data, size);
 }
 
-} // namespace Project
+} // namespace Sakura
 } // namespace Kitsunemimi

@@ -30,7 +30,7 @@
 
 namespace Kitsunemimi
 {
-namespace Project
+namespace Sakura
 {
 class Session;
 
@@ -74,7 +74,7 @@ private:
     bool removeMessageFromList(const uint64_t completeMessageId);
 };
 
-} // namespace Project
+} // namespace Sakura
 } // namespace Kitsunemimi
 
 #endif // REPLY_HANDLER_H

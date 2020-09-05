@@ -35,7 +35,7 @@ namespace Kitsunemimi
 namespace Network {
 class AbstractServer;
 }
-namespace Project
+namespace Sakura
 {
 
 class SessionController
@@ -51,7 +51,7 @@ public:
                       void (*processError)(void*, Session*, const uint8_t, const std::string));
     ~SessionController();
 
-    static Kitsunemimi::Project::SessionController* m_sessionController;
+    static Kitsunemimi::Sakura::SessionController* m_sessionController;
 
     // server
     uint32_t addUnixDomainServer(const std::string &socketFile);
@@ -88,7 +88,7 @@ private:
                           const std::string &sessionIdentifier);
 };
 
-} // namespace Project
+} // namespace Sakura
 } // namespace Kitsunemimi
 
 #endif // SESSION_HANDLER_H

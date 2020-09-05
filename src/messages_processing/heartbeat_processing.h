@@ -43,7 +43,7 @@ using Kitsunemimi::getObject_RingBuffer;
 
 namespace Kitsunemimi
 {
-namespace Project
+namespace Sakura
 {
 
 /**
@@ -150,7 +150,7 @@ process_Heartbeat_Type(Session* session,
     }
 }
 
-} // namespace Project
+} // namespace Sakura
 } // namespace Kitsunemimi
 
 #endif // HEARTBEAT_PROCESSING_H

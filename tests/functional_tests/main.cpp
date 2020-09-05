@@ -31,5 +31,5 @@ int main()
 {
     initConsoleLogger(true);
 
-    Kitsunemimi::Project::Session_Test();
+    Kitsunemimi::Sakura::Session_Test();
 }

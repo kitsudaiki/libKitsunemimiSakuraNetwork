@@ -41,7 +41,7 @@
 
 namespace Kitsunemimi
 {
-namespace Project
+namespace Sakura
 {
 
 SessionController* SessionController::m_sessionController = nullptr;
@@ -498,5 +498,5 @@ SessionController::startSession(Network::AbstractSocket *socket,
 
 //==================================================================================================
 
-} // namespace Project
+} // namespace Sakura
 } // namespace Kitsunemimi

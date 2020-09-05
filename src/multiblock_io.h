@@ -36,7 +36,7 @@
 
 namespace Kitsunemimi
 {
-namespace Project
+namespace Sakura
 {
 class Session;
 
@@ -98,7 +98,7 @@ private:
     std::map<uint64_t, MultiblockMessage> m_incoming;
 };
 
-} // namespace Project
+} // namespace Sakura
 } // namespace Kitsunemimi
 
 #endif // MULTIBLOCK_IO_H

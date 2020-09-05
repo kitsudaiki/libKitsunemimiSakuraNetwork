@@ -30,7 +30,7 @@
 
 namespace Kitsunemimi
 {
-namespace Project
+namespace Sakura
 {
 class Session;
 
@@ -69,7 +69,7 @@ private:
     void makeTimerStep();
 };
 
-} // namespace Project
+} // namespace Sakura
 } // namespace Kitsunemimi
 
 #endif // MESSAGE_BLOCKER_HANDLER_H

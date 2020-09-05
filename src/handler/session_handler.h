@@ -34,7 +34,7 @@ namespace Kitsunemimi
 namespace Network {
 class AbstractServer;
 }
-namespace Project
+namespace Sakura
 {
 class Session;
 class ReplyHandler;
@@ -45,10 +45,10 @@ class SessionHandler
 {
 public:
 
-    static Kitsunemimi::Project::ReplyHandler* m_replyHandler;
-    static Kitsunemimi::Project::MessageBlockerHandler* m_blockerHandler;
-    static Kitsunemimi::Project::SessionController* m_sessionController;
-    static Kitsunemimi::Project::SessionHandler* m_sessionHandler;
+    static Kitsunemimi::Sakura::ReplyHandler* m_replyHandler;
+    static Kitsunemimi::Sakura::MessageBlockerHandler* m_blockerHandler;
+    static Kitsunemimi::Sakura::SessionController* m_sessionController;
+    static Kitsunemimi::Sakura::SessionHandler* m_sessionHandler;
 
     SessionHandler(void* sessionTarget,
                    void (*processSession)(void*, bool, Session*, const std::string),
@@ -99,7 +99,7 @@ private:
     void (*m_processError)(void*, Session*, const uint8_t, const std::string);
 };
 
-} // namespace Project
+} // namespace Sakura
 } // namespace Kitsunemimi
 
 #endif // RESSOURCE_HANDLER_H
