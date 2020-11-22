@@ -96,6 +96,8 @@ void sessionCallback(void* target,
                      const std::string)
 {
     TestSession* testClass = static_cast<TestSession*>(target);
+    session->setStreamMessageCallback(target, &streamDataCallback);
+    session->setStandaloneMessageCallback(target, &standaloneDataCallback);
 
     std::cout<<"session-callback for id: "<<session->m_sessionId<<"\n"<<std::endl;
     if(isInit)
@@ -146,9 +148,7 @@ TestSession::TestSession(const std::string &address,
 
     // create controller and connect callbacks
     m_controller = new Kitsunemimi::Sakura::SessionController(this, &sessionCallback,
-                                                               this, &streamDataCallback,
-                                                               this, &standaloneDataCallback,
-                                                               this, &errorCallback);
+                                                              this, &errorCallback);
 
     if(m_isTcp)
     {

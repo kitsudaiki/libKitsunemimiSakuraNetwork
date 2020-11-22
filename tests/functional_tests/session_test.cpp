@@ -113,6 +113,8 @@ void sessionCallback(void* target,
 {
 
     Session_Test* testClass = static_cast<Session_Test*>(target);
+    session->setStreamMessageCallback(target, &streamDataCallback);
+    session->setStandaloneMessageCallback(target, &standaloneDataCallback);
 
     testClass->compare(session->sessionId(), (uint32_t)131073);
 
@@ -236,8 +238,6 @@ void
 Session_Test::runTest()
 {
     SessionController* m_controller = new SessionController(this, &sessionCallback,
-                                                            this, &streamDataCallback,
-                                                            this, &standaloneDataCallback,
                                                             this, &errorCallback);
 
     TEST_EQUAL(m_controller->addTcpServer(1234), 1);

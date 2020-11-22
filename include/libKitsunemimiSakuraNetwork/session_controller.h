@@ -43,10 +43,6 @@ class SessionController
 public:
     SessionController(void* sessionTarget,
                       void (*processSession)(void*, bool, Session*, const std::string),
-                      void* streamDataTarget,
-                      void (*processStreamData)(void*, Session*, const void*, const uint64_t),
-                      void* standaloneDataTarget,
-                      void (*processStandaloneData)(void*, Session*, const uint64_t, DataBuffer*),
                       void* errorTarget,
                       void (*processError)(void*, Session*, const uint8_t, const std::string));
     ~SessionController();

@@ -47,22 +47,12 @@ SessionHandler* SessionHandler::m_sessionHandler = nullptr;
  */
 SessionHandler::SessionHandler(void* sessionTarget,
                                void (*processSession)(void*, bool, Session*, const std::string),
-                               void* streamDataTarget,
-                               void (*processStreamData)(void*, Session*,
-                                                         const void*, const uint64_t),
-                               void* standaloneDataTarget,
-                               void (*processStandaloneData)(void*, Session*, const uint64_t,
-                                                             DataBuffer*),
                                void* errorTarget,
                                void (*processError)(void*, Session*,
                                                     const uint8_t, const std::string))
 {
     m_sessionTarget = sessionTarget;
     m_processSession = processSession;
-    m_streamDataTarget = streamDataTarget;
-    m_processStreamData = processStreamData;
-    m_standaloneDataTarget = standaloneDataTarget;
-    m_processStandaloneData = processStandaloneData;
     m_errorTarget = errorTarget;
     m_processError = processError;
 
@@ -129,10 +119,6 @@ SessionHandler::addSession(const uint32_t id, Session* session)
 {
     session->m_sessionTarget = m_sessionTarget;
     session->m_processSession = m_processSession;
-    session->m_streamDataTarget = m_streamDataTarget;
-    session->m_processStreamData = m_processStreamData;
-    session->m_standaloneDataTarget = m_standaloneDataTarget;
-    session->m_processStandaloneData = m_processStandaloneData;
     session->m_errorTarget = m_errorTarget;
     session->m_processError = m_processError;
 
