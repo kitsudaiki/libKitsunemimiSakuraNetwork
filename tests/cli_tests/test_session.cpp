@@ -99,9 +99,9 @@ TestSession::TestSession(const std::string &address,
                          const uint16_t port)
 {
     m_controller = new Kitsunemimi::Sakura::SessionController(this, &sessionCallback,
-                                                               this, &streamDataCallback,
-                                                               this, &standaloneDataCallback,
-                                                               this, &errorCallback);
+                                                              this, &streamDataCallback,
+                                                              this, &standaloneDataCallback,
+                                                              this, &errorCallback);
 
     if(address != "")
     {

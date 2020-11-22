@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file       singleblock_data_processing.h
  *
  * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
@@ -46,7 +46,7 @@ namespace Sakura
 /**
  * @brief send_Data_Stream_Static
  */
-inline void
+inline bool
 send_Data_Stream(Session* session,
                  DataBuffer* data,
                  const bool replyExpected)
@@ -68,9 +68,7 @@ send_Data_Stream(Session* session,
     header.commonHeader.messageId = session->increaseMessageIdCounter();
     header.commonHeader.totalMessageSize = totalMessageSize;
     header.commonHeader.payloadSize = size;
-    if(replyExpected) {
-        header.commonHeader.flags = 0x1;
-    }
+    header.commonHeader.flags = static_cast<uint8_t>(replyExpected) * 0x1;
 
     uint8_t* dataPtr = static_cast<uint8_t*>(data->data);
     // fill buffer to build the complete message
@@ -80,16 +78,16 @@ send_Data_Stream(Session* session,
            sizeof(CommonMessageFooter));
 
     // send
-    SessionHandler::m_sessionHandler->sendMessage(session,
-                                                  header.commonHeader,
-                                                  dataPtr,
-                                                  totalMessageSize);
+    return SessionHandler::m_sessionHandler->sendMessage(session,
+                                                         header.commonHeader,
+                                                         dataPtr,
+                                                         totalMessageSize);
 }
 
 /**
  * @brief send_Data_Stream_Static
  */
-inline void
+inline bool
 send_Data_Stream(Session* session,
                  const void* data,
                  const uint32_t size,
@@ -100,7 +98,7 @@ send_Data_Stream(Session* session,
     // bring message-size to a multiple of 8
     const uint32_t totalMessageSize = sizeof(Data_Stream_Header)
                                       + size
-                                      + (8-(size % 8)) % 8  // fill up to a multiple of 8
+                                      + (8 - (size % 8)) % 8  // fill up to a multiple of 8
                                       + sizeof(CommonMessageFooter);
 
     CommonMessageFooter end;
@@ -111,9 +109,7 @@ send_Data_Stream(Session* session,
     header.commonHeader.messageId = session->increaseMessageIdCounter();
     header.commonHeader.totalMessageSize = totalMessageSize;
     header.commonHeader.payloadSize = size;
-    if(replyExpected) {
-        header.commonHeader.flags = 0x1;
-    }
+    header.commonHeader.flags = static_cast<uint8_t>(replyExpected) * 0x1;
 
     // fill buffer to build the complete message
     memcpy(&messageBuffer[0], &header, sizeof(Data_Stream_Header));
@@ -123,10 +119,10 @@ send_Data_Stream(Session* session,
            sizeof(CommonMessageFooter));
 
     // send
-    SessionHandler::m_sessionHandler->sendMessage(session,
-                                                  header.commonHeader,
-                                                  messageBuffer,
-                                                  totalMessageSize);
+    return SessionHandler::m_sessionHandler->sendMessage(session,
+                                                         header.commonHeader,
+                                                         messageBuffer,
+                                                         totalMessageSize);
 }
 
 /**

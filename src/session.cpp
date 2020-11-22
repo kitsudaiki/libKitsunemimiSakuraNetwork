@@ -118,6 +118,7 @@ Session::sendStreamData(const void* data,
         uint64_t totalSize = size;
         uint64_t currentMessageSize = 0;
         uint32_t partCounter = 0;
+        bool result = true;
 
         while(totalSize != 0)
         {
@@ -129,13 +130,14 @@ Session::sendStreamData(const void* data,
 
             const uint8_t* dataPointer = static_cast<const uint8_t*>(data);
 
-            send_Data_Stream(this,
-                             dataPointer + (MAX_SINGLE_MESSAGE_SIZE * partCounter),
-                             static_cast<uint32_t>(currentMessageSize),
-                             replyExpected);
+            bool ret =  send_Data_Stream(this,
+                                         dataPointer + (MAX_SINGLE_MESSAGE_SIZE * partCounter),
+                                         static_cast<uint32_t>(currentMessageSize),
+                                         replyExpected);
+            result = result && ret;
         }
 
-        return true;
+        return result;
     }
 
     return false;

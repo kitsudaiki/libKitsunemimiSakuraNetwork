@@ -77,7 +77,7 @@ public:
     std::map<uint32_t, Session*> m_sessions;
     std::map<uint32_t, Network::AbstractServer*> m_servers;
 
-    void sendMessage(Session *session,
+    bool sendMessage(Session *session,
                      const CommonMessageHeader &header,
                      const void* data,
                      const uint64_t size);

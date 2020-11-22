@@ -255,8 +255,10 @@ SessionHandler::sendHeartBeats()
  * @param header reference to the header of the message
  * @param data pointer to the data of the complete data
  * @param size size of the complete data
+ *
+ * @return true, if successful, else false
  */
-void
+bool
 SessionHandler::sendMessage(Session* session,
                             const CommonMessageHeader &header,
                             const void* data,
@@ -270,7 +272,7 @@ SessionHandler::sendMessage(Session* session,
                                                    session);
     }
 
-    session->m_socket->sendMessage(data, size);
+    return session->m_socket->sendMessage(data, size);
 }
 
 } // namespace Sakura
