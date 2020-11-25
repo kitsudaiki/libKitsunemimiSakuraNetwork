@@ -315,8 +315,10 @@ Session::setErrorCallback(void* errorTarget,
 bool
 Session::closeSession(const bool replyExpected)
 {
+    LOG_DEBUG("close session with id " + std::to_string(m_sessionId));
     if(m_statemachine.isInState(SESSION_READY))
     {
+        SessionHandler::m_replyHandler->removeAllOfSession(m_sessionId);
         m_multiblockIo->removeOutgoingMessage(0);
         if(replyExpected)
         {

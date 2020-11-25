@@ -65,6 +65,7 @@ private:
         float timer = 0.0f;
         uint8_t messageType = 0;
         Session* session = nullptr;
+        bool ignoreResult = false;
     };
 
     float m_timeoutValue = 2.0f;
