@@ -265,10 +265,10 @@ Session::abortMessages(const uint64_t multiblockMessageId)
  */
 void
 Session::setStreamMessageCallback(void* streamDataTarget,
-                              void (*processStreamData)(void*,
-                                                        Session*,
-                                                        const void*,
-                                                        const uint64_t))
+                                  void (*processStreamData)(void*,
+                                                            Session*,
+                                                            const void*,
+                                                            const uint64_t))
 {
     m_streamDataTarget = streamDataTarget;
     m_processStreamData = processStreamData;
@@ -280,10 +280,10 @@ Session::setStreamMessageCallback(void* streamDataTarget,
  */
 void
 Session::setStandaloneMessageCallback(void* standaloneDataTarget,
-                             void (*processStandaloneData)(void*,
-                                                           Session*,
-                                                           const uint64_t,
-                                                           DataBuffer*))
+                                      void (*processStandaloneData)(void*,
+                                                                    Session*,
+                                                                    const uint64_t,
+                                                                    DataBuffer*))
 {
     m_standaloneDataTarget = standaloneDataTarget;
     m_processStandaloneData = processStandaloneData;
@@ -499,8 +499,6 @@ Session::disconnectSession()
 bool
 Session::sendHeartbeat()
 {
-    LOG_DEBUG("CALL send hearbeat: " + std::to_string(m_sessionId));
-
     if(m_statemachine.isInState(SESSION_READY))
     {
         send_Heartbeat_Start(this);
