@@ -133,12 +133,12 @@ ReplyHandler::removeAllOfSession(const uint32_t sessionId)
     spinLock();
 
     std::vector<MessageTime>::iterator it;
-    for(it = m_messageList.begin(); it != m_messageList.end(); it++)
+    for(it = m_messageList.begin();
+        it != m_messageList.end();
+        it++)
     {
-        if((it->completeMessageId & 0xFFFFFFFF) == sessionId)
-        {
-            m_messageList.erase(it);
-            continue;
+        if((it->completeMessageId & 0xFFFFFFFF) == sessionId) {
+            it->ignoreResult = true;
         }
     }
 
@@ -223,21 +223,24 @@ ReplyHandler::makeTimerStep()
 
         if(temp->timer >= m_timeoutValue)
         {
-            if(removeMessageFromList(temp->completeMessageId))
+            spinUnlock();
+            removeMessage(temp->completeMessageId);
+            if(temp->ignoreResult == false)
             {
                 const std::string err = "TIMEOUT of message: "
                                         + std::to_string(temp->completeMessageId)
                                         + " with type: "
                                         + std::to_string(temp->messageType);
 
-                LOG_ERROR(err);
-
                 temp->session->m_processError(temp->session->m_errorTarget,
                                               temp->session,
                                               Session::errorCodes::MESSAGE_TIMEOUT,
                                               err);
-                i--;
             }
+
+            spinLock();
+
+            break;
         }
     }
 
