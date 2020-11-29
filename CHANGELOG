@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.4.0] - 2020-1-29
+
+### Chnaged
+- callbacks for incoming stream- and standalone-messages now must be set manually for each session and will not be set by the session-controller anymore
+- removed debug-output for heartbeat-messages, because it makes debug-output hard to read
+- sending stream-messages now checkes the return-value to identify a failure while sending
+
+### Fixed
+- timeout-error-callbacks in an already closed session are not triggered anymore
+- deletion-process fixed with the new cleanup-thread by libKitsunemimiCommon
+
+### Added
+- missing comments for multiblock-messages
+
+
 ## [0.3.0] - 2020-09-05
 
 ### Chnaged
