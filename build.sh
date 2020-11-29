@@ -51,11 +51,11 @@ function get_required_kitsune_lib_repo () {
 
 #-----------------------------------------------------------------------------------------------------------------
 
-get_required_kitsune_lib_repo "libKitsunemimiCommon" "master" 4 "staticlib"
+get_required_kitsune_lib_repo "libKitsunemimiCommon" "v0.16.1" 4 "staticlib"
 
-get_required_kitsune_lib_repo "libKitsunemimiPersistence" "v0.10.0" 4 "staticlib"
+get_required_kitsune_lib_repo "libKitsunemimiPersistence" "v0.10.1" 4 "staticlib"
 
-get_required_kitsune_lib_repo "libKitsunemimiNetwork" "master" 4 "staticlib"
+get_required_kitsune_lib_repo "libKitsunemimiNetwork" "v0.6.5" 4 "staticlib"
 
 get_required_kitsune_lib_repo "libKitsunemimiArgs" "v0.2.0" 4 "staticlib"
 
