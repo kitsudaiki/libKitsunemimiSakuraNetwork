@@ -485,9 +485,15 @@ Session::disconnectSession()
 {
     LOG_DEBUG("CALL session disconnect: " + std::to_string(m_sessionId));
 
-    if(m_statemachine.goToNextState(DISCONNECT))
-    {
-        return m_socket->closeSocket();
+    if(m_statemachine.goToNextState(DISCONNECT))  {
+        const bool ret = m_socket->closeSocket();
+        if(ret == false) {
+            return false;
+        }
+
+        m_socket->scheduleThreadForDeletion();
+
+        return true;
     }
 
     return false;

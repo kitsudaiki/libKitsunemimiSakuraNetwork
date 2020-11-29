@@ -178,7 +178,7 @@ SessionController::addTlsTcpServer(const uint16_t port,
  *
  * @param id id of the server
  *
- * @return false, if id not exist, else true
+ * @return false, if id not exist or server can not be closed, else true
  */
 bool
 SessionController::closeServer(const uint32_t id)
@@ -192,10 +192,15 @@ SessionController::closeServer(const uint32_t id)
     if(it != sessionHandler->m_servers.end())
     {
         Network::AbstractServer* server = it->second;
-        server->closeServer();
-        delete server;
+        const bool ret = server->closeServer();
+        if(ret == false) {
+            return false;
+        }
+
+        server->scheduleThreadForDeletion();
         sessionHandler->m_servers.erase(it);
         sessionHandler->unlockServerMap();
+
         return true;
     }
 
