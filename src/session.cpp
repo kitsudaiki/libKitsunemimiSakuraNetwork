@@ -1,5 +1,5 @@
 ﻿/**
- * @file       session.h
+ * @file       session.cpp
  *
  * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
  *
