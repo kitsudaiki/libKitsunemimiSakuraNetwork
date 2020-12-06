@@ -41,10 +41,9 @@ namespace Sakura
 class SessionController
 {
 public:
-    SessionController(void* sessionTarget,
-                      void (*processSession)(void*, bool, Session*, const std::string),
-                      void* errorTarget,
-                      void (*processError)(void*, Session*, const uint8_t, const std::string));
+    SessionController(void (*processCreateSession)(Session*, const std::string),
+                      void (*processCloseSession)(Session*, const std::string),
+                      void (*processError)(Session*, const uint8_t, const std::string));
     ~SessionController();
 
     static Kitsunemimi::Sakura::SessionController* m_sessionController;

@@ -45,15 +45,12 @@ SessionHandler* SessionHandler::m_sessionHandler = nullptr;
 /**
  * @brief constructor
  */
-SessionHandler::SessionHandler(void* sessionTarget,
-                               void (*processSession)(void*, bool, Session*, const std::string),
-                               void* errorTarget,
-                               void (*processError)(void*, Session*,
-                                                    const uint8_t, const std::string))
+SessionHandler::SessionHandler(void (*processCreateSession)(Session*, const std::string),
+                               void (*processCloseSession)(Session*, const std::string),
+                               void (*processError)(Session*, const uint8_t, const std::string))
 {
-    m_sessionTarget = sessionTarget;
-    m_processSession = processSession;
-    m_errorTarget = errorTarget;
+    m_processCreateSession = processCreateSession;
+    m_processCloseSession = processCloseSession;
     m_processError = processError;
 
     if(m_replyHandler == nullptr)
@@ -117,9 +114,8 @@ SessionHandler::~SessionHandler()
 void
 SessionHandler::addSession(const uint32_t id, Session* session)
 {
-    session->m_sessionTarget = m_sessionTarget;
-    session->m_processSession = m_processSession;
-    session->m_errorTarget = m_errorTarget;
+    session->m_processCreateSession = m_processCreateSession;
+    session->m_processCloseSession = m_processCloseSession;
     session->m_processError = m_processError;
 
     lockSessionMap();

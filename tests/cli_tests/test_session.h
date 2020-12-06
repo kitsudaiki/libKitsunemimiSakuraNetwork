@@ -5,12 +5,12 @@
 #include <stdint.h>
 #include <unistd.h>
 
-namespace Kitsunemimi {
-namespace Sakura {
+namespace Kitsunemimi
+{
+namespace Sakura
+{
 class SessionController;
 class Session;
-}
-}
 
 class TestSession
 {
@@ -20,9 +20,13 @@ public:
     void sendLoop();
 
     bool m_isClient = false;
+    static TestSession* m_instance;
 
     Kitsunemimi::Sakura::SessionController* m_controller = nullptr;
     Kitsunemimi::Sakura::Session* m_session = nullptr;
 };
+
+}
+}
 
 #endif // TEST_SESSION_H

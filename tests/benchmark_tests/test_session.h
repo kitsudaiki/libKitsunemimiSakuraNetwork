@@ -10,13 +10,14 @@
 
 #include <libKitsunemimiCommon/test_helper/speed_test_helper.h>
 
-namespace Kitsunemimi {
+namespace Kitsunemimi
+{
 struct StackBuffer;
-namespace Sakura {
+
+namespace Sakura
+{
 class SessionController;
 class Session;
-}
-}
 
 typedef std::chrono::microseconds chronoMicroSec;
 typedef std::chrono::nanoseconds chronoNanoSec;
@@ -34,6 +35,8 @@ public:
                 const std::string &transferType);
     void runTest(const long packageSize);
     double calculateSpeed(double duration);
+
+    static TestSession* m_instance;
 
     bool m_isClient = false;
     bool m_isTcp = false;
@@ -53,5 +56,8 @@ public:
     std::mutex m_cvMutex;
     std::condition_variable m_cv;
 };
+
+}
+}
 
 #endif // TEST_SESSION_H
