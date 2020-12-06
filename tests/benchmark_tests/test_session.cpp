@@ -89,34 +89,37 @@ void errorCallback(Kitsunemimi::Sakura::Session*,
 }
 
 /**
- * @brief sessionCallback
+ * @brief sessionCreateCallback
+ * @param session
  */
-void sessionCallback(bool isInit,
-                     Kitsunemimi::Sakura::Session* session,
-                     const std::string)
+void sessionCreateCallback(Kitsunemimi::Sakura::Session* session,
+                           const std::string)
 {
     session->setStreamMessageCallback(&streamDataCallback);
     session->setStandaloneMessageCallback(&standaloneDataCallback);
 
     std::cout<<"session-callback for id: "<<session->m_sessionId<<"\n"<<std::endl;
-    if(isInit)
+
+    if(session->isClientSide())
     {
-        if(session->isClientSide())
-        {
-            std::cout<<"init session"<<std::endl;
-            TestSession::m_instance->m_clientSession = session;
-        }
-        else
-        {
-            TestSession::m_instance->m_serverSession = session;
-        }
+        std::cout<<"init session"<<std::endl;
+        TestSession::m_instance->m_clientSession = session;
     }
     else
     {
-        std::cout<<"end session"<<std::endl;
-        TestSession::m_instance->m_clientSession = nullptr;
-        TestSession::m_instance->m_serverSession = nullptr;
+        TestSession::m_instance->m_serverSession = session;
     }
+}
+
+/**
+ * @brief sessionCloseCallback
+ */
+void sessionCloseCallback(Kitsunemimi::Sakura::Session*,
+                          const std::string)
+{
+    std::cout<<"end session"<<std::endl;
+    TestSession::m_instance->m_clientSession = nullptr;
+    TestSession::m_instance->m_serverSession = nullptr;
 }
 
 /**
@@ -148,7 +151,9 @@ TestSession::TestSession(const std::string &address,
     m_timeSlot.unitName = "Gbits/s";
 
     // create controller and connect callbacks
-    m_controller = new Kitsunemimi::Sakura::SessionController(&sessionCallback, &errorCallback);
+    m_controller = new Kitsunemimi::Sakura::SessionController(&sessionCreateCallback,
+                                                              &sessionCloseCallback,
+                                                              &errorCallback);
 
     if(m_isTcp)
     {

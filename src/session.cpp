@@ -428,7 +428,7 @@ Session::makeSessionReady(const uint32_t sessionId,
         m_sessionId = sessionId;
         m_sessionIdentifier = sessionIdentifier;
 
-        m_processSession(true, this, m_sessionIdentifier);
+        m_processCreateSession(this, m_sessionIdentifier);
 
         // release blocked session on client-side
         m_cv.notify_one();
@@ -457,7 +457,7 @@ Session::endSession()
     // try to stop the session
     if(m_statemachine.goToNextState(STOP_SESSION))
     {
-        m_processSession(false, this, m_sessionIdentifier);
+        m_processCloseSession(this, m_sessionIdentifier);
         SessionHandler::m_sessionHandler->removeSession(m_sessionId);
         return disconnectSession();
     }

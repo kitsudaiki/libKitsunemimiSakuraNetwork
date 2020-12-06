@@ -50,7 +50,8 @@ public:
     static Kitsunemimi::Sakura::SessionController* m_sessionController;
     static Kitsunemimi::Sakura::SessionHandler* m_sessionHandler;
 
-    SessionHandler(void (*processSession)(bool, Session*, const std::string),
+    SessionHandler(void (*processCreateSession)(Session*, const std::string),
+                   void (*processCloseSession)(Session*, const std::string),
                    void (*processError)(Session*, const uint8_t, const std::string));
     ~SessionHandler();
 
@@ -83,7 +84,8 @@ private:
     std::atomic_flag m_sessionIdCounter_lock = ATOMIC_FLAG_INIT;
 
     // callbacks
-    void (*m_processSession)(bool, Session*, const std::string);
+    void (*m_processCreateSession)(Session*, const std::string);
+    void (*m_processCloseSession)(Session*, const std::string);
     void (*m_processError)(Session*, const uint8_t, const std::string);
 };
 

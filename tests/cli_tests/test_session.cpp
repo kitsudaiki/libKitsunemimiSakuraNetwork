@@ -70,28 +70,27 @@ void errorCallback(Kitsunemimi::Sakura::Session*,
 
 /**
  * @brief sessionCallback
- * @param target
- * @param isInit
  * @param session
  */
-void sessionCallback(bool isInit,
-                     Kitsunemimi::Sakura::Session* session,
-                     const std::string)
+void sessionCreateCallback(Kitsunemimi::Sakura::Session* session,
+                           const std::string)
 {
     session->setStreamMessageCallback(&streamDataCallback);
     session->setStandaloneMessageCallback(&standaloneDataCallback);
 
     std::cout<<"session-callback for id: "<<session->m_sessionId<<"\n"<<std::endl;
-    if(isInit)
-    {
-        std::cout<<"init session"<<std::endl;
-        TestSession::m_instance->m_session = session;
-    }
-    else
-    {
-        std::cout<<"end session"<<std::endl;
-        TestSession::m_instance->m_session = nullptr;
-    }
+    std::cout<<"init session"<<std::endl;
+    TestSession::m_instance->m_session = session;
+}
+
+/**
+ * @brief sessionCloseCallback
+ */
+void sessionCloseCallback(Kitsunemimi::Sakura::Session*,
+                          const std::string)
+{
+    std::cout<<"end session"<<std::endl;
+    TestSession::m_instance->m_session = nullptr;
 }
 
 /**
@@ -103,7 +102,9 @@ TestSession::TestSession(const std::string &address,
                          const uint16_t port)
 {
     TestSession::m_instance = this;
-    m_controller = new Kitsunemimi::Sakura::SessionController(&sessionCallback, &errorCallback);
+    m_controller = new Kitsunemimi::Sakura::SessionController(&sessionCreateCallback,
+                                                              &sessionCloseCallback,
+                                                              &errorCallback);
 
     if(address != "")
     {

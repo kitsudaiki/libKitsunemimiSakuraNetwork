@@ -49,15 +49,19 @@ SessionController* SessionController::m_sessionController = nullptr;
 /**
  * @brief constructor
  */
-SessionController::SessionController(void (*processSession)(bool, Session*, const std::string),
+SessionController::SessionController(void (*processCreateSession)(Session*, const std::string),
+                                     void (*processCloseSession)(Session*, const std::string),
                                      void (*processError)(Session*,
                                                           const uint8_t,
                                                           const std::string))
 {
     m_sessionController = this;
 
-    if(SessionHandler::m_sessionHandler == nullptr) {
-        SessionHandler::m_sessionHandler = new SessionHandler(processSession, processError);
+    if(SessionHandler::m_sessionHandler == nullptr)
+    {
+        SessionHandler::m_sessionHandler = new SessionHandler(processCreateSession,
+                                                              processCloseSession,
+                                                              processError);
     }
 }
 

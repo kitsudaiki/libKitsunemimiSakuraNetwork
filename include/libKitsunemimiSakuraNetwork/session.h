@@ -131,7 +131,8 @@ public:
     void initStatemachine();
 
     // callbacks
-    void (*m_processSession)(bool, Session*, const std::string);
+    void (*m_processCreateSession)(Session*, const std::string);
+    void (*m_processCloseSession)(Session*, const std::string);
     void (*m_processStreamData)(Session*, const void*, const uint64_t);
     void (*m_processStandaloneData)(Session*, const uint64_t, DataBuffer*);
     void (*m_processError)(Session*, const uint8_t, const std::string);

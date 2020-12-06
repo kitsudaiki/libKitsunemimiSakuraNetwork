@@ -41,7 +41,8 @@ namespace Sakura
 class SessionController
 {
 public:
-    SessionController(void (*processSession)(bool, Session*, const std::string),
+    SessionController(void (*processCreateSession)(Session*, const std::string),
+                      void (*processCloseSession)(Session*, const std::string),
                       void (*processError)(Session*, const uint8_t, const std::string));
     ~SessionController();
 

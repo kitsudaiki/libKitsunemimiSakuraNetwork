@@ -99,56 +99,49 @@ void errorCallback(Kitsunemimi::Sakura::Session*,
 }
 
 /**
- * @brief sessionCallback
- * @param target
- * @param isInit
+ * @brief sessionCreateCallback
  * @param session
  * @param sessionIdentifier
  */
-void sessionCallback(bool isInit,
-                     Kitsunemimi::Sakura::Session* session,
-                     const std::string sessionIdentifier)
+void sessionCreateCallback(Kitsunemimi::Sakura::Session* session,
+                           const std::string sessionIdentifier)
 {
-
     session->setStreamMessageCallback(&streamDataCallback);
     session->setStandaloneMessageCallback(&standaloneDataCallback);
 
     Session_Test::m_instance->compare(session->sessionId(), (uint32_t)131073);
+    Session_Test::m_instance->m_numberOfInitSessions++;
+    Session_Test::m_instance->compare(sessionIdentifier, std::string("test"));
 
-    if(isInit)
+    if(session->isClientSide())
     {
-        Session_Test::m_instance->m_numberOfInitSessions++;
+        bool ret = false;
 
-        Session_Test::m_instance->compare(sessionIdentifier, std::string("test"));
+        // stream-message
+        const std::string staticTestString = Session_Test::m_instance->m_staticMessage;
+        ret = session->sendStreamData(staticTestString.c_str(),
+                                      staticTestString.size(),
+                                      true);
+        Session_Test::m_instance->compare(ret,  true);
 
-        if(session->isClientSide())
-        {
-            bool ret = false;
+        // singleblock-message
+        const std::string singleblockTestString = Session_Test::m_instance->m_singleBlockMessage;
+        ret = session->sendStandaloneData(singleblockTestString.c_str(),
+                                          singleblockTestString.size());
+        Session_Test::m_instance->compare(ret,  true);
 
-            // stream-message
-            const std::string staticTestString = Session_Test::m_instance->m_staticMessage;
-            ret = session->sendStreamData(staticTestString.c_str(),
-                                          staticTestString.size(),
-                                          true);
-            Session_Test::m_instance->compare(ret,  true);
-
-            // singleblock-message
-            const std::string singleblockTestString = Session_Test::m_instance->m_singleBlockMessage;
-            ret = session->sendStandaloneData(singleblockTestString.c_str(),
-                                              singleblockTestString.size());
-            Session_Test::m_instance->compare(ret,  true);
-
-            // multiblock-message
-            const std::string multiblockTestString = Session_Test::m_instance->m_multiBlockMessage;
-            ret = session->sendStandaloneData(multiblockTestString.c_str(),
-                                              multiblockTestString.size());
-            Session_Test::m_instance->compare(ret,  true);
-        }
+        // multiblock-message
+        const std::string multiblockTestString = Session_Test::m_instance->m_multiBlockMessage;
+        ret = session->sendStandaloneData(multiblockTestString.c_str(),
+                                          multiblockTestString.size());
+        Session_Test::m_instance->compare(ret,  true);
     }
-    else
-    {
-        Session_Test::m_instance->m_numberOfEndSessions++;
-    }
+}
+
+void sessionCloseCallback(Kitsunemimi::Sakura::Session*,
+                          const std::string)
+{
+    Session_Test::m_instance->m_numberOfEndSessions++;
 }
 
 /**
@@ -236,7 +229,9 @@ Session_Test::initTestCase()
 void
 Session_Test::runTest()
 {
-    SessionController* m_controller = new SessionController(&sessionCallback, &errorCallback);
+    SessionController* m_controller = new SessionController(&sessionCreateCallback,
+                                                            &sessionCloseCallback,
+                                                            &errorCallback);
 
     TEST_EQUAL(m_controller->addTcpServer(1234), 1);
     bool isNullptr = m_controller->startTcpSession("127.0.0.1", 1234, "test") == nullptr;
