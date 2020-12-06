@@ -1,6 +1,12 @@
 # Changelog
 
-## [0.4.0] - 2020-1-29
+## [0.5.0] - 2020-12-06
+
+### Chnaged
+- reworked all callbacks to make code cleaner and easier to handle
+
+
+## [0.4.0] - 2020-11-29
 
 ### Chnaged
 - callbacks for incoming stream- and standalone-messages now must be set manually for each session and will not be set by the session-controller anymore
