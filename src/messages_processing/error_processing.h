@@ -158,8 +158,7 @@ process_Error_Type(Session* session,
             {
                 const Error_FalseVersion_Message* message =
                     static_cast<const Error_FalseVersion_Message*>(rawMessage);
-                session->m_processError(session->m_errorTarget,
-                                        session,
+                session->m_processError(session,
                                         Session::errorCodes::FALSE_VERSION,
                                         std::string(message->message, message->messageSize));
                 break;
@@ -169,8 +168,7 @@ process_Error_Type(Session* session,
             {
                 const Error_UnknownSession_Message* message =
                     static_cast<const Error_UnknownSession_Message*>(rawMessage);
-                session->m_processError(session->m_errorTarget,
-                                        session,
+                session->m_processError(session,
                                         Session::errorCodes::UNKNOWN_SESSION,
                                         std::string(message->message, message->messageSize));
                 break;
@@ -180,8 +178,7 @@ process_Error_Type(Session* session,
             {
                 const Error_InvalidMessage_Message* message =
                     static_cast<const Error_InvalidMessage_Message*>(rawMessage);
-                session->m_processError(session->m_errorTarget,
-                                        session,
+                session->m_processError(session,
                                         Session::errorCodes::INVALID_MESSAGE_SIZE,
                                         std::string(message->message, message->messageSize));
                 break;

@@ -228,8 +228,7 @@ MessageBlockerHandler::makeTimerStep()
             const std::string err = "TIMEOUT of request: "
                                     + std::to_string(temp->blockerId);
 
-            temp->session->m_processError(temp->session->m_errorTarget,
-                                          temp->session,
+            temp->session->m_processError(temp->session,
                                           Session::errorCodes::MESSAGE_TIMEOUT,
                                           err);
         }

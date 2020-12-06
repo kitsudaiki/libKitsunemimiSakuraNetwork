@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     std::cout<<"address: "<<address<<std::endl;
     std::cout<<"port: "<<(int)port<<std::endl;
 
-    TestSession testSession(address, port);
+    Kitsunemimi::Sakura::TestSession testSession(address, port);
 
     testSession.sendLoop();
 }

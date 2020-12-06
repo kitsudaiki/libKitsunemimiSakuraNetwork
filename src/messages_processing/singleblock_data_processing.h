@@ -138,8 +138,7 @@ process_Data_SingleBlock(Session* session,
     else
     {
         // trigger callback
-        session->m_processStandaloneData(session->m_standaloneDataTarget,
-                                         session,
+        session->m_processStandaloneData(session,
                                          header->multiblockId,
                                          buffer);
     }

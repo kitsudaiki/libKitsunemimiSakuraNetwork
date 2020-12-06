@@ -264,13 +264,10 @@ Session::abortMessages(const uint64_t multiblockMessageId)
  * @param streamDataTarget
  */
 void
-Session::setStreamMessageCallback(void* streamDataTarget,
-                                  void (*processStreamData)(void*,
-                                                            Session*,
+Session::setStreamMessageCallback(void (*processStreamData)(Session*,
                                                             const void*,
                                                             const uint64_t))
 {
-    m_streamDataTarget = streamDataTarget;
     m_processStreamData = processStreamData;
 }
 
@@ -279,13 +276,10 @@ Session::setStreamMessageCallback(void* streamDataTarget,
  * @param standaloneDataTarget
  */
 void
-Session::setStandaloneMessageCallback(void* standaloneDataTarget,
-                                      void (*processStandaloneData)(void*,
-                                                                    Session*,
+Session::setStandaloneMessageCallback(void (*processStandaloneData)(Session*,
                                                                     const uint64_t,
                                                                     DataBuffer*))
 {
-    m_standaloneDataTarget = standaloneDataTarget;
     m_processStandaloneData = processStandaloneData;
 }
 
@@ -294,13 +288,10 @@ Session::setStandaloneMessageCallback(void* standaloneDataTarget,
  * @param errorTarget
  */
 void
-Session::setErrorCallback(void* errorTarget,
-                          void (*processError)(void*,
-                                               Session*,
+Session::setErrorCallback(void (*processError)(Session*,
                                                const uint8_t,
                                                const std::string))
 {
-    m_errorTarget = errorTarget;
     m_processError = processError;
 }
 
@@ -437,7 +428,7 @@ Session::makeSessionReady(const uint32_t sessionId,
         m_sessionId = sessionId;
         m_sessionIdentifier = sessionIdentifier;
 
-        m_processSession(m_sessionTarget, true, this, m_sessionIdentifier);
+        m_processSession(true, this, m_sessionIdentifier);
 
         // release blocked session on client-side
         m_cv.notify_one();
@@ -466,7 +457,7 @@ Session::endSession()
     // try to stop the session
     if(m_statemachine.goToNextState(STOP_SESSION))
     {
-        m_processSession(m_sessionTarget, false, this, m_sessionIdentifier);
+        m_processSession(false, this, m_sessionIdentifier);
         SessionHandler::m_sessionHandler->removeSession(m_sessionId);
         return disconnectSession();
     }

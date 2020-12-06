@@ -71,19 +71,13 @@ public:
                           const uint64_t blockerId);
 
     // setter for changing callbacks
-    void setStreamMessageCallback(void* streamDataTarget,
-                                  void (*processStreamData)(void*,
-                                                            Session*,
+    void setStreamMessageCallback(void (*processStreamData)(Session*,
                                                             const void*,
                                                             const uint64_t));
-    void setStandaloneMessageCallback(void* standaloneDataTarget,
-                                      void (*processStandaloneData)(void*,
-                                                                    Session*,
+    void setStandaloneMessageCallback(void (*processStandaloneData)(Session*,
                                                                     const uint64_t,
                                                                     DataBuffer*));
-    void setErrorCallback(void* errorTarget,
-                          void (*processError)(void*,
-                                               Session*,
+    void setErrorCallback(void (*processError)(Session*,
                                                const uint8_t,
                                                const std::string));
 
@@ -137,14 +131,10 @@ public:
     void initStatemachine();
 
     // callbacks
-    void* m_sessionTarget = nullptr;
-    void (*m_processSession)(void*, bool, Session*, const std::string);
-    void* m_streamDataTarget = nullptr;
-    void (*m_processStreamData)(void*, Session*, const void*, const uint64_t);
-    void* m_standaloneDataTarget = nullptr;
-    void (*m_processStandaloneData)(void*, Session*, const uint64_t, DataBuffer*);
-    void* m_errorTarget = nullptr;
-    void (*m_processError)(void*, Session*, const uint8_t, const std::string);
+    void (*m_processSession)(bool, Session*, const std::string);
+    void (*m_processStreamData)(Session*, const void*, const uint64_t);
+    void (*m_processStandaloneData)(Session*, const uint64_t, DataBuffer*);
+    void (*m_processError)(Session*, const uint8_t, const std::string);
 
     // counter
     std::atomic_flag m_messageIdCounter_lock = ATOMIC_FLAG_INIT;

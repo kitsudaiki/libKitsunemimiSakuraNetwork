@@ -52,6 +52,8 @@ public:
         TEST_EQUAL(isValue, shouldValue);
     }
 
+    static Session_Test* m_instance;
+
     std::string m_staticMessage = "";
     std::string m_dynamicMessage = "";
     std::string m_singleBlockMessage = "";

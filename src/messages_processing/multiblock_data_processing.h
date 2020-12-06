@@ -238,8 +238,7 @@ process_Data_Multi_Init_Reply(Session* session,
     else
     {
         // trigger callback
-        session->m_processError(session->m_errorTarget,
-                                session,
+        session->m_processError(session,
                                 Session::errorCodes::MULTIBLOCK_FAILED,
                                 "unable not send multi-block-Message");
     }
@@ -280,8 +279,7 @@ process_Data_Multi_Finish(Session* session,
     else
     {
         // trigger callback
-        session->m_processStandaloneData(session->m_standaloneDataTarget,
-                                         session,
+        session->m_processStandaloneData(session,
                                          message->multiblockId,
                                          buffer.multiBlockBuffer);
     }

@@ -98,7 +98,10 @@ int main(int argc, char *argv[])
     std::cout<<"package-size: "<<packageSize<<std::endl;
     std::cout<<"--------------------------------------"<<std::endl;
 
-    TestSession testSession(address, port, socket, transferType);
+    Kitsunemimi::Sakura::TestSession testSession(address,
+                                                 port,
+                                                 socket,
+                                                 transferType);
 
     testSession.runTest(packageSize);
 }

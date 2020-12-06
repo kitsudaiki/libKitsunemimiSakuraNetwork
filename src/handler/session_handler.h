@@ -50,10 +50,8 @@ public:
     static Kitsunemimi::Sakura::SessionController* m_sessionController;
     static Kitsunemimi::Sakura::SessionHandler* m_sessionHandler;
 
-    SessionHandler(void* sessionTarget,
-                   void (*processSession)(void*, bool, Session*, const std::string),
-                   void* errorTarget,
-                   void (*processError)(void*, Session*, const uint8_t, const std::string));
+    SessionHandler(void (*processSession)(bool, Session*, const std::string),
+                   void (*processError)(Session*, const uint8_t, const std::string));
     ~SessionHandler();
 
     // session-control
@@ -85,10 +83,8 @@ private:
     std::atomic_flag m_sessionIdCounter_lock = ATOMIC_FLAG_INIT;
 
     // callbacks
-    void* m_sessionTarget = nullptr;
-    void (*m_processSession)(void*, bool, Session*, const std::string);
-    void* m_errorTarget = nullptr;
-    void (*m_processError)(void*, Session*, const uint8_t, const std::string);
+    void (*m_processSession)(bool, Session*, const std::string);
+    void (*m_processError)(Session*, const uint8_t, const std::string);
 };
 
 } // namespace Sakura

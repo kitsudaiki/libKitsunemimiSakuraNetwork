@@ -232,8 +232,7 @@ ReplyHandler::makeTimerStep()
                                         + " with type: "
                                         + std::to_string(temp->messageType);
 
-                temp->session->m_processError(temp->session->m_errorTarget,
-                                              temp->session,
+                temp->session->m_processError(temp->session,
                                               Session::errorCodes::MESSAGE_TIMEOUT,
                                               err);
             }

@@ -9,69 +9,71 @@
 #include <libKitsunemimiCommon/buffer/data_buffer.h>
 #include <libKitsunemimiCommon/common_items/table_item.h>
 
+namespace Kitsunemimi
+{
+namespace Sakura
+{
+
+Kitsunemimi::Sakura::TestSession* TestSession::m_instance = nullptr;
+
 /**
  * @brief streamDataCallback
  */
-void streamDataCallback(void* target,
-                        Kitsunemimi::Sakura::Session* session,
+void streamDataCallback(Kitsunemimi::Sakura::Session* session,
                         const void*,
                         const uint64_t dataSize)
 {
-    TestSession* testClass = static_cast<TestSession*>(target);
     if(session->isClientSide() == false)
     {
-        testClass->m_sizeCounter += dataSize;
+        TestSession::m_instance->m_sizeCounter += dataSize;
         //std::cout<<"testClass->m_sizeCounter: "<<testClass->m_sizeCounter<<std::endl;
-        if(testClass->m_sizeCounter == testClass->m_totalSize)
+        if(TestSession::m_instance->m_sizeCounter == TestSession::m_instance->m_totalSize)
         {
             uint8_t data[10];
-            testClass->m_serverSession->sendStreamData(data, 10);
-            testClass->m_sizeCounter = 0;
+            TestSession::m_instance->m_serverSession->sendStreamData(data, 10);
+            TestSession::m_instance->m_sizeCounter = 0;
         }
     }
     else
     {
-        testClass->m_sizeCounter = 0;
-        testClass->m_cv.notify_all();
+        TestSession::m_instance->m_sizeCounter = 0;
+        TestSession::m_instance->m_cv.notify_all();
     }
 }
 
 /**
  * @brief standaloneDataCallback
  */
-void standaloneDataCallback(void* target,
-                            Kitsunemimi::Sakura::Session* session,
+void standaloneDataCallback(Kitsunemimi::Sakura::Session* session,
                             const uint64_t blockerId,
                             Kitsunemimi::DataBuffer* data)
 {
-    TestSession* testClass = static_cast<TestSession*>(target);
-
     // handling for request transfer-type
-    if(testClass->m_transferType == "request")
+    if(TestSession::m_instance->m_transferType == "request")
     {
         if(session->isClientSide() == false)
         {
-            testClass->m_sizeCounter += data->bufferPosition;
+            TestSession::m_instance->m_sizeCounter += data->bufferPosition;
             delete data;
             uint8_t data[10];
-            testClass->m_serverSession->sendResponse(data, 10, blockerId);
+            TestSession::m_instance->m_serverSession->sendResponse(data, 10, blockerId);
         }
     }
 
     // handling for standalone transfer-type
-    if(testClass->m_transferType == "standalone")
+    if(TestSession::m_instance->m_transferType == "standalone")
     {
         if(session->isClientSide() == false)
         {
-            testClass->m_sizeCounter += data->bufferPosition;
+            TestSession::m_instance->m_sizeCounter += data->bufferPosition;
             delete data;
             uint8_t data[10];
-            testClass->m_serverSession->sendStandaloneData(data, 10);
+            TestSession::m_instance->m_serverSession->sendStandaloneData(data, 10);
         }
         else
         {
-            testClass->m_sizeCounter = 0;
-            testClass->m_cv.notify_all();
+            TestSession::m_instance->m_sizeCounter = 0;
+            TestSession::m_instance->m_cv.notify_all();
         }
     }
 }
@@ -79,8 +81,7 @@ void standaloneDataCallback(void* target,
 /**
  * @brief errorCallback
  */
-void errorCallback(void*,
-                   Kitsunemimi::Sakura::Session*,
+void errorCallback(Kitsunemimi::Sakura::Session*,
                    const uint8_t errorType,
                    const std::string message)
 {
@@ -90,14 +91,12 @@ void errorCallback(void*,
 /**
  * @brief sessionCallback
  */
-void sessionCallback(void* target,
-                     bool isInit,
+void sessionCallback(bool isInit,
                      Kitsunemimi::Sakura::Session* session,
                      const std::string)
 {
-    TestSession* testClass = static_cast<TestSession*>(target);
-    session->setStreamMessageCallback(target, &streamDataCallback);
-    session->setStandaloneMessageCallback(target, &standaloneDataCallback);
+    session->setStreamMessageCallback(&streamDataCallback);
+    session->setStandaloneMessageCallback(&standaloneDataCallback);
 
     std::cout<<"session-callback for id: "<<session->m_sessionId<<"\n"<<std::endl;
     if(isInit)
@@ -105,18 +104,18 @@ void sessionCallback(void* target,
         if(session->isClientSide())
         {
             std::cout<<"init session"<<std::endl;
-            testClass->m_clientSession = session;
+            TestSession::m_instance->m_clientSession = session;
         }
         else
         {
-            testClass->m_serverSession = session;
+            TestSession::m_instance->m_serverSession = session;
         }
     }
     else
     {
         std::cout<<"end session"<<std::endl;
-        testClass->m_clientSession = nullptr;
-        testClass->m_serverSession = nullptr;
+        TestSession::m_instance->m_clientSession = nullptr;
+        TestSession::m_instance->m_serverSession = nullptr;
     }
 }
 
@@ -133,6 +132,8 @@ TestSession::TestSession(const std::string &address,
                          const std::string &socket,
                          const std::string &transferType)
 {
+    TestSession::m_instance = this;
+
     // init global values
     m_totalSize = 1024l*1024l*1024l*10l;
     m_dataBuffer = new uint8_t[128*1024*1024];
@@ -147,8 +148,7 @@ TestSession::TestSession(const std::string &address,
     m_timeSlot.unitName = "Gbits/s";
 
     // create controller and connect callbacks
-    m_controller = new Kitsunemimi::Sakura::SessionController(this, &sessionCallback,
-                                                              this, &errorCallback);
+    m_controller = new Kitsunemimi::Sakura::SessionController(&sessionCallback, &errorCallback);
 
     if(m_isTcp)
     {
@@ -298,4 +298,7 @@ TestSession::calculateSpeed(double duration)
                           / (1024.0*1024.0*1024.0))
                           / duration) * 8.0;
     return speed;
+}
+
+}
 }
