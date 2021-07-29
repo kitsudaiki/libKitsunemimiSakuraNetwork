@@ -67,10 +67,7 @@ send_Session_Init_Start(Session* session,
            sessionIdentifier.size());
 
     // send
-    SessionHandler::m_sessionHandler->sendMessage(session,
-                                                  message.commonHeader,
-                                                  &message,
-                                                  sizeof(message));
+    SessionHandler::m_sessionHandler->sendMessage(session, message);
 }
 
 /**
@@ -106,10 +103,7 @@ send_Session_Init_Reply(Session* session,
            sessionIdentifier.size());
 
     // send
-    SessionHandler::m_sessionHandler->sendMessage(session,
-                                                  message.commonHeader,
-                                                  &message,
-                                                  sizeof(message));
+    SessionHandler::m_sessionHandler->sendMessage(session, message);
 }
 
 /**
@@ -118,9 +112,9 @@ send_Session_Init_Reply(Session* session,
  * @param session pointer to the session
  * @param replyExpected set to true to get a reply-message for the session-close-message
  */
-inline void
+inline bool
 send_Session_Close_Start(Session* session,
-                         bool replyExpected)
+                         const bool replyExpected)
 {
     LOG_DEBUG("SEND session close start");
 
@@ -134,10 +128,7 @@ send_Session_Close_Start(Session* session,
     }
 
     // send
-    SessionHandler::m_sessionHandler->sendMessage(session,
-                                                  message.commonHeader,
-                                                  &message,
-                                                  sizeof(message));
+    return SessionHandler::m_sessionHandler->sendMessage(session, message);
 }
 
 /**
@@ -159,10 +150,7 @@ send_Session_Close_Reply(Session* session,
     message.commonHeader.messageId = messageId;
 
     // send
-    SessionHandler::m_sessionHandler->sendMessage(session,
-                                                  message.commonHeader,
-                                                  &message,
-                                                  sizeof(message));
+    SessionHandler::m_sessionHandler->sendMessage(session, message);
 }
 
 /**

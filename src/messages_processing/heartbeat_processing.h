@@ -61,10 +61,7 @@ send_Heartbeat_Start(Session* session)
     message.commonHeader.messageId = session->increaseMessageIdCounter();
 
     // send
-    SessionHandler::m_sessionHandler->sendMessage(session,
-                                                  message.commonHeader,
-                                                  &message,
-                                                  sizeof(message));
+    SessionHandler::m_sessionHandler->sendMessage(session, message);
 }
 
 /**
@@ -84,10 +81,7 @@ send_Heartbeat_Reply(Session* session,
     message.commonHeader.messageId = messageId;
 
     // send
-    SessionHandler::m_sessionHandler->sendMessage(session,
-                                                  message.commonHeader,
-                                                  &message,
-                                                  sizeof(message));
+    SessionHandler::m_sessionHandler->sendMessage(session, message);
 }
 
 /**

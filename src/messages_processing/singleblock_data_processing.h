@@ -103,10 +103,7 @@ send_Data_SingleBlock_Reply(Session* session,
     message.commonHeader.messageId = messageId;
 
     // send
-    SessionHandler::m_sessionHandler->sendMessage(session,
-                                                  message.commonHeader,
-                                                  &message,
-                                                  sizeof(message));
+    SessionHandler::m_sessionHandler->sendMessage(session, message);
 }
 
 /**

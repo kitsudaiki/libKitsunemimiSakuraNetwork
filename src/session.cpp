@@ -313,12 +313,13 @@ Session::closeSession(const bool replyExpected)
         m_multiblockIo->removeOutgoingMessage(0);
         if(replyExpected)
         {
-            send_Session_Close_Start(this, true);
-            return true;
+            return send_Session_Close_Start(this, true);
         }
         else
         {
-            send_Session_Close_Start(this, false);
+            if(send_Session_Close_Start(this, false) == false) {
+                return false;
+            }
             return endSession();
         }
     }

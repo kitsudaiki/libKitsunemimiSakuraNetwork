@@ -77,10 +77,7 @@ send_ErrorMessage(Session* session,
                     message.messageSize);
 
             // send
-            SessionHandler::m_sessionHandler->sendMessage(session,
-                                                          message.commonHeader,
-                                                          &message,
-                                                          sizeof(message));
+            SessionHandler::m_sessionHandler->sendMessage(session, message);
             break;
         }
         //------------------------------------------------------------------------------------------
@@ -102,10 +99,7 @@ send_ErrorMessage(Session* session,
                     message.messageSize);
 
             // send
-            SessionHandler::m_sessionHandler->sendMessage(session,
-                                                          message.commonHeader,
-                                                          &message,
-                                                          sizeof(message));
+            SessionHandler::m_sessionHandler->sendMessage(session, message);
             break;
         }
         //------------------------------------------------------------------------------------------
@@ -127,10 +121,7 @@ send_ErrorMessage(Session* session,
                     message.messageSize);
 
             // send
-            SessionHandler::m_sessionHandler->sendMessage(session,
-                                                          message.commonHeader,
-                                                          &message,
-                                                          sizeof(message));
+            SessionHandler::m_sessionHandler->sendMessage(session, message);
             break;
         }
         //------------------------------------------------------------------------------------------
