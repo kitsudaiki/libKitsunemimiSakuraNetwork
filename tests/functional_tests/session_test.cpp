@@ -237,6 +237,8 @@ Session_Test::runTest()
     bool isNullptr = m_controller->startUnixDomainSession("/tmp/sock.uds", "test") == nullptr;
     TEST_EQUAL(isNullptr, false);
 
+    usleep(100000);
+
     TEST_EQUAL(m_controller->getSession(131073)->closeSession(), true);
     const bool isNull = m_controller->getSession(131073) == nullptr;
     TEST_EQUAL(isNull, true);
