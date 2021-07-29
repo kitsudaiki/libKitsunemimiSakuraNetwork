@@ -85,7 +85,6 @@ public:
     bool closeSession(const bool replyExpected = false);
     uint32_t sessionId() const;
     bool isClientSide() const;
-    Session* getLinkedSession();
 
     enum errorCodes
     {
@@ -112,7 +111,6 @@ public:
     MultiblockIO* m_multiblockIo = nullptr;
     uint32_t m_sessionId = 0;
     std::string m_sessionIdentifier = "";
-    Session* m_linkedSession = nullptr;
 
     // wait for initialized
     std::mutex m_cvMutex;

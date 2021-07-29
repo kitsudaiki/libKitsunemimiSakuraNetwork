@@ -349,24 +349,6 @@ Session::isClientSide() const
 }
 
 /**
- * @brief Session::getLinkedSession
- * @return
- */
-Session*
-Session::getLinkedSession()
-{
-    Session* result = nullptr;
-
-    while (m_linkSession_lock.test_and_set(std::memory_order_acquire))  {
-        asm("");
-    }
-    result = m_linkedSession;
-    m_linkSession_lock.clear(std::memory_order_release);
-
-    return result;
-}
-
-/**
  * @brief create the network connection of the session
  *
  * @param sessionId id for the session

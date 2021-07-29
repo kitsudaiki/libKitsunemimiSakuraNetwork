@@ -102,17 +102,6 @@ processMessage(void* target,
         return 0;
     }
 
-    // use the linkes session to forward the message
-    if(session->m_linkedSession != nullptr)
-    {
-        Session* linkedSession = session->getLinkedSession();
-
-        header->sessionId = linkedSession->sessionId();
-        linkedSession->m_socket->sendMessage(rawMessage, header->totalMessageSize);
-
-        return header->totalMessageSize;
-    }
-
     // remove from reply-handler if message is reply
     if(header->flags & 0x2) {
         SessionHandler::m_replyHandler->removeMessage(header->sessionId, header->messageId);
