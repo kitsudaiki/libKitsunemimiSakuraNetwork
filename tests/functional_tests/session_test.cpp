@@ -233,8 +233,8 @@ Session_Test::runTest()
                                                             &sessionCloseCallback,
                                                             &errorCallback);
 
-    TEST_EQUAL(m_controller->addTcpServer(1234), 1);
-    bool isNullptr = m_controller->startTcpSession("127.0.0.1", 1234, "test") == nullptr;
+    TEST_EQUAL(m_controller->addUnixDomainServer("/tmp/sock.uds"), 1);
+    bool isNullptr = m_controller->startUnixDomainSession("/tmp/sock.uds", "test") == nullptr;
     TEST_EQUAL(isNullptr, false);
 
     TEST_EQUAL(m_controller->getSession(131073)->closeSession(), true);
