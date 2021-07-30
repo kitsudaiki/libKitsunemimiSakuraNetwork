@@ -74,32 +74,6 @@ Session::~Session()
 }
 
 /**
- * @brief Session::sendStreamData
- * @param stackBuffer
- * @param replyExpected
- * @return
- */
-bool
-Session::sendStreamData(StackBuffer &stackBuffer,
-                        const bool replyExpected)
-{
-    if(m_statemachine.isInState(ACTIVE))
-    {
-        std::deque<DataBuffer*>::iterator it;
-        for(it = stackBuffer.blocks.begin();
-            it != stackBuffer.blocks.end();
-            it++)
-        {
-            send_Data_Stream(this, (*it), replyExpected);
-        }
-
-        return true;
-    }
-
-    return false;
-}
-
-/**
  * @brief send data as stream
  *
  * @param data data-pointer
@@ -175,11 +149,14 @@ Session::sendStandaloneData(const void* data,
 }
 
 /**
- * @brief Session::sendRequest
- * @param data
- * @param size
- * @param timeout
- * @return
+ * @brief send a request and blocks until the other side had send a response-message or a timeout
+ *        appeared
+ *
+ * @param data data-pointer
+ * @param size number of bytes
+ * @param timeout time in seconds in which the response is expected
+ *
+ * @return content of the response message as data-buffer, or nullptr, if session is not active
  */
 DataBuffer*
 Session::sendRequest(const void *data,
@@ -192,6 +169,7 @@ Session::sendRequest(const void *data,
 
         if(size <= MAX_SINGLE_MESSAGE_SIZE)
         {
+            // send as single-block-message, if small enough
             id = m_multiblockIo->getRandValue();
             send_Data_SingleBlock(this,
                                   id,
@@ -200,6 +178,7 @@ Session::sendRequest(const void *data,
         }
         else
         {
+            // if too big for one message, send as multi-block-message
             std::pair<DataBuffer*, uint64_t> result;
             result = m_multiblockIo->createOutgoingBuffer(data, size, true);
             id = result.second;
@@ -212,11 +191,13 @@ Session::sendRequest(const void *data,
 }
 
 /**
- * @brief Session::sendResponse
- * @param data
- * @param size
- * @param blockerId
- * @return
+ * @brief send response message as reponse for another requst
+ *
+ * @param data data-pointer
+ * @param size number of bytes
+ * @param blockerId id to identify the response and map them to the related request
+ *
+ * @return multiblock-id, or 0, if session is not active
  */
 uint64_t
 Session::sendResponse(const void *data,
@@ -227,6 +208,7 @@ Session::sendResponse(const void *data,
     {
         if(size < MAX_SINGLE_MESSAGE_SIZE)
         {
+            // send as single-block-message, if small enough
             const uint64_t singleblockId = m_multiblockIo->getRandValue();
             send_Data_SingleBlock(this,
                                   singleblockId,
@@ -237,6 +219,7 @@ Session::sendResponse(const void *data,
         }
         else
         {
+            // if too big for one message, send as multi-block-message
             std::pair<DataBuffer*, uint64_t> result;
             result = m_multiblockIo->createOutgoingBuffer(data, size, false, blockerId);
             return result.second;
@@ -261,7 +244,6 @@ Session::abortMessages(const uint64_t multiblockMessageId)
 
 /**
  * @brief Session::setStreamMessageCallback
- * @param streamDataTarget
  */
 void
 Session::setStreamMessageCallback(void (*processStreamData)(Session*,
@@ -273,7 +255,6 @@ Session::setStreamMessageCallback(void (*processStreamData)(Session*,
 
 /**
  * @brief Session::setStandaloneMessageCallback
- * @param standaloneDataTarget
  */
 void
 Session::setStandaloneMessageCallback(void (*processStandaloneData)(Session*,
@@ -285,7 +266,6 @@ Session::setStandaloneMessageCallback(void (*processStandaloneData)(Session*,
 
 /**
  * @brief Session::setErrorCallback
- * @param errorTarget
  */
 void
 Session::setErrorCallback(void (*processError)(Session*,
@@ -380,6 +360,7 @@ Session::connectiSession(const uint32_t sessionId)
             m_cv.notify_one();
             return false;
         }
+
         m_sessionId = sessionId;
         m_socket->startThread();
 
@@ -459,7 +440,8 @@ Session::disconnectSession()
 {
     LOG_DEBUG("CALL session disconnect: " + std::to_string(m_sessionId));
 
-    if(m_statemachine.goToNextState(DISCONNECT))  {
+    if(m_statemachine.goToNextState(DISCONNECT))
+    {
         const bool ret = m_socket->closeSocket();
         if(ret == false) {
             return false;
