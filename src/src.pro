@@ -44,9 +44,9 @@ HEADERS += \
 
 SOURCES += \
     session.cpp \
-    session_constroller.cpp \
     handler/session_handler.cpp \
     multiblock_io.cpp \
     handler/replay_handler.cpp \
-    handler/message_blocker_handler.cpp
+    handler/message_blocker_handler.cpp \
+    session_controller.cpp
 
