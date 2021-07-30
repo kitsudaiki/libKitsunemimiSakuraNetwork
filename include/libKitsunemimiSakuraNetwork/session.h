@@ -52,9 +52,6 @@ public:
     ~Session(); 
 
     // send-messages
-    bool sendStreamData(StackBuffer &stackBuffer,
-                        const bool replyExpected = false);
-
     bool sendStreamData(const void* data,
                         const uint64_t size,
                         const bool replyExpected = false);

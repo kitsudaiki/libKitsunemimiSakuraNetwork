@@ -51,7 +51,7 @@ namespace Sakura
  *
  * @param session pointer to the session
  */
-inline void
+inline bool
 send_Heartbeat_Start(Session* session)
 {
     Heartbeat_Start_Message message;
@@ -61,10 +61,7 @@ send_Heartbeat_Start(Session* session)
     message.commonHeader.messageId = session->increaseMessageIdCounter();
 
     // send
-    SessionHandler::m_sessionHandler->sendMessage(session,
-                                                  message.commonHeader,
-                                                  &message,
-                                                  sizeof(message));
+    return SessionHandler::m_sessionHandler->sendMessage(session, message);
 }
 
 /**
@@ -73,7 +70,7 @@ send_Heartbeat_Start(Session* session)
  * @param session pointer to the session
  * @param id of the message of the initial heartbeat
  */
-inline void
+inline bool
 send_Heartbeat_Reply(Session* session,
                      const uint32_t messageId)
 {
@@ -84,10 +81,7 @@ send_Heartbeat_Reply(Session* session,
     message.commonHeader.messageId = messageId;
 
     // send
-    SessionHandler::m_sessionHandler->sendMessage(session,
-                                                  message.commonHeader,
-                                                  &message,
-                                                  sizeof(message));
+    return SessionHandler::m_sessionHandler->sendMessage(session, message);
 }
 
 /**
@@ -96,11 +90,11 @@ send_Heartbeat_Reply(Session* session,
  * @param session pointer to the session
  * @param message incoming message
  */
-inline void
+inline bool
 process_Heartbeat_Start(Session* session,
                         const Heartbeat_Start_Message* message)
 {
-    send_Heartbeat_Reply(session, message->commonHeader.messageId);
+    return send_Heartbeat_Reply(session, message->commonHeader.messageId);
 }
 
 /**

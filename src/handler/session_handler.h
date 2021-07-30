@@ -72,10 +72,20 @@ public:
     std::map<uint32_t, Session*> m_sessions;
     std::map<uint32_t, Network::AbstractServer*> m_servers;
 
+    template<typename T>
+    bool sendMessage(Session* session,
+                     const T &message)
+    {
+        return sendMessage(session,
+                           message.commonHeader,
+                           &message,
+                           sizeof(message));
+    }
     bool sendMessage(Session *session,
                      const CommonMessageHeader &header,
                      const void* data,
                      const uint64_t size);
+
 private:
     // counter
     uint16_t m_sessionIdCounter = 0;

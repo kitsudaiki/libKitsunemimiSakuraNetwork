@@ -68,9 +68,6 @@ public:
                                 const std::string &certFile,
                                 const std::string &keyFile,
                                 const std::string &sessionIdentifier = "");
-    bool closeSession(const uint32_t id);
-    Session* getSession(const uint32_t id);
-    void closeAllSession();
 
 private:
     uint32_t m_serverIdCounter = 0;

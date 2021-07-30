@@ -70,7 +70,6 @@ SessionController::SessionController(void (*processCreateSession)(Session*, cons
  */
 SessionController::~SessionController()
 {
-    closeAllSession();
     cloesAllServers();
 
     if(SessionHandler::m_sessionHandler != nullptr)
@@ -282,86 +281,6 @@ SessionController::startTlsTcpSession(const std::string &address,
                                                                     certFile,
                                                                     keyFile);
     return startSession(tlsTcpSocket, sessionIdentifier);
-}
-
-/**
- * @brief get a session by its id
- *
- * @param id id of the requested session
- *
- * @return pointer to the session, if found, else nullptr
- */
-Session*
-SessionController::getSession(const uint32_t id)
-{
-    SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
-    sessionHandler->lockSessionMap();
-
-    std::map<uint32_t, Session*>::iterator it;
-    it = sessionHandler->m_sessions.find(id);
-
-    if(it != sessionHandler->m_sessions.end())
-    {
-        Session* session = it->second;
-        sessionHandler->unlockSessionMap();
-        return session;
-    }
-
-    sessionHandler->unlockSessionMap();
-
-    return nullptr;
-}
-
-/**
- * @brief close a specific session
- *
- * @param id id of the session, which should be closed
- *
- * @return true, if id was found and session-close was successful, else false
- */
-bool
-SessionController::closeSession(const uint32_t id)
-{
-    SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
-    sessionHandler->lockSessionMap();
-
-    std::map<uint32_t, Session*>::iterator it;
-    it = SessionHandler::m_sessionHandler->m_sessions.find(id);
-
-    if(it != SessionHandler::m_sessionHandler->m_sessions.end())
-    {
-        sessionHandler->unlockSessionMap();
-        return it->second->closeSession(true);
-    }
-
-    sessionHandler->unlockSessionMap();
-
-    return false;
-}
-
-/**
- * @brief close and remove all sessions
- */
-void
-SessionController::closeAllSession()
-{
-    SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
-
-    // copy to avoid problems, when the close-process reduce the list, while there is a iteration
-    // over the same list
-    sessionHandler->lockSessionMap();
-    std::map<uint32_t, Session*> copy = SessionHandler::m_sessionHandler->m_sessions;
-    sessionHandler->unlockSessionMap();
-
-    std::map<uint32_t, Session*>::iterator it;
-    for(it = copy.begin();
-        it != copy.end();
-        it++)
-    {
-        it->second->closeSession();
-    }
-
-    SessionHandler::m_sessionHandler->m_sessions.clear();
 }
 
 /**
