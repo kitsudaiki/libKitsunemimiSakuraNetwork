@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.0] - 2021-07-30
+
+### Removed
+- removed getter and session closing from the session-controller
+- stream-messages based on stack-buffer
+- session-linking
+
+### Fixed
+- typos in 2 file-names
+
+
 ## [0.5.1] - 2021-07-29
 
 ### Chnaged
