@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file       session_test.cpp
  *
  * @author     Tobias Anker <tobias.anker@kitsunemimi.moe>
@@ -39,6 +39,8 @@ void streamDataCallback(Session*,
                         const void* data,
                         const uint64_t dataSize)
 {
+    LOG_DEBUG("TEST: streamDataCallback");
+
     std::string receivedMessage(static_cast<const char*>(data), dataSize);
 
     bool ret = false;
@@ -68,6 +70,8 @@ void standaloneDataCallback(Session*,
                             const uint64_t,
                             DataBuffer* data)
 {
+    LOG_DEBUG("TEST: standaloneDataCallback");
+
     std::string receivedMessage(static_cast<const char*>(data->data), data->bufferPosition);
 
     if(data->bufferPosition <= 1024)
@@ -112,30 +116,6 @@ void sessionCreateCallback(Kitsunemimi::Sakura::Session* session,
     Session_Test::m_instance->compare(session->sessionId(), (uint32_t)131073);
     Session_Test::m_instance->m_numberOfInitSessions++;
     Session_Test::m_instance->compare(sessionIdentifier, std::string("test"));
-
-    if(session->isClientSide())
-    {
-        bool ret = false;
-
-        // stream-message
-        const std::string staticTestString = Session_Test::m_instance->m_staticMessage;
-        ret = session->sendStreamData(staticTestString.c_str(),
-                                      staticTestString.size(),
-                                      true);
-        Session_Test::m_instance->compare(ret,  true);
-
-        // singleblock-message
-        const std::string singleblockTestString = Session_Test::m_instance->m_singleBlockMessage;
-        ret = session->sendStandaloneData(singleblockTestString.c_str(),
-                                          singleblockTestString.size());
-        Session_Test::m_instance->compare(ret,  true);
-
-        // multiblock-message
-        const std::string multiblockTestString = Session_Test::m_instance->m_multiBlockMessage;
-        ret = session->sendStandaloneData(multiblockTestString.c_str(),
-                                          multiblockTestString.size());
-        Session_Test::m_instance->compare(ret,  true);
-    }
 }
 
 void sessionCloseCallback(Kitsunemimi::Sakura::Session*,
@@ -224,6 +204,35 @@ Session_Test::initTestCase()
 }
 
 /**
+ * @brief Session_Test::sendTestMessages
+ * @param session
+ */
+void
+Session_Test::sendTestMessages(Session* session)
+{
+    bool ret = false;
+
+    // stream-message
+    const std::string staticTestString = Session_Test::m_instance->m_staticMessage;
+    ret = session->sendStreamData(staticTestString.c_str(),
+                                  staticTestString.size(),
+                                  true);
+    Session_Test::m_instance->compare(ret,  true);
+
+    // singleblock-message
+    const std::string singleblockTestString = Session_Test::m_instance->m_singleBlockMessage;
+    ret = session->sendStandaloneData(singleblockTestString.c_str(),
+                                      singleblockTestString.size());
+    Session_Test::m_instance->compare(ret,  true);
+
+    // multiblock-message
+    const std::string multiblockTestString = Session_Test::m_instance->m_multiBlockMessage;
+    ret = session->sendStandaloneData(multiblockTestString.c_str(),
+                                      multiblockTestString.size());
+    Session_Test::m_instance->compare(ret,  true);
+}
+
+/**
  * @brief runTest
  */
 void
@@ -237,11 +246,25 @@ Session_Test::runTest()
     bool isNullptr = m_controller->startUnixDomainSession("/tmp/sock.uds", "test") == nullptr;
     TEST_EQUAL(isNullptr, false);
 
+
+    Session* session = m_controller->getSession(131073);
+    isNullptr = session == nullptr;
+    TEST_EQUAL(isNullptr, false);
+
+    if(isNullptr) {
+        return;
+    }
+
+    sendTestMessages(session);
+
     usleep(100000);
 
-    TEST_EQUAL(m_controller->getSession(131073)->closeSession(), true);
-    const bool isNull = m_controller->getSession(131073) == nullptr;
-    TEST_EQUAL(isNull, true);
+    LOG_DEBUG("TEST: close session again");
+    bool ret = session->closeSession();
+    TEST_EQUAL(ret, true);
+    isNullptr = m_controller->getSession(131073) == nullptr;
+    TEST_EQUAL(isNullptr, true);
+    LOG_DEBUG("TEST: close session finished");
 
     usleep(100000);
 
