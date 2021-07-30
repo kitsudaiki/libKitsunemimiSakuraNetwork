@@ -481,10 +481,8 @@ Session::disconnectSession()
 bool
 Session::sendHeartbeat()
 {
-    if(m_statemachine.isInState(SESSION_READY))
-    {
-        send_Heartbeat_Start(this);
-        return true;
+    if(m_statemachine.isInState(SESSION_READY)) {
+        return send_Heartbeat_Start(this);
     }
 
     return false;
