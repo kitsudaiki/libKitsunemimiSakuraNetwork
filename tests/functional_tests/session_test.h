@@ -62,6 +62,8 @@ public:
     uint32_t m_numberOfInitSessions = 0;
     uint32_t m_numberOfEndSessions = 0;
 
+    Session* m_testSession = nullptr;
+
 private:
     void sendTestMessages(Session *session);
 };

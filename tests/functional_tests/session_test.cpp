@@ -116,6 +116,7 @@ void sessionCreateCallback(Kitsunemimi::Sakura::Session* session,
     Session_Test::m_instance->compare(session->sessionId(), (uint32_t)131073);
     Session_Test::m_instance->m_numberOfInitSessions++;
     Session_Test::m_instance->compare(sessionIdentifier, std::string("test"));
+    Session_Test::m_instance->m_testSession = session;
 }
 
 void sessionCloseCallback(Kitsunemimi::Sakura::Session*,
@@ -247,23 +248,20 @@ Session_Test::runTest()
     TEST_EQUAL(isNullptr, false);
 
 
-    Session* session = m_controller->getSession(131073);
-    isNullptr = session == nullptr;
+    isNullptr = m_testSession == nullptr;
     TEST_EQUAL(isNullptr, false);
 
     if(isNullptr) {
         return;
     }
 
-    sendTestMessages(session);
+    sendTestMessages(m_testSession);
 
     usleep(100000);
 
     LOG_DEBUG("TEST: close session again");
-    bool ret = session->closeSession();
+    bool ret = m_testSession->closeSession();
     TEST_EQUAL(ret, true);
-    isNullptr = m_controller->getSession(131073) == nullptr;
-    TEST_EQUAL(isNullptr, true);
     LOG_DEBUG("TEST: close session finished");
 
     usleep(100000);
