@@ -18,7 +18,8 @@ Kitsunemimi::Sakura::TestSession* TestSession::m_instance = nullptr;
  * @param data
  * @param dataSize
  */
-void streamDataCallback(Kitsunemimi::Sakura::Session* session,
+void streamDataCallback(void*,
+                        Kitsunemimi::Sakura::Session* session,
                         const void* data,
                         const uint64_t dataSize)
 {
@@ -41,7 +42,8 @@ void streamDataCallback(Kitsunemimi::Sakura::Session* session,
  * @param data
  * @param dataSize
  */
-void standaloneDataCallback(Kitsunemimi::Sakura::Session* session,
+void standaloneDataCallback(void*,
+                            Kitsunemimi::Sakura::Session* session,
                             const uint64_t blockerId,
                             Kitsunemimi::DataBuffer* data)
 {
@@ -75,8 +77,8 @@ void errorCallback(Kitsunemimi::Sakura::Session*,
 void sessionCreateCallback(Kitsunemimi::Sakura::Session* session,
                            const std::string)
 {
-    session->setStreamMessageCallback(&streamDataCallback);
-    session->setStandaloneMessageCallback(&standaloneDataCallback);
+    session->setStreamMessageCallback(nullptr, &streamDataCallback);
+    session->setStandaloneMessageCallback(nullptr, &standaloneDataCallback);
 
     std::cout<<"session-callback for id: "<<session->m_sessionId<<"\n"<<std::endl;
     std::cout<<"init session"<<std::endl;

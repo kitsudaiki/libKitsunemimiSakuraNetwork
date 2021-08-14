@@ -246,10 +246,13 @@ Session::abortMessages(const uint64_t multiblockMessageId)
  * @brief Session::setStreamMessageCallback
  */
 void
-Session::setStreamMessageCallback(void (*processStreamData)(Session*,
+Session::setStreamMessageCallback(void* receiver,
+                                  void (*processStreamData)(void*,
+                                                            Session*,
                                                             const void*,
                                                             const uint64_t))
 {
+    m_streamReceiver = receiver;
     m_processStreamData = processStreamData;
 }
 
@@ -257,10 +260,13 @@ Session::setStreamMessageCallback(void (*processStreamData)(Session*,
  * @brief Session::setStandaloneMessageCallback
  */
 void
-Session::setStandaloneMessageCallback(void (*processStandaloneData)(Session*,
+Session::setStandaloneMessageCallback(void* receiver,
+                                      void (*processStandaloneData)(void*,
+                                                                    Session*,
                                                                     const uint64_t,
                                                                     DataBuffer*))
 {
+    m_standaloneReceiver = receiver;
     m_processStandaloneData = processStandaloneData;
 }
 
