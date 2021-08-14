@@ -35,29 +35,31 @@ Kitsunemimi::Sakura::Session_Test* Session_Test::m_instance = nullptr;
  * @param data
  * @param dataSize
  */
-void streamDataCallback(Session*,
+void streamDataCallback(void* target,
+                        Session*,
                         const void* data,
                         const uint64_t dataSize)
 {
     LOG_DEBUG("TEST: streamDataCallback");
+    Session_Test* instance = static_cast<Session_Test*>(target);
 
     std::string receivedMessage(static_cast<const char*>(data), dataSize);
 
     bool ret = false;
 
-    if(dataSize == Session_Test::m_instance->m_staticMessage.size())
+    if(dataSize == instance->m_staticMessage.size())
     {
         ret = true;
-        Session_Test::m_instance->compare(receivedMessage, Session_Test::m_instance->m_staticMessage);
+        instance->compare(receivedMessage, instance->m_staticMessage);
     }
 
-    if(dataSize == Session_Test::m_instance->m_dynamicMessage.size())
+    if(dataSize == instance->m_dynamicMessage.size())
     {
         ret = true;
-        Session_Test::m_instance->compare(receivedMessage, Session_Test::m_instance->m_dynamicMessage);
+        instance->compare(receivedMessage, instance->m_dynamicMessage);
     }
 
-    Session_Test::m_instance->compare(ret,  true);
+    instance->compare(ret,  true);
 }
 
 /**
@@ -66,27 +68,25 @@ void streamDataCallback(Session*,
  * @param data
  * @param dataSize
  */
-void standaloneDataCallback(Session*,
+void standaloneDataCallback(void* target,
+                            Session*,
                             const uint64_t,
                             DataBuffer* data)
 {
     LOG_DEBUG("TEST: standaloneDataCallback");
+    Session_Test* instance = static_cast<Session_Test*>(target);
 
     std::string receivedMessage(static_cast<const char*>(data->data), data->bufferPosition);
 
     if(data->bufferPosition <= 1024)
     {
-        Session_Test::m_instance->compare(data->bufferPosition,
-                                          Session_Test::m_instance->m_singleBlockMessage.size());
-        Session_Test::m_instance->compare(receivedMessage,
-                                          Session_Test::m_instance->m_singleBlockMessage);
+        instance->compare(data->bufferPosition, instance->m_singleBlockMessage.size());
+        instance->compare(receivedMessage, instance->m_singleBlockMessage);
     }
     else
     {
-        Session_Test::m_instance->compare(data->bufferPosition,
-                                          Session_Test::m_instance->m_multiBlockMessage.size());
-        Session_Test::m_instance->compare(receivedMessage,
-                                          Session_Test::m_instance->m_multiBlockMessage);
+        instance->compare(data->bufferPosition, instance->m_multiBlockMessage.size());
+        instance->compare(receivedMessage, instance->m_multiBlockMessage);
     }
 
     delete data;
@@ -110,8 +110,8 @@ void errorCallback(Kitsunemimi::Sakura::Session*,
 void sessionCreateCallback(Kitsunemimi::Sakura::Session* session,
                            const std::string sessionIdentifier)
 {
-    session->setStreamMessageCallback(&streamDataCallback);
-    session->setStandaloneMessageCallback(&standaloneDataCallback);
+    session->setStreamMessageCallback(Session_Test::m_instance, &streamDataCallback);
+    session->setStandaloneMessageCallback(Session_Test::m_instance, &standaloneDataCallback);
 
     Session_Test::m_instance->compare(session->sessionId(), (uint32_t)131073);
     Session_Test::m_instance->m_numberOfInitSessions++;

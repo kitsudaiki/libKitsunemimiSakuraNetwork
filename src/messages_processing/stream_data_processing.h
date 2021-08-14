@@ -155,7 +155,8 @@ process_Data_Stream(Session* session,
                                  + sizeof(Data_Stream_Header);
 
     // trigger callback
-    session->m_processStreamData(session,
+    session->m_processStreamData(session->m_streamReceiver,
+                                 session,
                                  static_cast<const void*>(payloadData),
                                  header->commonHeader.payloadSize);
 

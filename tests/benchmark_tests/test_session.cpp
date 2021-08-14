@@ -19,61 +19,67 @@ Kitsunemimi::Sakura::TestSession* TestSession::m_instance = nullptr;
 /**
  * @brief streamDataCallback
  */
-void streamDataCallback(Kitsunemimi::Sakura::Session* session,
+void streamDataCallback(void* target,
+                        Kitsunemimi::Sakura::Session* session,
                         const void*,
                         const uint64_t dataSize)
 {
+    TestSession* instance = static_cast<TestSession*>(target);
+
     if(session->isClientSide() == false)
     {
-        TestSession::m_instance->m_sizeCounter += dataSize;
+        instance->m_sizeCounter += dataSize;
         //std::cout<<"testClass->m_sizeCounter: "<<testClass->m_sizeCounter<<std::endl;
-        if(TestSession::m_instance->m_sizeCounter == TestSession::m_instance->m_totalSize)
+        if(instance->m_sizeCounter == instance->m_totalSize)
         {
             uint8_t data[10];
-            TestSession::m_instance->m_serverSession->sendStreamData(data, 10);
-            TestSession::m_instance->m_sizeCounter = 0;
+            instance->m_serverSession->sendStreamData(data, 10);
+            instance->m_sizeCounter = 0;
         }
     }
     else
     {
-        TestSession::m_instance->m_sizeCounter = 0;
-        TestSession::m_instance->m_cv.notify_all();
+        instance->m_sizeCounter = 0;
+        instance->m_cv.notify_all();
     }
 }
 
 /**
  * @brief standaloneDataCallback
  */
-void standaloneDataCallback(Kitsunemimi::Sakura::Session* session,
+void standaloneDataCallback(void* target,
+                            Kitsunemimi::Sakura::Session* session,
                             const uint64_t blockerId,
                             Kitsunemimi::DataBuffer* data)
 {
+    TestSession* instance = static_cast<TestSession*>(target);
+
     // handling for request transfer-type
-    if(TestSession::m_instance->m_transferType == "request")
+    if(instance->m_transferType == "request")
     {
         if(session->isClientSide() == false)
         {
-            TestSession::m_instance->m_sizeCounter += data->bufferPosition;
+            instance->m_sizeCounter += data->bufferPosition;
             delete data;
             uint8_t data[10];
-            TestSession::m_instance->m_serverSession->sendResponse(data, 10, blockerId);
+            instance->m_serverSession->sendResponse(data, 10, blockerId);
         }
     }
 
     // handling for standalone transfer-type
-    if(TestSession::m_instance->m_transferType == "standalone")
+    if(instance->m_transferType == "standalone")
     {
         if(session->isClientSide() == false)
         {
-            TestSession::m_instance->m_sizeCounter += data->bufferPosition;
+            instance->m_sizeCounter += data->bufferPosition;
             delete data;
             uint8_t data[10];
-            TestSession::m_instance->m_serverSession->sendStandaloneData(data, 10);
+            instance->m_serverSession->sendStandaloneData(data, 10);
         }
         else
         {
-            TestSession::m_instance->m_sizeCounter = 0;
-            TestSession::m_instance->m_cv.notify_all();
+            instance->m_sizeCounter = 0;
+            instance->m_cv.notify_all();
         }
     }
 }
@@ -95,8 +101,8 @@ void errorCallback(Kitsunemimi::Sakura::Session*,
 void sessionCreateCallback(Kitsunemimi::Sakura::Session* session,
                            const std::string)
 {
-    session->setStreamMessageCallback(&streamDataCallback);
-    session->setStandaloneMessageCallback(&standaloneDataCallback);
+    session->setStreamMessageCallback(TestSession::m_instance, &streamDataCallback);
+    session->setStandaloneMessageCallback(TestSession::m_instance, &standaloneDataCallback);
 
     std::cout<<"session-callback for id: "<<session->m_sessionId<<"\n"<<std::endl;
 
@@ -196,33 +202,6 @@ TestSession::runTest(const long packageSize)
     if(m_isClient)
     {
         std::unique_lock<std::mutex> lock(m_cvMutex);
-
-        // send stack_stream-messages
-        if(m_transferType == "stack_stream")
-        {
-            m_stackBuffer = new Kitsunemimi::StackBuffer(20, 4);
-            for(uint32_t i = 0; i < 8*1024; i++)
-            {
-                Kitsunemimi::DataBuffer* temp = new Kitsunemimi::DataBuffer((256*1024) / 4096);
-                temp->bufferPosition = 128*1024+24;
-                m_stackBuffer->blocks.push_back(temp);
-            }
-
-            m_timeSlot.name = "stack_stream-speed";
-            for(int j = 0; j < 10; j++)
-            {
-                std::cout<<"stack_stream"<<std::endl;
-                m_timeSlot.startTimer();
-                for(int i = 0; i < 10; i++)
-                {
-                    assert(m_clientSession->sendStreamData(*m_stackBuffer));
-                }
-                m_cv.wait(lock);
-
-                m_timeSlot.stopTimer();
-                m_timeSlot.values.push_back(calculateSpeed(m_timeSlot.getDuration(MICRO_SECONDS)));
-            }
-        }
 
         // send stream-messages
         if(m_transferType == "stream")

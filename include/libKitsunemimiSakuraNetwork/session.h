@@ -68,10 +68,14 @@ public:
                           const uint64_t blockerId);
 
     // setter for changing callbacks
-    void setStreamMessageCallback(void (*processStreamData)(Session*,
+    void setStreamMessageCallback(void* receiver,
+                                  void (*processStreamData)(void*,
+                                                            Session*,
                                                             const void*,
                                                             const uint64_t));
-    void setStandaloneMessageCallback(void (*processStandaloneData)(Session*,
+    void setStandaloneMessageCallback(void* receiver,
+                                      void (*processStandaloneData)(void*,
+                                                                    Session*,
                                                                     const uint64_t,
                                                                     DataBuffer*));
     void setErrorCallback(void (*processError)(Session*,
@@ -128,9 +132,11 @@ public:
     // callbacks
     void (*m_processCreateSession)(Session*, const std::string);
     void (*m_processCloseSession)(Session*, const std::string);
-    void (*m_processStreamData)(Session*, const void*, const uint64_t);
-    void (*m_processStandaloneData)(Session*, const uint64_t, DataBuffer*);
+    void (*m_processStreamData)(void*, Session*, const void*, const uint64_t);
+    void (*m_processStandaloneData)(void*, Session*, const uint64_t, DataBuffer*);
     void (*m_processError)(Session*, const uint8_t, const std::string);
+    void* m_streamReceiver = nullptr;
+    void* m_standaloneReceiver = nullptr;
 
     // counter
     std::atomic_flag m_messageIdCounter_lock = ATOMIC_FLAG_INIT;
