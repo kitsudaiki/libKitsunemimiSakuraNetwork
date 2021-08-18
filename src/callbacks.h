@@ -68,6 +68,17 @@ processMessage(void* target,
         return 0;
     }
 
+    if(header->protocolIdentifier != PROTOCOL_IDENTIFIER)
+    {
+        LOG_ERROR("invalid incoming protocol");
+        std::string headerContent = "";
+        Kitsunemimi::hexlify(headerContent, header);
+        LOG_ERROR("header: " + headerContent);
+        // close session, because its an invalid incoming protocol
+        session->closeSession();
+        return 0;
+    }
+
     // check version in header
     if(header->version != 0x1)
     {
@@ -76,7 +87,6 @@ processMessage(void* target,
         std::string headerContent = "";
         Kitsunemimi::hexlify(headerContent, header);
         LOG_ERROR("header: " + headerContent);
-        assert(false);
         return 0;
     }
 
