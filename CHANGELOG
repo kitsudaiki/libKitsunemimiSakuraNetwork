@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.0] - 2021-09-26
+
+### Added
+- added protocol-identifier to the message-header to identifiy and reject false incoming protocols
+
+### Chnaged
+- changed callbacks of incoming messages to handle an additianl pointer again for better message-forwarding
+
+
 ## [0.6.0] - 2021-07-30
 
 ### Removed
