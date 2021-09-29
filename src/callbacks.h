@@ -27,7 +27,6 @@
 #include <libKitsunemimiCommon/buffer/ring_buffer.h>
 
 #include <libKitsunemimiCommon/buffer/data_buffer.h>
-#include <libKitsunemimiCommon/common_methods/object_methods.h>
 
 #include <libKitsunemimiSakuraNetwork/session_controller.h>
 
@@ -46,6 +45,35 @@ namespace Kitsunemimi
 {
 namespace Sakura
 {
+
+/**
+ * @brief hexlify an object into a string
+ *
+ * @param object pointer to the object, which should be hexlified
+ * @param size size of the object
+ *
+ * @return hex-version of the input-object as string
+ */
+void
+hexlify(std::string &outputString,
+        const void* object,
+        const uint64_t size)
+{
+    const uint8_t* bytestream = static_cast<const uint8_t*>(object);
+    std::stringstream stream;
+
+    // iterate over all bytes of the object
+    for(uint64_t i = size; i != 0; i--)
+    {
+        // special rul to fix the length
+        if(bytestream[i - 1] < 16) {
+            stream << "0";
+        }
+        stream << std::hex << static_cast<int>(bytestream[i - 1]);
+    }
+
+    outputString = stream.str();
+}
 
 /**
  * process incoming data
@@ -72,7 +100,7 @@ processMessage(void* target,
     {
         LOG_ERROR("invalid incoming protocol");
         std::string headerContent = "";
-        Kitsunemimi::hexlify(headerContent, header);
+        hexlify(headerContent, &header, sizeof(header));
         LOG_ERROR("header: " + headerContent);
         // close session, because its an invalid incoming protocol
         session->closeSession();
@@ -85,7 +113,7 @@ processMessage(void* target,
         LOG_ERROR("false message-version");
         send_ErrorMessage(session, Session::errorCodes::FALSE_VERSION, "");
         std::string headerContent = "";
-        Kitsunemimi::hexlify(headerContent, header);
+        hexlify(headerContent, &header, sizeof(header));
         LOG_ERROR("header: " + headerContent);
         return 0;
     }
@@ -106,7 +134,7 @@ processMessage(void* target,
         LOG_ERROR("delimiter does not match");
         send_ErrorMessage(session, Session::errorCodes::FALSE_VERSION, "");
         std::string headerContent = "";
-        Kitsunemimi::hexlify(headerContent, header);
+        hexlify(headerContent, &header, sizeof(header));
         LOG_ERROR("header: " + headerContent);
         assert(false);
         return 0;
