@@ -44,16 +44,15 @@ The following messages-types are supported:
 
 name | repository | version | task
 --- | --- | --- | ---
-g++ | g++ | >= 6.0 | Compiler for the C++ code.
+g++ | g++ | >= 8.0 | Compiler for the C++ code.
 make | make | >= 4.0 | process the make-file, which is created by qmake to build the programm with g++
 qmake | qt5-qmake | >= 5.0 | This package provides the tool qmake, which is similar to cmake and create the make-file for compilation.
-boost-filesystem library | libboost-filesystem-dev | >= 1.6 | interactions with files and directories on the system
 ssl library | libssl-dev | >= 1.1 | encryption for tls connections
 
 Installation on Ubuntu/Debian:
 
 ```bash
-sudo apt-get install g++ make qt5-qmake libboost-filesystem-dev libssl-dev
+sudo apt-get install g++ make qt5-qmake libssl-dev
 ```
 
 IMPORTANT: All my projects are only tested on Linux. 
@@ -62,9 +61,8 @@ IMPORTANT: All my projects are only tested on Linux.
 
 Repository-Name | Version-Tag | Download-Path
 --- | --- | ---
-libKitsunemimiCommon | v0.18.0 |  https://github.com/kitsudaiki/libKitsunemimiCommon.git
-libKitsunemimiPersistence | v0.10.2 |  https://github.com/kitsudaiki/libKitsunemimiPersistence.git
-libKitsunemimiNetwork | v0.6.6 |  https://github.com/kitsudaiki/libKitsunemimiNetwork.git
+libKitsunemimiCommon | v0.20.0 |  https://github.com/kitsudaiki/libKitsunemimiCommon.git
+libKitsunemimiNetwork | v0.6.7 |  https://github.com/kitsudaiki/libKitsunemimiNetwork.git
 
 HINT: These Kitsunemimi-Libraries will be downloaded and build automatically with the build-script below.
 
