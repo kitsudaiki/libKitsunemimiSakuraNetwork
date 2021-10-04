@@ -20,11 +20,11 @@
  *      limitations under the License.
  */
 
-#include <libKitsunemimiPersistence/logger/logger.h>
+#include <libKitsunemimiCommon/logger.h>
 #include <boost/program_options.hpp>
 #include <test_session.h>
 
-using Kitsunemimi::Persistence::initConsoleLogger;
+using Kitsunemimi::initConsoleLogger;
 namespace argParser = boost::program_options;
 
 

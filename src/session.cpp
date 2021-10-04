@@ -31,7 +31,7 @@
 
 #include <multiblock_io.h>
 
-#include <libKitsunemimiPersistence/logger/logger.h>
+#include <libKitsunemimiCommon/logger.h>
 
 enum statemachineItems {
     NOT_CONNECTED = 1,

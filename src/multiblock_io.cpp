@@ -23,7 +23,7 @@
 #include "multiblock_io.h"
 
 #include <libKitsunemimiSakuraNetwork/session.h>
-#include <libKitsunemimiPersistence/logger/logger.h>
+#include <libKitsunemimiCommon/logger.h>
 #include <messages_processing/multiblock_data_processing.h>
 
 namespace Kitsunemimi
