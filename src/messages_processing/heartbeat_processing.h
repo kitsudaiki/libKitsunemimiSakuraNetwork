@@ -35,7 +35,7 @@
 #include <libKitsunemimiSakuraNetwork/session_controller.h>
 #include <libKitsunemimiSakuraNetwork/session.h>
 
-#include <libKitsunemimiPersistence/logger/logger.h>
+#include <libKitsunemimiCommon/logger.h>
 
 using Kitsunemimi::RingBuffer;
 using Kitsunemimi::Network::AbstractSocket;

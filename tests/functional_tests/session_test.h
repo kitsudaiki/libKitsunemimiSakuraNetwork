@@ -24,7 +24,7 @@
 #define SESSION_TEST_H
 
 #include <iostream>
-#include <libKitsunemimiPersistence/logger/logger.h>
+#include <libKitsunemimiCommon/logger.h>
 #include <libKitsunemimiSakuraNetwork/session_controller.h>
 #include <handler/session_handler.h>
 #include <libKitsunemimiSakuraNetwork/session.h>

@@ -20,11 +20,11 @@
  *      limitations under the License.
  */
 
-#include <libKitsunemimiPersistence/logger/logger.h>
+#include <libKitsunemimiCommon/logger.h>
 #include <libKitsunemimiArgs/arg_parser.h>
 #include <test_session.h>
 
-using Kitsunemimi::Persistence::initConsoleLogger;
+using Kitsunemimi::initConsoleLogger;
 
 int main(int argc, char *argv[])
 {
