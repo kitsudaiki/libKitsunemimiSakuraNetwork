@@ -58,7 +58,7 @@ namespace Sakura
  */
 Session::Session(Network::AbstractSocket* socket)
 {
-    m_multiblockIo = new MultiblockIO(this);
+    m_multiblockIo = new MultiblockIO(this, socket->getThreadName() + "_MultiblockIO");
     m_multiblockIo->startThread();
     m_socket = socket;
 

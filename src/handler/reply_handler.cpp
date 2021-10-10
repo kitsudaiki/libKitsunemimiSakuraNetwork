@@ -37,7 +37,8 @@ namespace Sakura
 /**
  * @brief constructor
  */
-ReplyHandler::ReplyHandler() {}
+ReplyHandler::ReplyHandler()
+    : Kitsunemimi::Thread("ReplyHandler") {}
 
 /**
  * @brief destructor

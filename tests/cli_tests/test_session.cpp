@@ -47,7 +47,7 @@ void standaloneDataCallback(void*,
                             const uint64_t blockerId,
                             Kitsunemimi::DataBuffer* data)
 {
-    std::string receivedMessage(static_cast<const char*>(data->data), data->bufferPosition);
+    std::string receivedMessage(static_cast<const char*>(data->data), data->usedBufferSize);
 
     if(session->isClientSide() == false)
     {
@@ -144,7 +144,7 @@ TestSession::sendLoop()
                                                                        10);
 
                 const std::string stringMessage = std::string((char*)data->data,
-                                                              data->bufferPosition);
+                                                              data->usedBufferSize);
 
                 std::cout<<"#################################################"<<std::endl;
                 std::cout<<"message: "<<std::endl;

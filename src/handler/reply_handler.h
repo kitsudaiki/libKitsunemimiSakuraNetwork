@@ -34,7 +34,8 @@ namespace Sakura
 {
 class Session;
 
-class ReplyHandler : public Kitsunemimi::Thread
+class ReplyHandler
+        : public Kitsunemimi::Thread
 {
 public:
     ReplyHandler();

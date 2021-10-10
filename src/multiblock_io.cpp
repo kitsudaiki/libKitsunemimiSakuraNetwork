@@ -31,8 +31,9 @@ namespace Kitsunemimi
 namespace Sakura
 {
 
-MultiblockIO::MultiblockIO(Session* session)
-    : Kitsunemimi::Thread()
+MultiblockIO::MultiblockIO(Session* session,
+                           const std::string &threadName)
+    : Kitsunemimi::Thread(threadName)
 {
     m_session = session;
 }

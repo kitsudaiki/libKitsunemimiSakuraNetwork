@@ -59,7 +59,7 @@ void standaloneDataCallback(void* target,
     {
         if(session->isClientSide() == false)
         {
-            instance->m_sizeCounter += data->bufferPosition;
+            instance->m_sizeCounter += data->usedBufferSize;
             delete data;
             uint8_t data[10];
             instance->m_serverSession->sendResponse(data, 10, blockerId);
@@ -71,7 +71,7 @@ void standaloneDataCallback(void* target,
     {
         if(session->isClientSide() == false)
         {
-            instance->m_sizeCounter += data->bufferPosition;
+            instance->m_sizeCounter += data->usedBufferSize;
             delete data;
             uint8_t data[10];
             instance->m_serverSession->sendStandaloneData(data, 10);
@@ -88,7 +88,7 @@ void standaloneDataCallback(void* target,
  * @brief errorCallback
  */
 void errorCallback(Kitsunemimi::Sakura::Session*,
-                   const uint8_t errorType,
+                   const uint8_t,
                    const std::string message)
 {
     std::cout<<"ERROR: "<<message<<std::endl;
