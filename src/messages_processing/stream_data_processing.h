@@ -52,7 +52,7 @@ send_Data_Stream(Session* session,
                  const bool replyExpected)
 {
     // bring message-size to a multiple of 8
-    const uint32_t size = static_cast<const uint32_t>(data->bufferPosition)
+    const uint32_t size = static_cast<const uint32_t>(data->usedBufferSize)
                           - sizeof(CommonMessageFooter)
                           - sizeof(Data_Stream_Header);
     const uint32_t totalMessageSize = sizeof(Data_Stream_Header)

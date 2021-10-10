@@ -31,7 +31,8 @@ namespace Sakura
 /**
  * @brief constructor
  */
-MessageBlockerHandler::MessageBlockerHandler() {}
+MessageBlockerHandler::MessageBlockerHandler()
+    : Kitsunemimi::Thread("MessageBlockerHandler") {}
 
 /**
  * @brief destructor

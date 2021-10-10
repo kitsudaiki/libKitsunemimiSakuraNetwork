@@ -91,8 +91,10 @@ SessionController::~SessionController()
 uint32_t
 SessionController::addUnixDomainServer(const std::string &socketFile)
 {
+    const std::string name = "UnixDomainServer_" + socketFile;
     Network::UnixDomainServer* server = new Network::UnixDomainServer(this,
-                                                                      &processConnection_Callback);
+                                                                      &processConnection_Callback,
+                                                                      name);
     if(server->initServer(socketFile) == false) {
         return 0;
     }
@@ -117,8 +119,10 @@ SessionController::addUnixDomainServer(const std::string &socketFile)
 uint32_t
 SessionController::addTcpServer(const uint16_t port)
 {
+    const std::string name = "TcpServer_" + std::to_string(port);
     Network::TcpServer* server = new Network::TcpServer(this,
-                                                        &processConnection_Callback);
+                                                        &processConnection_Callback,
+                                                        name);
     if(server->initServer(port) == false) {
         return 0;
     }
@@ -147,8 +151,10 @@ SessionController::addTlsTcpServer(const uint16_t port,
                                    const std::string &certFile,
                                    const std::string &keyFile)
 {
+    const std::string name = "TlsTcpServer_" + std::to_string(port);
     Network::TlsTcpServer* server = new Network::TlsTcpServer(this,
                                                               &processConnection_Callback,
+                                                              name,
                                                               certFile,
                                                               keyFile);
     if(server->initServer(port) == false) {
@@ -236,7 +242,9 @@ Session*
 SessionController::startUnixDomainSession(const std::string &socketFile,
                                           const std::string &sessionIdentifier)
 {
-    Network::UnixDomainSocket* unixDomainSocket = new Network::UnixDomainSocket(socketFile);
+    const std::string name = "UnixDomainSocket_" + socketFile;
+    Network::UnixDomainSocket* unixDomainSocket = new Network::UnixDomainSocket(socketFile,
+                                                                                name);
     return startSession(unixDomainSocket, sessionIdentifier);
 }
 
@@ -254,7 +262,8 @@ SessionController::startTcpSession(const std::string &address,
                                    const uint16_t port,
                                    const std::string &sessionIdentifier)
 {
-    Network::TcpSocket* tcpSocket = new Network::TcpSocket(address, port);
+    const std::string name = "TcpSocket_" + std::to_string(port);
+    Network::TcpSocket* tcpSocket = new Network::TcpSocket(address, port, name);
     return startSession(tcpSocket, sessionIdentifier);
 }
 
@@ -276,8 +285,10 @@ SessionController::startTlsTcpSession(const std::string &address,
                                       const std::string &keyFile,
                                       const std::string &sessionIdentifier)
 {
+    const std::string name = "TlsTcpSocket_" + std::to_string(port);
     Network::TlsTcpSocket* tlsTcpSocket = new Network::TlsTcpSocket(address,
                                                                     port,
+                                                                    name,
                                                                     certFile,
                                                                     keyFile);
     return startSession(tlsTcpSocket, sessionIdentifier);

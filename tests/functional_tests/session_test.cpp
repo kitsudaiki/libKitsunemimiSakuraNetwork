@@ -76,16 +76,16 @@ void standaloneDataCallback(void* target,
     LOG_DEBUG("TEST: standaloneDataCallback");
     Session_Test* instance = static_cast<Session_Test*>(target);
 
-    std::string receivedMessage(static_cast<const char*>(data->data), data->bufferPosition);
+    std::string receivedMessage(static_cast<const char*>(data->data), data->usedBufferSize);
 
-    if(data->bufferPosition <= 1024)
+    if(data->usedBufferSize <= 1024)
     {
-        instance->compare(data->bufferPosition, instance->m_singleBlockMessage.size());
+        instance->compare(data->usedBufferSize, instance->m_singleBlockMessage.size());
         instance->compare(receivedMessage, instance->m_singleBlockMessage);
     }
     else
     {
-        instance->compare(data->bufferPosition, instance->m_multiBlockMessage.size());
+        instance->compare(data->usedBufferSize, instance->m_multiBlockMessage.size());
         instance->compare(receivedMessage, instance->m_multiBlockMessage);
     }
 

@@ -53,6 +53,7 @@ SessionHandler::SessionHandler(void (*processCreateSession)(Session*, const std:
     m_processCloseSession = processCloseSession;
     m_processError = processError;
 
+
     if(m_replyHandler == nullptr)
     {
         m_replyHandler = new ReplyHandler();
@@ -64,6 +65,7 @@ SessionHandler::SessionHandler(void (*processCreateSession)(Session*, const std:
         m_blockerHandler = new MessageBlockerHandler();
         m_blockerHandler->startThread();
     }
+
 
     // check if messages have the size of a multiple of 8
     assert(sizeof(CommonMessageHeader) % 8 == 0);
@@ -97,12 +99,6 @@ SessionHandler::~SessionHandler()
     lockSessionMap();
     m_sessions.clear();
     unlockSessionMap();
-
-    if(m_replyHandler != nullptr)
-    {
-        delete m_replyHandler;
-        m_replyHandler = nullptr;
-    }
 }
 
 /**

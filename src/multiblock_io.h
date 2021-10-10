@@ -57,7 +57,7 @@ public:
         Kitsunemimi::DataBuffer* multiBlockBuffer = nullptr;
     };
 
-    MultiblockIO(Session* session);
+    MultiblockIO(Session* session, const std::string &threadName);
 
     Session* m_session = nullptr;
 
