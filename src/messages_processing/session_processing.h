@@ -20,8 +20,8 @@
  *      limitations under the License.
  */
 
-#ifndef SESSION_PROCESSING_H
-#define SESSION_PROCESSING_H
+#ifndef KITSUNEMIMI_SAKURA_NETWORK_SESSION_PROCESSING_H
+#define KITSUNEMIMI_SAKURA_NETWORK_SESSION_PROCESSING_H
 
 #include <message_definitions.h>
 #include <handler/session_handler.h>
@@ -304,4 +304,4 @@ process_Session_Type(Session* session,
 } // namespace Sakura
 } // namespace Kitsunemimi
 
-#endif // SESSION_PROCESSING_H
+#endif // KITSUNEMIMI_SAKURA_NETWORK_SESSION_PROCESSING_H

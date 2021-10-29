@@ -20,8 +20,8 @@
  *      limitations under the License.
  */
 
-#ifndef SESSION_HANDLER_H
-#define SESSION_HANDLER_H
+#ifndef KITSUNEMIMI_SAKURA_NETWORK_SESSION_HANDLER_H
+#define KITSUNEMIMI_SAKURA_NETWORK_SESSION_HANDLER_H
 
 #include <iostream>
 #include <vector>
@@ -49,11 +49,14 @@ public:
     static Kitsunemimi::Sakura::SessionController* m_sessionController;
 
     // server
-    uint32_t addUnixDomainServer(const std::string &socketFile);
-    uint32_t addTcpServer(const uint16_t port);
+    uint32_t addUnixDomainServer(const std::string &socketFile,
+                                 const std::string &threadName = "UDS");
+    uint32_t addTcpServer(const uint16_t port,
+                          const std::string &threadName = "TCP");
     uint32_t addTlsTcpServer(const uint16_t port,
                              const std::string &certFile,
-                             const std::string &keyFile);
+                             const std::string &keyFile,
+                             const std::string &threadName = "TLS_TCP");
     bool closeServer(const uint32_t id);
     void cloesAllServers();
 
@@ -79,4 +82,4 @@ private:
 } // namespace Sakura
 } // namespace Kitsunemimi
 
-#endif // SESSION_HANDLER_H
+#endif // KITSUNEMIMI_SAKURA_NETWORK_SESSION_HANDLER_H

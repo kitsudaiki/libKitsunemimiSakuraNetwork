@@ -20,8 +20,8 @@
  *      limitations under the License.
  */
 
-#ifndef CALLBACKS_H
-#define CALLBACKS_H
+#ifndef KITSUNEMIMI_SAKURA_NETWORK_CALLBACKS_H
+#define KITSUNEMIMI_SAKURA_NETWORK_CALLBACKS_H
 
 #include <libKitsunemimiNetwork/abstract_socket.h>
 #include <libKitsunemimiCommon/buffer/ring_buffer.h>
@@ -98,10 +98,14 @@ processMessage(void* target,
 
     if(header->protocolIdentifier != PROTOCOL_IDENTIFIER)
     {
-        LOG_ERROR("invalid incoming protocol");
         std::string headerContent = "";
         hexlify(headerContent, &header, sizeof(header));
-        LOG_ERROR("header: " + headerContent);
+
+        ErrorContainer error;
+        error.errorMessage = "invalid incoming protocol";
+        error.possibleSolution = " check header header: " + headerContent;
+        LOG_ERROR(error);
+
         // close session, because its an invalid incoming protocol
         session->closeSession();
         return 0;
@@ -110,11 +114,15 @@ processMessage(void* target,
     // check version in header
     if(header->version != 0x1)
     {
-        LOG_ERROR("false message-version");
         send_ErrorMessage(session, Session::errorCodes::FALSE_VERSION, "");
         std::string headerContent = "";
         hexlify(headerContent, &header, sizeof(header));
-        LOG_ERROR("header: " + headerContent);
+
+        ErrorContainer error;
+        error.errorMessage = "false message-version";
+        error.possibleSolution = "check header: " + headerContent;
+        LOG_ERROR(error);
+
         return 0;
     }
 
@@ -131,11 +139,15 @@ processMessage(void* target,
                           - 1;
     if(*end != MESSAGE_DELIMITER)
     {
-        LOG_ERROR("delimiter does not match");
         send_ErrorMessage(session, Session::errorCodes::FALSE_VERSION, "");
         std::string headerContent = "";
         hexlify(headerContent, &header, sizeof(header));
-        LOG_ERROR("header: " + headerContent);
+
+        ErrorContainer error;
+        error.errorMessage = "delimiter does not match";
+        error.possibleSolution = "check header: " + headerContent;
+        LOG_ERROR(error);
+
         assert(false);
         return 0;
     }
@@ -207,4 +219,4 @@ processConnection_Callback(void*,
 } // namespace Sakura
 } // namespace Kitsunemimi
 
-#endif // CALLBACKS_H
+#endif // KITSUNEMIMI_SAKURA_NETWORK_CALLBACKS_H

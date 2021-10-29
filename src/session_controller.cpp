@@ -85,16 +85,17 @@ SessionController::~SessionController()
  * @brief add new unix-domain-server
  *
  * @param socketFile file-path for the server
+ * @param threadName base-name for server and client threads
  *
  * @return id of the new server if sussessful, else return 0
  */
 uint32_t
-SessionController::addUnixDomainServer(const std::string &socketFile)
+SessionController::addUnixDomainServer(const std::string &socketFile,
+                                       const std::string &threadName)
 {
-    const std::string name = "UnixDomainServer_" + socketFile;
     Network::UnixDomainServer* server = new Network::UnixDomainServer(this,
                                                                       &processConnection_Callback,
-                                                                      name);
+                                                                      threadName);
     if(server->initServer(socketFile) == false) {
         return 0;
     }
@@ -113,16 +114,17 @@ SessionController::addUnixDomainServer(const std::string &socketFile)
  * @brief add new tcp-server
  *
  * @param port port where the server should listen
+ * @param threadName base-name for server and client threads
  *
  * @return id of the new server if sussessful, else return 0
  */
 uint32_t
-SessionController::addTcpServer(const uint16_t port)
+SessionController::addTcpServer(const uint16_t port,
+                                const std::string &threadName)
 {
-    const std::string name = "TcpServer_" + std::to_string(port);
     Network::TcpServer* server = new Network::TcpServer(this,
                                                         &processConnection_Callback,
-                                                        name);
+                                                        threadName);
     if(server->initServer(port) == false) {
         return 0;
     }
@@ -143,18 +145,19 @@ SessionController::addTcpServer(const uint16_t port)
  * @param port port where the server should listen
  * @param certFile certificate-file for tls-encryption
  * @param keyFile key-file for tls-encryption
+ * @param threadName base-name for server and client threads
  *
  * @return id of the new server if sussessful, else return 0
  */
 uint32_t
 SessionController::addTlsTcpServer(const uint16_t port,
                                    const std::string &certFile,
-                                   const std::string &keyFile)
+                                   const std::string &keyFile,
+                                   const std::string &threadName)
 {
-    const std::string name = "TlsTcpServer_" + std::to_string(port);
     Network::TlsTcpServer* server = new Network::TlsTcpServer(this,
                                                               &processConnection_Callback,
-                                                              name,
+                                                              threadName,
                                                               certFile,
                                                               keyFile);
     if(server->initServer(port) == false) {

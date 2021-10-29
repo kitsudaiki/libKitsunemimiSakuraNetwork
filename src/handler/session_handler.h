@@ -20,8 +20,8 @@
  *      limitations under the License.
  */
 
-#ifndef RESSOURCE_HANDLER_H
-#define RESSOURCE_HANDLER_H
+#ifndef KITSUNEMIMI_SAKURA_NETWORK_RESSOURCE_HANDLER_H
+#define KITSUNEMIMI_SAKURA_NETWORK_RESSOURCE_HANDLER_H
 
 #include <iostream>
 #include <vector>
@@ -102,4 +102,4 @@ private:
 } // namespace Sakura
 } // namespace Kitsunemimi
 
-#endif // RESSOURCE_HANDLER_H
+#endif // KITSUNEMIMI_SAKURA_NETWORK_RESSOURCE_HANDLER_H

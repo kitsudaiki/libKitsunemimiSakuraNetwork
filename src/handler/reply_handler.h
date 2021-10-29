@@ -20,8 +20,8 @@
  *      limitations under the License.
  */
 
-#ifndef REPLY_HANDLER_H
-#define REPLY_HANDLER_H
+#ifndef KITSUNEMIMI_SAKURA_NETWORK_REPLY_HANDLER_H
+#define KITSUNEMIMI_SAKURA_NETWORK_REPLY_HANDLER_H
 
 #include <vector>
 #include <iostream>
@@ -79,4 +79,4 @@ private:
 } // namespace Sakura
 } // namespace Kitsunemimi
 
-#endif // REPLY_HANDLER_H
+#endif // KITSUNEMIMI_SAKURA_NETWORK_REPLY_HANDLER_H

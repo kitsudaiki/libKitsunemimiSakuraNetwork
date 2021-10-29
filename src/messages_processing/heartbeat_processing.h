@@ -22,8 +22,8 @@
  *      limitations under the License.
  */
 
-#ifndef HEARTBEAT_PROCESSING_H
-#define HEARTBEAT_PROCESSING_H
+#ifndef KITSUNEMIMI_SAKURA_NETWORK_HEARTBEAT_PROCESSING_H
+#define KITSUNEMIMI_SAKURA_NETWORK_HEARTBEAT_PROCESSING_H
 
 #include <message_definitions.h>
 #include <handler/session_handler.h>
@@ -147,4 +147,4 @@ process_Heartbeat_Type(Session* session,
 } // namespace Sakura
 } // namespace Kitsunemimi
 
-#endif // HEARTBEAT_PROCESSING_H
+#endif // KITSUNEMIMI_SAKURA_NETWORK_HEARTBEAT_PROCESSING_H

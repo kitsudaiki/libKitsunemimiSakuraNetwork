@@ -20,8 +20,8 @@
  *      limitations under the License.
  */
 
-#ifndef SESSION_H
-#define SESSION_H
+#ifndef KITSUNEMIMI_SAKURA_NETWORK_SESSION_H
+#define KITSUNEMIMI_SAKURA_NETWORK_SESSION_H
 
 #include <iostream>
 #include <assert.h>
@@ -147,4 +147,4 @@ public:
 } // namespace Sakura
 } // namespace Kitsunemimi
 
-#endif // SESSION_H
+#endif // KITSUNEMIMI_SAKURA_NETWORK_SESSION_H

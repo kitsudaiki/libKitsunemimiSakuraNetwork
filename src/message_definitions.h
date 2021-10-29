@@ -20,8 +20,8 @@
  *      limitations under the License.
  */
 
-#ifndef MESSAGE_DEFINITIONS_H
-#define MESSAGE_DEFINITIONS_H
+#ifndef KITSUNEMIMI_SAKURA_NETWORK_MESSAGE_DEFINITIONS_H
+#define KITSUNEMIMI_SAKURA_NETWORK_MESSAGE_DEFINITIONS_H
 
 #define DEBUG_MODE false
 
@@ -519,4 +519,4 @@ struct Data_MultiAbortReply_Message
 } // namespace Sakura
 } // namespace Kitsunemimi
 
-#endif // MESSAGE_DEFINITIONS_H
+#endif // KITSUNEMIMI_SAKURA_NETWORK_MESSAGE_DEFINITIONS_H

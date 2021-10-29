@@ -20,8 +20,8 @@
  *      limitations under the License.
  */
 
-#ifndef MULTIBLOCK_IO_H
-#define MULTIBLOCK_IO_H
+#ifndef KITSUNEMIMI_SAKURA_NETWORK_MULTIBLOCK_IO_H
+#define KITSUNEMIMI_SAKURA_NETWORK_MULTIBLOCK_IO_H
 
 #include <iostream>
 #include <assert.h>
@@ -101,4 +101,4 @@ private:
 } // namespace Sakura
 } // namespace Kitsunemimi
 
-#endif // MULTIBLOCK_IO_H
+#endif // KITSUNEMIMI_SAKURA_NETWORK_MULTIBLOCK_IO_H

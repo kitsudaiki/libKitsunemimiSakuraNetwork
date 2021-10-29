@@ -20,8 +20,8 @@
  *      limitations under the License.
  */
 
-#ifndef STREAM_DATA_PROCESSING_H
-#define STREAM_DATA_PROCESSING_H
+#ifndef KITSUNEMIMI_SAKURA_NETWORK_STREAM_DATA_PROCESSING_H
+#define KITSUNEMIMI_SAKURA_NETWORK_STREAM_DATA_PROCESSING_H
 
 #include <message_definitions.h>
 #include <handler/session_handler.h>
@@ -53,8 +53,8 @@ send_Data_Stream(Session* session,
 {
     // bring message-size to a multiple of 8
     const uint32_t size = static_cast<const uint32_t>(data->usedBufferSize)
-                          - sizeof(CommonMessageFooter)
-                          - sizeof(Data_Stream_Header);
+                                                      - sizeof(CommonMessageFooter)
+                                                      - sizeof(Data_Stream_Header);
     const uint32_t totalMessageSize = sizeof(Data_Stream_Header)
                                       + size
                                       + (8-(size % 8)) % 8  // fill up to a multiple of 8
@@ -215,4 +215,4 @@ process_Stream_Data_Type(Session* session,
 } // namespace Sakura
 } // namespace Kitsunemimi
 
-#endif // STREAM_DATA_PROCESSING_H
+#endif // KITSUNEMIMI_SAKURA_NETWORK_STREAM_DATA_PROCESSING_H

@@ -20,8 +20,8 @@
  *      limitations under the License.
  */
 
-#ifndef MESSAGE_BLOCKER_HANDLER_H
-#define MESSAGE_BLOCKER_HANDLER_H
+#ifndef KITSUNEMIMI_SAKURA_NETWORK_MESSAGE_BLOCKER_HANDLER_H
+#define KITSUNEMIMI_SAKURA_NETWORK_MESSAGE_BLOCKER_HANDLER_H
 
 #include <vector>
 #include <iostream>
@@ -72,4 +72,4 @@ private:
 } // namespace Sakura
 } // namespace Kitsunemimi
 
-#endif // MESSAGE_BLOCKER_HANDLER_H
+#endif // KITSUNEMIMI_SAKURA_NETWORK_MESSAGE_BLOCKER_HANDLER_H

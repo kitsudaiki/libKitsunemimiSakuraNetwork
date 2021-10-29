@@ -22,8 +22,8 @@
  *      limitations under the License.
  */
 
-#ifndef ERROR_PROCESSING_H
-#define ERROR_PROCESSING_H
+#ifndef KITSUNEMIMI_SAKURA_NETWORK_ERROR_PROCESSING_H
+#define KITSUNEMIMI_SAKURA_NETWORK_ERROR_PROCESSING_H
 
 #include <message_definitions.h>
 #include <handler/session_handler.h>
@@ -183,4 +183,4 @@ process_Error_Type(Session* session,
 } // namespace Sakura
 } // namespace Kitsunemimi
 
-#endif // ERROR_PROCESSING_H
+#endif // KITSUNEMIMI_SAKURA_NETWORK_ERROR_PROCESSING_H
