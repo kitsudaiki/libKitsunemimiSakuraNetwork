@@ -139,9 +139,8 @@ Session::sendStandaloneData(const void* data,
         }
         else
         {
-            std::pair<DataBuffer*, uint64_t> result;
-            result = m_multiblockIo->createOutgoingBuffer(data, size, false);
-            return result.second;
+            DataBuffer result;
+            return m_multiblockIo->createOutgoingBuffer(&result, data, size, false);
         }
     }
 
@@ -158,8 +157,9 @@ Session::sendStandaloneData(const void* data,
  *
  * @return content of the response message as data-buffer, or nullptr, if session is not active
  */
-DataBuffer*
-Session::sendRequest(const void *data,
+bool
+Session::sendRequest(DataBuffer *result,
+                     const void *data,
                      const uint64_t size,
                      const uint64_t timeout)
 {
@@ -171,23 +171,18 @@ Session::sendRequest(const void *data,
         {
             // send as single-block-message, if small enough
             id = m_multiblockIo->getRandValue();
-            send_Data_SingleBlock(this,
-                                  id,
-                                  data,
-                                  static_cast<uint32_t>(size));
+            send_Data_SingleBlock(this, id, data, static_cast<uint32_t>(size));
         }
         else
         {
             // if too big for one message, send as multi-block-message
-            std::pair<DataBuffer*, uint64_t> result;
-            result = m_multiblockIo->createOutgoingBuffer(data, size, true);
-            id = result.second;
+            id = m_multiblockIo->createOutgoingBuffer(result, data, size, true);
         }
 
         return SessionHandler::m_blockerHandler->blockMessage(id, timeout, this);
     }
 
-    return nullptr;
+    return false;
 }
 
 /**
@@ -220,9 +215,8 @@ Session::sendResponse(const void *data,
         else
         {
             // if too big for one message, send as multi-block-message
-            std::pair<DataBuffer*, uint64_t> result;
-            result = m_multiblockIo->createOutgoingBuffer(data, size, false, blockerId);
-            return result.second;
+            DataBuffer result;
+            return m_multiblockIo->createOutgoingBuffer(&result, data, size, false, blockerId);
         }
     }
 

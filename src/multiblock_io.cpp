@@ -49,33 +49,30 @@ MultiblockIO::MultiblockIO(Session* session,
  *
  * @return
  */
-std::pair<DataBuffer*, uint64_t>
-MultiblockIO::createOutgoingBuffer(const void* data,
+uint64_t
+MultiblockIO::createOutgoingBuffer(DataBuffer* result,
+                                   const void* data,
                                    const uint64_t size,
                                    const bool answerExpected,
                                    const uint64_t blockerId)
 {
-    std::pair<DataBuffer*, uint64_t> result;
-
     // calculate required number of blocks to allocate within the buffer
     const uint32_t numberOfBlocks = static_cast<uint32_t>(size / 4096) + 1;
 
     // set or create id
     const uint64_t newMultiblockId = getRandValue();
+    Kitsunemimi::reset_DataBuffer(*result, numberOfBlocks);
 
     // init new multiblock-message
     MultiblockMessage newMultiblockMessage;
-    newMultiblockMessage.multiBlockBuffer = new Kitsunemimi::DataBuffer(numberOfBlocks);
+    newMultiblockMessage.multiBlockBuffer = result;
     newMultiblockMessage.messageSize = size;
     newMultiblockMessage.multiblockId = newMultiblockId;
     newMultiblockMessage.blockerId = blockerId;
 
     // check if memory allocation was successful
-    if(newMultiblockMessage.multiBlockBuffer == nullptr)
-    {
-        result.first = nullptr;
-        result.second = 0;
-        return result;
+    if(newMultiblockMessage.multiBlockBuffer == nullptr) {
+        return 0;
     }
 
     // write data, which should be send, to the temporary buffer
@@ -89,9 +86,7 @@ MultiblockIO::createOutgoingBuffer(const void* data,
     // send init-message to initialize the transfer for the data
     send_Data_Multi_Init(m_session, newMultiblockId, size, answerExpected);
 
-    result.second = newMultiblockId;
-
-    return result;
+    return newMultiblockId;
 }
 
 /**
@@ -106,11 +101,9 @@ bool
 MultiblockIO::createIncomingBuffer(const uint64_t multiblockId,
                                    const uint64_t size)
 {
-    const uint32_t numberOfBlocks = static_cast<uint32_t>(size / 4096) + 1;
-
     // init new multiblock-message
     MultiblockMessage newMultiblockMessage;
-    newMultiblockMessage.multiBlockBuffer = new Kitsunemimi::DataBuffer(numberOfBlocks);
+    newMultiblockMessage.multiBlockBuffer = new Kitsunemimi::DataBuffer(calcBytesToBlocks(size));
     newMultiblockMessage.messageSize = size;
     newMultiblockMessage.multiblockId = multiblockId;
 
@@ -120,9 +113,7 @@ MultiblockIO::createIncomingBuffer(const uint64_t multiblockId,
     }
 
     // put buffer into message-queue to be filled with incoming data
-    while(m_incoming_lock.test_and_set(std::memory_order_acquire)) {
-        asm("");
-    }
+    while(m_incoming_lock.test_and_set(std::memory_order_acquire)) { asm(""); }
     m_incoming.insert(std::make_pair(multiblockId, newMultiblockMessage));
     m_incoming_lock.clear(std::memory_order_release);
 

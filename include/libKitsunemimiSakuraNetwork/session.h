@@ -60,9 +60,10 @@ public:
                                 const uint64_t size);
     void abortMessages(const uint64_t multiblockMessageId=0);
 
-    DataBuffer* sendRequest(const void* data,
-                            const uint64_t size,
-                            const uint64_t timeout);
+    bool sendRequest(DataBuffer* result,
+                     const void* data,
+                     const uint64_t size,
+                     const uint64_t timeout);
     uint64_t sendResponse(const void* data,
                           const uint64_t size,
                           const uint64_t blockerId);

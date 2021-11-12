@@ -62,10 +62,11 @@ public:
     Session* m_session = nullptr;
 
     // create
-    std::pair<DataBuffer*, uint64_t> createOutgoingBuffer(const void* data,
-                                                          const uint64_t size,
-                                                          const bool answerExpected=false,
-                                                          const uint64_t blockerId=0);
+    uint64_t createOutgoingBuffer(DataBuffer* result,
+                                  const void* data,
+                                  const uint64_t size,
+                                  const bool answerExpected=false,
+                                  const uint64_t blockerId = 0);
     bool createIncomingBuffer(const uint64_t multiblockId,
                               const uint64_t size);
 

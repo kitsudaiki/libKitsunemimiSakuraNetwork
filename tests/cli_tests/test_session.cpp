@@ -139,12 +139,14 @@ TestSession::sendLoop()
         {
             if(m_isClient)
             {
-                Kitsunemimi::DataBuffer* data = m_session->sendRequest(message.c_str(),
-                                                                       message.size(),
-                                                                       10);
+                Kitsunemimi::DataBuffer resultData;
+                m_session->sendRequest(&resultData,
+                                       message.c_str(),
+                                       message.size(),
+                                       10);
 
-                const std::string stringMessage = std::string((char*)data->data,
-                                                              data->usedBufferSize);
+                const std::string stringMessage = std::string((char*)resultData.data,
+                                                              resultData.usedBufferSize);
 
                 std::cout<<"#################################################"<<std::endl;
                 std::cout<<"message: "<<std::endl;
