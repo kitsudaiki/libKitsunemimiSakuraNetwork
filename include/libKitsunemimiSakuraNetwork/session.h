@@ -28,6 +28,7 @@
 #include <atomic>
 #include <mutex>
 #include <condition_variable>
+#include <message_definitions.h>
 
 #include <libKitsunemimiCommon/statemachine.h>
 #include <libKitsunemimiCommon/buffer/data_buffer.h>
@@ -130,6 +131,18 @@ public:
     bool sendHeartbeat();
     void initStatemachine();
 
+
+    template<typename T>
+    bool sendMessage(const T &message)
+    {
+        return sendMessage(message.commonHeader,
+                           &message,
+                           sizeof(message));
+    }
+    bool sendMessage(const CommonMessageHeader &header,
+                     const void* data,
+                     const uint64_t size);
+
     // callbacks
     void (*m_processCreateSession)(Session*, const std::string);
     void (*m_processCloseSession)(Session*, const std::string);
@@ -141,7 +154,6 @@ public:
 
     // counter
     std::atomic_flag m_messageIdCounter_lock = ATOMIC_FLAG_INIT;
-    std::atomic_flag m_linkSession_lock = ATOMIC_FLAG_INIT;
     uint32_t m_messageIdCounter = 0;
 };
 

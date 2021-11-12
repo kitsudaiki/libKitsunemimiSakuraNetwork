@@ -46,7 +46,7 @@ namespace Sakura
 /**
  * @brief send_Data_SingleBlock
  */
-inline void
+inline bool
 send_Data_SingleBlock(Session* session,
                       const uint64_t multiblockId,
                       const void* data,
@@ -83,16 +83,13 @@ send_Data_SingleBlock(Session* session,
            sizeof(CommonMessageFooter));
 
     // send
-    SessionHandler::m_sessionHandler->sendMessage(session,
-                                                  header.commonHeader,
-                                                  &messageBuffer,
-                                                  totalMessageSize);
+    return session->sendMessage(header.commonHeader, &messageBuffer, totalMessageSize);
 }
 
 /**
  * @brief send_Data_SingleBlock_Reply
  */
-inline void
+inline bool
 send_Data_SingleBlock_Reply(Session* session,
                             const uint32_t messageId)
 {
@@ -103,7 +100,7 @@ send_Data_SingleBlock_Reply(Session* session,
     message.commonHeader.messageId = messageId;
 
     // send
-    SessionHandler::m_sessionHandler->sendMessage(session, message);
+    return session->sendMessage(message);
 }
 
 /**

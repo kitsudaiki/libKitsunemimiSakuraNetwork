@@ -61,7 +61,7 @@ send_Heartbeat_Start(Session* session)
     message.commonHeader.messageId = session->increaseMessageIdCounter();
 
     // send
-    return SessionHandler::m_sessionHandler->sendMessage(session, message);
+    return session->sendMessage(message);
 }
 
 /**
@@ -81,7 +81,7 @@ send_Heartbeat_Reply(Session* session,
     message.commonHeader.messageId = messageId;
 
     // send
-    return SessionHandler::m_sessionHandler->sendMessage(session, message);
+    return session->sendMessage(message);
 }
 
 /**
@@ -102,8 +102,7 @@ process_Heartbeat_Start(Session* session,
  *        message is arrived to be handled by the timer-thread
  */
 inline void
-process_Heartbeat_Reply(Session*,
-                        const Heartbeat_Reply_Message*)
+process_Heartbeat_Reply(Session*, const Heartbeat_Reply_Message*)
 {
     return;
 }

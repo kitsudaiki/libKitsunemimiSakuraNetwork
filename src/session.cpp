@@ -71,6 +71,8 @@ Session::Session(Network::AbstractSocket* socket)
 Session::~Session()
 {
     closeSession(false);
+    m_socket->scheduleThreadForDeletion();
+    m_socket = nullptr;
 }
 
 /**
@@ -447,13 +449,40 @@ Session::disconnectSession()
             return false;
         }
 
-        m_socket->scheduleThreadForDeletion();
-
         return true;
     }
 
     return false;
 }
+
+/**
+ * @brief send message over the socket of the session
+ *
+ * @param session session, where the message should be send
+ * @param header reference to the header of the message
+ * @param data pointer to the data of the complete data
+ * @param size size of the complete data
+ *
+ * @return true, if successful, else false
+ */
+bool
+Session::sendMessage(const CommonMessageHeader &header,
+                     const void* data,
+                     const uint64_t size)
+{
+    if(header.flags & 0x1)
+    {
+        SessionHandler::m_replyHandler->addMessage(header.type,
+                                                   header.sessionId,
+                                                   header.messageId,
+                                                   this);
+    }
+
+    return m_socket->sendMessage(data, size);
+}
+
+
+
 
 /**
  * @brief send a heartbeat-message

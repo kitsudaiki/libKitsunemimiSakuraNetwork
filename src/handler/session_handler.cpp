@@ -226,32 +226,5 @@ SessionHandler::sendHeartBeats()
     unlockSessionMap();
 }
 
-/**
- * @brief send message over the socket of the session
- *
- * @param session session, where the message should be send
- * @param header reference to the header of the message
- * @param data pointer to the data of the complete data
- * @param size size of the complete data
- *
- * @return true, if successful, else false
- */
-bool
-SessionHandler::sendMessage(Session* session,
-                            const CommonMessageHeader &header,
-                            const void* data,
-                            const uint64_t size)
-{
-    if(header.flags & 0x1)
-    {
-        SessionHandler::m_replyHandler->addMessage(header.type,
-                                                   header.sessionId,
-                                                   header.messageId,
-                                                   session);
-    }
-
-    return session->m_socket->sendMessage(data, size);
-}
-
 } // namespace Sakura
 } // namespace Kitsunemimi

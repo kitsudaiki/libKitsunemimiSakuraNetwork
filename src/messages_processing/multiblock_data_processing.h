@@ -46,7 +46,7 @@ namespace Sakura
 /**
  * @brief send_Data_Multi_Init
  */
-inline void
+inline bool
 send_Data_Multi_Init(Session* session,
                      const uint64_t multiblockId,
                      const uint64_t requestedSize,
@@ -63,13 +63,13 @@ send_Data_Multi_Init(Session* session,
         message.commonHeader.flags |= 0x4;
     }
 
-    SessionHandler::m_sessionHandler->sendMessage(session, message);
+    return session->sendMessage(message);
 }
 
 /**
  * @brief send_Data_Multi_Init_Reply
  */
-inline void
+inline bool
 send_Data_Multi_Init_Reply(Session* session,
                            const uint64_t multiblockId,
                            const uint32_t messageId,
@@ -83,13 +83,13 @@ send_Data_Multi_Init_Reply(Session* session,
     message.multiblockId = multiblockId;
     message.status = status;
 
-    SessionHandler::m_sessionHandler->sendMessage(session, message);
+    return session->sendMessage(message);
 }
 
 /**
  * @brief send_Data_Multi_Static
  */
-inline void
+inline bool
 send_Data_Multi_Static(Session* session,
                        const uint64_t multiblockId,
                        const uint32_t totalPartNumber,
@@ -124,13 +124,13 @@ send_Data_Multi_Static(Session* session,
            &end,
            sizeof(CommonMessageFooter));
 
-    SessionHandler::m_sessionHandler->sendMessage(session, message);
+    return session->sendMessage(message);
 }
 
 /**
  * @brief send_Data_Multi_Finish
  */
-inline void
+inline bool
 send_Data_Multi_Finish(Session* session,
                        const uint64_t multiblockId,
                        const uint64_t blockerId)
@@ -145,13 +145,13 @@ send_Data_Multi_Finish(Session* session,
         message.commonHeader.flags |= 0x8;
     }
 
-    SessionHandler::m_sessionHandler->sendMessage(session, message);
+    return session->sendMessage(message);
 }
 
 /**
  * @brief send_Data_Multi_Abort_Init
  */
-inline void
+inline bool
 send_Data_Multi_Abort_Init(Session* session,
                            const uint64_t multiblockId)
 {
@@ -161,13 +161,13 @@ send_Data_Multi_Abort_Init(Session* session,
     message.commonHeader.messageId = session->increaseMessageIdCounter();
     message.multiblockId = multiblockId;
 
-    SessionHandler::m_sessionHandler->sendMessage(session, message);
+    return session->sendMessage(message);
 }
 
 /**
  * @brief send_Data_Multi_Abort_Reply
  */
-inline void
+inline bool
 send_Data_Multi_Abort_Reply(Session* session,
                             const uint64_t multiblockId,
                             const uint32_t messageId)
@@ -178,7 +178,7 @@ send_Data_Multi_Abort_Reply(Session* session,
     message.commonHeader.messageId = messageId;
     message.multiblockId = multiblockId;
 
-    SessionHandler::m_sessionHandler->sendMessage(session, message);
+    return session->sendMessage(message);
 }
 
 /**
