@@ -56,11 +56,9 @@ send_Heartbeat_Start(Session* session)
 {
     Heartbeat_Start_Message message;
 
-    // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = session->increaseMessageIdCounter();
 
-    // send
     return session->sendMessage(message);
 }
 
@@ -76,11 +74,9 @@ send_Heartbeat_Reply(Session* session,
 {
     Heartbeat_Reply_Message message;
 
-    // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = messageId;
 
-    // send
     return session->sendMessage(message);
 }
 

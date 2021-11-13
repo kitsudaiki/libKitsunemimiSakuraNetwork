@@ -57,16 +57,13 @@ send_Session_Init_Start(Session* session,
 
     Session_Init_Start_Message message;
 
-    // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = session->increaseMessageIdCounter();
     message.clientSessionId = session->sessionId();
-    message.sessionIdentifierSize = static_cast<uint32_t>(sessionIdentifier.size());
-    memcpy(message.sessionIdentifier,
-           sessionIdentifier.c_str(),
-           sessionIdentifier.size());
 
-    // send
+    message.sessionIdentifierSize = static_cast<uint32_t>(sessionIdentifier.size());
+    memcpy(message.sessionIdentifier, sessionIdentifier.c_str(), sessionIdentifier.size());
+
     return session->sendMessage(message);
 }
 
@@ -91,18 +88,14 @@ send_Session_Init_Reply(Session* session,
 
     Session_Init_Reply_Message message;
 
-    // fill message
     message.commonHeader.sessionId = initialSessionId;
     message.commonHeader.messageId = messageId;
     message.completeSessionId = completeSessionId;
     message.clientSessionId = initialSessionId;
 
     message.sessionIdentifierSize = static_cast<uint32_t>(sessionIdentifier.size());
-    memcpy(message.sessionIdentifier,
-           sessionIdentifier.c_str(),
-           sessionIdentifier.size());
+    memcpy(message.sessionIdentifier, sessionIdentifier.c_str(), sessionIdentifier.size());
 
-    // send
     return session->sendMessage(message);
 }
 
@@ -120,14 +113,12 @@ send_Session_Close_Start(Session* session,
 
     Session_Close_Start_Message message;
 
-    // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = session->increaseMessageIdCounter();
     if(replyExpected) {
         message.commonHeader.flags = 0x1;
     }
 
-    // send
     return session->sendMessage(message);
 }
 
@@ -145,11 +136,9 @@ send_Session_Close_Reply(Session* session,
 
     Session_Close_Reply_Message message;
 
-    // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = messageId;
 
-    // send
     return session->sendMessage(message);
 }
 
@@ -219,8 +208,7 @@ process_Session_Close_Start(Session* session,
 {
     LOG_DEBUG("process session close start");
 
-    send_Session_Close_Reply(session,
-                             message->commonHeader.messageId);
+    send_Session_Close_Reply(session, message->commonHeader.messageId);
 
     // close session and disconnect session
     SessionHandler::m_sessionHandler->removeSession(message->sessionId);

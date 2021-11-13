@@ -128,11 +128,9 @@ send_Data_Stream_Reply(Session* session,
 {
     Data_StreamReply_Message message;
 
-    // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = messageId;
 
-    // send
     return session->sendMessage(message);
 }
 

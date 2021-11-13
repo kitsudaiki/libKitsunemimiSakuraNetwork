@@ -71,6 +71,8 @@ send_Data_SingleBlock(Session* session,
     header.commonHeader.payloadSize = size;
     header.blockerId = blockerId;
     header.multiblockId = multiblockId;
+
+    // set flag to await response-message for blocker-id
     if(blockerId != 0) {
         header.commonHeader.flags |= 0x8;
     }
@@ -95,11 +97,9 @@ send_Data_SingleBlock_Reply(Session* session,
 {
     Data_SingleBlockReply_Message message;
 
-    // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = messageId;
 
-    // send
     return session->sendMessage(message);
 }
 
@@ -112,8 +112,8 @@ process_Data_SingleBlock(Session* session,
                          const void* rawMessage)
 {
     // prepare buffer for payload
-    const uint32_t allocateBlocks = (header->commonHeader.payloadSize / 4096) + 1;
-    DataBuffer* buffer = new DataBuffer(allocateBlocks, 4096);
+    const uint32_t payloadSize = header->commonHeader.payloadSize;
+    DataBuffer* buffer = new DataBuffer(Kitsunemimi::calcBytesToBlocks(payloadSize));
 
     // get pointer to the beginning of the payload
     const uint8_t* payloadData = static_cast<const uint8_t*>(rawMessage)

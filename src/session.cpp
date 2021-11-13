@@ -160,8 +160,8 @@ Session::sendStandaloneData(const void* data,
  * @return content of the response message as data-buffer, or nullptr, if session is not active
  */
 bool
-Session::sendRequest(DataBuffer *result,
-                     const void *data,
+Session::sendRequest(DataBuffer* result,
+                     const void* data,
                      const uint64_t size,
                      const uint64_t timeout)
 {

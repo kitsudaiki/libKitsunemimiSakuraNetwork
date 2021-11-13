@@ -72,9 +72,7 @@ send_ErrorMessage(Session* session,
             if(message.messageSize > MAX_SINGLE_MESSAGE_SIZE-1) {
                 message.messageSize = MAX_SINGLE_MESSAGE_SIZE-1;
             }
-            strncpy(message.message,
-                    errorMessage.c_str(),
-                    message.messageSize);
+            strncpy(message.message, errorMessage.c_str(),  message.messageSize);
 
             // send
             return session->sendMessage(message);

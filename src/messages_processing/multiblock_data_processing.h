@@ -54,7 +54,6 @@ send_Data_Multi_Init(Session* session,
 {
     Data_MultiInit_Message message;
 
-    // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = session->increaseMessageIdCounter();
     message.multiblockId = multiblockId;
@@ -77,7 +76,6 @@ send_Data_Multi_Init_Reply(Session* session,
 {
     Data_MultiInitReply_Message message;
 
-    // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = messageId;
     message.multiblockId = multiblockId;

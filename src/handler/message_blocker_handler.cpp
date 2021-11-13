@@ -105,7 +105,7 @@ MessageBlockerHandler::releaseMessage(const uint64_t blockerId,
 void
 MessageBlockerHandler::run()
 {
-    while(!m_abort)
+    while(m_abort == false)
     {
         makeTimerStep();
 
@@ -226,9 +226,7 @@ MessageBlockerHandler::makeTimerStep()
             removeMessageFromList(temp->blockerId);
             releaseMessageInList(temp->blockerId, nullptr);
 
-            const std::string err = "TIMEOUT of request: "
-                                    + std::to_string(temp->blockerId);
-
+            const std::string err = "TIMEOUT of request: " + std::to_string(temp->blockerId);
             temp->session->m_processError(temp->session,
                                           Session::errorCodes::MESSAGE_TIMEOUT,
                                           err);
