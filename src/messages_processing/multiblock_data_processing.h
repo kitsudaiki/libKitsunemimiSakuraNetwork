@@ -50,7 +50,8 @@ inline bool
 send_Data_Multi_Init(Session* session,
                      const uint64_t multiblockId,
                      const uint64_t requestedSize,
-                     const bool answerExpected)
+                     const bool answerExpected,
+                     ErrorContainer &error)
 {
     Data_MultiInit_Message message;
 
@@ -62,7 +63,7 @@ send_Data_Multi_Init(Session* session,
         message.commonHeader.flags |= 0x4;
     }
 
-    return session->sendMessage(message);
+    return session->sendMessage(message, error);
 }
 
 /**
@@ -72,7 +73,8 @@ inline bool
 send_Data_Multi_Init_Reply(Session* session,
                            const uint64_t multiblockId,
                            const uint32_t messageId,
-                           const uint8_t status)
+                           const uint8_t status,
+                           ErrorContainer &error)
 {
     Data_MultiInitReply_Message message;
 
@@ -81,7 +83,7 @@ send_Data_Multi_Init_Reply(Session* session,
     message.multiblockId = multiblockId;
     message.status = status;
 
-    return session->sendMessage(message);
+    return session->sendMessage(message, error);
 }
 
 /**
@@ -93,7 +95,8 @@ send_Data_Multi_Static(Session* session,
                        const uint32_t totalPartNumber,
                        const uint32_t partId,
                        const void* data,
-                       const uint32_t size)
+                       const uint32_t size,
+                       ErrorContainer &error)
 {
     uint8_t messageBuffer[MESSAGE_CACHE_SIZE];
 
@@ -122,7 +125,7 @@ send_Data_Multi_Static(Session* session,
            &end,
            sizeof(CommonMessageFooter));
 
-    return session->sendMessage(message);
+    return session->sendMessage(message, error);
 }
 
 /**
@@ -131,7 +134,8 @@ send_Data_Multi_Static(Session* session,
 inline bool
 send_Data_Multi_Finish(Session* session,
                        const uint64_t multiblockId,
-                       const uint64_t blockerId)
+                       const uint64_t blockerId,
+                       ErrorContainer &error)
 {
     Data_MultiFinish_Message message;
 
@@ -143,7 +147,7 @@ send_Data_Multi_Finish(Session* session,
         message.commonHeader.flags |= 0x8;
     }
 
-    return session->sendMessage(message);
+    return session->sendMessage(message, error);
 }
 
 /**
@@ -151,7 +155,8 @@ send_Data_Multi_Finish(Session* session,
  */
 inline bool
 send_Data_Multi_Abort_Init(Session* session,
-                           const uint64_t multiblockId)
+                           const uint64_t multiblockId,
+                           ErrorContainer &error)
 {
     Data_MultiAbortInit_Message message;
 
@@ -159,7 +164,7 @@ send_Data_Multi_Abort_Init(Session* session,
     message.commonHeader.messageId = session->increaseMessageIdCounter();
     message.multiblockId = multiblockId;
 
-    return session->sendMessage(message);
+    return session->sendMessage(message, error);
 }
 
 /**
@@ -168,7 +173,8 @@ send_Data_Multi_Abort_Init(Session* session,
 inline bool
 send_Data_Multi_Abort_Reply(Session* session,
                             const uint64_t multiblockId,
-                            const uint32_t messageId)
+                            const uint32_t messageId,
+                            ErrorContainer &error)
 {
     Data_MultiAbortReply_Message message;
 
@@ -176,7 +182,7 @@ send_Data_Multi_Abort_Reply(Session* session,
     message.commonHeader.messageId = messageId;
     message.multiblockId = multiblockId;
 
-    return session->sendMessage(message);
+    return session->sendMessage(message, error);
 }
 
 /**
@@ -193,14 +199,16 @@ process_Data_Multi_Init(Session* session,
         send_Data_Multi_Init_Reply(session,
                                    message->multiblockId,
                                    message->commonHeader.messageId,
-                                   Data_MultiInitReply_Message::OK);
+                                   Data_MultiInitReply_Message::OK,
+                                   session->sessionError);
     }
     else
     {
         send_Data_Multi_Init_Reply(session,
                                    message->multiblockId,
                                    message->commonHeader.messageId,
-                                   Data_MultiInitReply_Message::FAIL);
+                                   Data_MultiInitReply_Message::FAIL,
+                                   session->sessionError);
     }
 }
 
@@ -253,8 +261,7 @@ process_Data_Multi_Finish(Session* session,
     if(message->commonHeader.flags & 0x8)
     {
         // release thread, which is related to the blocker-id
-        SessionHandler::m_blockerHandler->releaseMessage(message->blockerId,
-                                                         buffer.multiBlockBuffer);
+        SessionHandler::m_blockerHandler->releaseMessage(message->blockerId, buffer.incomingData);
     }
     else
     {
@@ -262,7 +269,7 @@ process_Data_Multi_Finish(Session* session,
         session->m_processStandaloneData(session->m_standaloneReceiver,
                                          session,
                                          message->multiblockId,
-                                         buffer.multiBlockBuffer);
+                                         buffer.incomingData);
     }
 
     session->m_multiblockIo->removeIncomingMessage(message->multiblockId);
@@ -280,7 +287,8 @@ process_Data_Multi_Abort_Init(Session* session,
     // send reply
     send_Data_Multi_Abort_Reply(session,
                                 message->multiblockId,
-                                message->commonHeader.messageId);
+                                message->commonHeader.messageId,
+                                session->sessionError);
 }
 
 /**

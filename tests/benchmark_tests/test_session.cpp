@@ -33,7 +33,7 @@ void streamDataCallback(void* target,
         if(instance->m_sizeCounter == instance->m_totalSize)
         {
             uint8_t data[10];
-            instance->m_serverSession->sendStreamData(data, 10);
+            instance->m_serverSession->sendStreamData(data, 10, session->sessionError);
             instance->m_sizeCounter = 0;
         }
     }
@@ -62,24 +62,7 @@ void standaloneDataCallback(void* target,
             instance->m_sizeCounter += data->usedBufferSize;
             delete data;
             uint8_t data[10];
-            instance->m_serverSession->sendResponse(data, 10, blockerId);
-        }
-    }
-
-    // handling for standalone transfer-type
-    if(instance->m_transferType == "standalone")
-    {
-        if(session->isClientSide() == false)
-        {
-            instance->m_sizeCounter += data->usedBufferSize;
-            delete data;
-            uint8_t data[10];
-            instance->m_serverSession->sendStandaloneData(data, 10);
-        }
-        else
-        {
-            instance->m_sizeCounter = 0;
-            instance->m_cv.notify_all();
+            instance->m_serverSession->sendResponse(data, 10, blockerId, session->sessionError);
         }
     }
 }
@@ -141,6 +124,7 @@ TestSession::TestSession(const std::string &address,
                          const std::string &socket,
                          const std::string &transferType)
 {
+    ErrorContainer error;
     TestSession::m_instance = this;
 
     // init global values
@@ -166,29 +150,29 @@ TestSession::TestSession(const std::string &address,
         if(address == "127.0.0.1")
         {
             m_isClient = true;
-            m_controller->addTcpServer(port);
+            m_controller->addTcpServer(port, error);
             usleep(10000);
-            m_controller->startTcpSession(address, port);
+            m_controller->startTcpSession(address, port, "test-session", error);
         }
         else
         {
             if(address != "server")
             {
                 m_isClient = true;
-                m_controller->startTcpSession(address, port);
+                m_controller->startTcpSession(address, port, "test-session", error);
             }
             else
             {
-                m_controller->addTcpServer(port);
+                m_controller->addTcpServer(port, error);
             }
         }
     }
     else
     {
         m_isClient = true;
-        m_controller->addUnixDomainServer("/tmp/sock.uds");
+        m_controller->addUnixDomainServer("/tmp/sock.uds", error);
         usleep(10000);
-        m_controller->startUnixDomainSession("/tmp/sock.uds");
+        m_controller->startUnixDomainSession("/tmp/sock.uds", "test-session", error);
     }
 }
 
@@ -198,6 +182,7 @@ TestSession::TestSession(const std::string &address,
 void
 TestSession::runTest(const long packageSize)
 {
+    ErrorContainer error;
 
     if(m_isClient)
     {
@@ -214,29 +199,11 @@ TestSession::runTest(const long packageSize)
                 for(long i = 0; i < (10l*1024l*1024l*1024l) / packageSize; i++)
                 {
                     assert(m_clientSession->sendStreamData(m_dataBuffer,
-                                                           static_cast<uint64_t>(packageSize)));
+                                                           static_cast<uint64_t>(packageSize),
+                                                           error));
                 }
                 m_cv.wait(lock);
 
-                m_timeSlot.stopTimer();
-                m_timeSlot.values.push_back(calculateSpeed(m_timeSlot.getDuration(MICRO_SECONDS)));
-            }
-        }
-
-        // send standalone-messages
-        if(m_transferType == "standalone")
-        {
-            m_timeSlot.name = "standalone-speed";
-            for(int j = 0; j < 10; j++)
-            {
-                std::cout<<"standalone"<<std::endl;
-                m_timeSlot.startTimer();
-                for(int i = 0; i < (10l*1024l*1024l*1024l) / packageSize; i++)
-                {
-                    m_clientSession->sendStandaloneData(m_dataBuffer,
-                                                        static_cast<uint64_t>(packageSize));
-                    m_cv.wait(lock);
-                }
                 m_timeSlot.stopTimer();
                 m_timeSlot.values.push_back(calculateSpeed(m_timeSlot.getDuration(MICRO_SECONDS)));
             }
@@ -253,10 +220,12 @@ TestSession::runTest(const long packageSize)
                 m_timeSlot.startTimer();
                 for(int i = 0; i < (10l*1024l*1024l*1024l) / packageSize; i++)
                 {
-                    m_clientSession->sendRequest(&resultBuffer,
-                                                 m_dataBuffer,
-                                                 static_cast<uint64_t>(packageSize),
-                                                 10000);
+                    DataBuffer* resultBuffer = nullptr;
+                    resultBuffer = m_clientSession->sendRequest(m_dataBuffer,
+                                                                static_cast<uint64_t>(packageSize),
+                                                                10000,
+                                                                error);
+                    delete resultBuffer;
                 }
                 m_sizeCounter = 0;
                 m_timeSlot.stopTimer();

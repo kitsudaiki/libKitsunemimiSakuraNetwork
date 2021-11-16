@@ -32,7 +32,7 @@
 #include <string>
 
 #include <libKitsunemimiCommon/buffer/data_buffer.h>
-#include <libKitsunemimiCommon/threading/thread.h>
+#include <libKitsunemimiCommon/logger.h>
 
 namespace Kitsunemimi
 {
@@ -41,38 +41,39 @@ namespace Sakura
 class Session;
 
 class MultiblockIO
-        : public Kitsunemimi::Thread
 {
 public:
     // multiblock-message
     struct MultiblockMessage
     {
-        bool isReady = false;
-        bool currentSend = false;
         uint64_t blockerId = 0;
         uint64_t multiblockId = 0;
         uint64_t messageSize = 0;
         uint32_t numberOfPackages = 0;
         uint32_t courrentPackage = 0;
-        Kitsunemimi::DataBuffer* multiBlockBuffer = nullptr;
+        bool abort = false;
+
+        Kitsunemimi::DataBuffer* incomingData = nullptr;
+        const void* outgoingData = nullptr;
+        uint64_t outgoingDataSize = 0;
     };
 
-    MultiblockIO(Session* session, const std::string &threadName);
+    MultiblockIO(Session* session);
 
     Session* m_session = nullptr;
 
     // create
-    uint64_t createOutgoingBuffer(DataBuffer* result,
-                                  const void* data,
+    uint64_t createOutgoingBuffer(const void* data,
                                   const uint64_t size,
-                                  const bool answerExpected=false,
+                                  ErrorContainer &error,
+                                  const bool answerExpected = false,
                                   const uint64_t blockerId = 0);
     bool createIncomingBuffer(const uint64_t multiblockId,
                               const uint64_t size);
 
     // process outgoing
     bool makeOutgoingReady(const uint64_t multiblockId);
-    bool sendOutgoingData(const MultiblockMessage &messageBuffer);
+    bool sendOutgoingData(const MultiblockMessage &messageBuffer, ErrorContainer &error);
 
     // process incoming
     MultiblockMessage getIncomingBuffer(const uint64_t multiblockId);
@@ -85,9 +86,6 @@ public:
     bool removeIncomingMessage(const uint64_t multiblockId);
 
     uint64_t getRandValue();
-
-protected:
-    void run();
 
 private:
     bool m_aborCurrentMessage = false;

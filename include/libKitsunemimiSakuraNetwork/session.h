@@ -30,6 +30,7 @@
 #include <condition_variable>
 #include <message_definitions.h>
 
+#include <libKitsunemimiCommon/logger.h>
 #include <libKitsunemimiCommon/statemachine.h>
 #include <libKitsunemimiCommon/buffer/data_buffer.h>
 #include <libKitsunemimiCommon/buffer/stack_buffer.h>
@@ -55,19 +56,19 @@ public:
     // send-messages
     bool sendStreamData(const void* data,
                         const uint64_t size,
+                        ErrorContainer &error,
                         const bool replyExpected = false);
-
-    uint64_t sendStandaloneData(const void* data,
-                                const uint64_t size);
-    void abortMessages(const uint64_t multiblockMessageId=0);
-
-    bool sendRequest(DataBuffer* result,
-                     const void* data,
-                     const uint64_t size,
-                     const uint64_t timeout);
+    DataBuffer* sendRequest(const void* data,
+                            const uint64_t size,
+                            const uint64_t timeout,
+                            ErrorContainer &error);
     uint64_t sendResponse(const void* data,
                           const uint64_t size,
-                          const uint64_t blockerId);
+                          const uint64_t blockerId,
+                          ErrorContainer &error);
+
+    void abortMessages(const uint64_t multiblockMessageId,
+                       ErrorContainer &error);
 
     // setter for changing callbacks
     void setStreamMessageCallback(void* receiver,
@@ -85,7 +86,8 @@ public:
                                                const std::string));
 
     // session-controlling functions
-    bool closeSession(const bool replyExpected = false);
+    bool closeSession(ErrorContainer &errorconst,
+                      bool replyExpected = false);
     uint32_t sessionId() const;
     bool isClientSide() const;
 
@@ -114,34 +116,38 @@ public:
     MultiblockIO* m_multiblockIo = nullptr;
     uint32_t m_sessionId = 0;
     std::string m_sessionIdentifier = "";
+    ErrorContainer sessionError;
 
     // wait for initialized
     std::mutex m_cvMutex;
     std::condition_variable m_cv;
 
     // init session
-    bool connectiSession(const uint32_t sessionId);
+    bool connectiSession(const uint32_t sessionId,
+                         ErrorContainer &error);
     bool makeSessionReady(const uint32_t sessionId,
-                          const std::string &sessionIdentifier);
+                          const std::string &sessionIdentifier,
+                          ErrorContainer &error);
 
     // end session
-    bool endSession();
-    bool disconnectSession();
+    bool endSession(ErrorContainer &error);
+    bool disconnectSession(ErrorContainer &error);
 
     bool sendHeartbeat();
     void initStatemachine();
 
 
     template<typename T>
-    bool sendMessage(const T &message)
+    bool sendMessage(const T &message,
+                     ErrorContainer &error)
     {
-        return sendMessage(message.commonHeader,
-                           &message,
-                           sizeof(message));
+        return sendMessage(message.commonHeader,  &message, sizeof(message), error);
     }
+
     bool sendMessage(const CommonMessageHeader &header,
                      const void* data,
-                     const uint64_t size);
+                     const uint64_t size,
+                     ErrorContainer &error);
 
     // callbacks
     void (*m_processCreateSession)(Session*, const std::string);

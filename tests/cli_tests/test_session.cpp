@@ -103,6 +103,7 @@ void sessionCloseCallback(Kitsunemimi::Sakura::Session*,
 TestSession::TestSession(const std::string &address,
                          const uint16_t port)
 {
+    ErrorContainer error;
     TestSession::m_instance = this;
     m_controller = new Kitsunemimi::Sakura::SessionController(&sessionCreateCallback,
                                                               &sessionCloseCallback,
@@ -111,11 +112,11 @@ TestSession::TestSession(const std::string &address,
     if(address != "")
     {
         m_isClient = true;
-        m_controller->startTcpSession(address, port);
+        m_controller->startTcpSession(address, port, "test-session", error);
     }
     else
     {
-        m_controller->addTcpServer(port);
+        m_controller->addTcpServer(port, error);
     }
 }
 
@@ -125,6 +126,8 @@ TestSession::TestSession(const std::string &address,
 void
 TestSession::sendLoop()
 {
+    ErrorContainer error;
+
     while(true)
     {
         while(m_session == nullptr) {
@@ -139,14 +142,16 @@ TestSession::sendLoop()
         {
             if(m_isClient)
             {
-                Kitsunemimi::DataBuffer resultData;
-                m_session->sendRequest(&resultData,
-                                       message.c_str(),
-                                       message.size(),
-                                       10);
+                Kitsunemimi::DataBuffer* resultData = nullptr;;
+                resultData = m_session->sendRequest(message.c_str(),
+                                                    message.size(),
+                                                    10,
+                                                    error);
 
-                const std::string stringMessage = std::string((char*)resultData.data,
-                                                              resultData.usedBufferSize);
+                const std::string stringMessage = std::string((char*)resultData->data,
+                                                              resultData->usedBufferSize);
+                delete resultData;
+
 
                 std::cout<<"#################################################"<<std::endl;
                 std::cout<<"message: "<<std::endl;
@@ -161,7 +166,8 @@ TestSession::sendLoop()
                 long id = strtol(splitted.at(1).c_str(), NULL, 10);
                 m_session->sendResponse(splitted.at(0).c_str(),
                                         splitted.at(0).size(),
-                                        id);
+                                        id,
+                                        error);
             }
 
         }

@@ -119,14 +119,18 @@ processMessage(void* target,
         createHeaderError("invalid incoming protocol", header);
 
         // close session, because its an invalid incoming protocol
-        session->closeSession();
+        ErrorContainer error;
+        session->closeSession(error);
+        LOG_ERROR(error);
         return 0;
     }
 
     // check version in header
     if(header->version != 0x1)
     {
-        send_ErrorMessage(session, Session::errorCodes::FALSE_VERSION, "");
+        ErrorContainer error;
+        send_ErrorMessage(session, Session::errorCodes::FALSE_VERSION, "", error);
+        LOG_ERROR(error);
         createHeaderError("false message-version", header);
         return 0;
     }
@@ -143,7 +147,9 @@ processMessage(void* target,
     const uint32_t* end = static_cast<const uint32_t*>(rawMessage) + endPosition;
     if(*end != MESSAGE_DELIMITER)
     {
-        send_ErrorMessage(session, Session::errorCodes::FALSE_VERSION, "");
+        ErrorContainer error;
+        send_ErrorMessage(session, Session::errorCodes::FALSE_VERSION, "", error);
+        LOG_ERROR(error);
         createHeaderError("delimiter does not match", header);
         assert(false);
         return 0;

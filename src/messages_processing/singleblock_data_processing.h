@@ -51,14 +51,15 @@ send_Data_SingleBlock(Session* session,
                       const uint64_t multiblockId,
                       const void* data,
                       uint32_t size,
-                      const uint64_t blockerId=0)
+                      ErrorContainer &error,
+                      const uint64_t blockerId = 0)
 {
     uint8_t messageBuffer[MESSAGE_CACHE_SIZE];
 
     // bring message-size to a multiple of 8
     const uint32_t totalMessageSize = sizeof(Data_SingleBlock_Header)
                                       + size
-                                      + (8-(size % 8)) % 8  // fill up to a multiple of 8
+                                      + (8 - (size % 8)) % 8  // fill up to a multiple of 8
                                       + sizeof(CommonMessageFooter);
 
     CommonMessageFooter end;
@@ -85,7 +86,7 @@ send_Data_SingleBlock(Session* session,
            sizeof(CommonMessageFooter));
 
     // send
-    return session->sendMessage(header.commonHeader, &messageBuffer, totalMessageSize);
+    return session->sendMessage(header.commonHeader, &messageBuffer, totalMessageSize, error);
 }
 
 /**
@@ -93,14 +94,15 @@ send_Data_SingleBlock(Session* session,
  */
 inline bool
 send_Data_SingleBlock_Reply(Session* session,
-                            const uint32_t messageId)
+                            const uint32_t messageId,
+                            ErrorContainer &error)
 {
     Data_SingleBlockReply_Message message;
 
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = messageId;
 
-    return session->sendMessage(message);
+    return session->sendMessage(message, error);
 }
 
 /**
@@ -140,7 +142,7 @@ process_Data_SingleBlock(Session* session,
 
     // send reply, if requested
     if(header->commonHeader.flags & 0x1) {
-        send_Data_SingleBlock_Reply(session, header->commonHeader.messageId);
+        send_Data_SingleBlock_Reply(session, header->commonHeader.messageId, session->sessionError);
     }
 }
 

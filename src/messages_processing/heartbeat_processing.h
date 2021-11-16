@@ -52,14 +52,15 @@ namespace Sakura
  * @param session pointer to the session
  */
 inline bool
-send_Heartbeat_Start(Session* session)
+send_Heartbeat_Start(Session* session,
+                     ErrorContainer &error)
 {
     Heartbeat_Start_Message message;
 
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = session->increaseMessageIdCounter();
 
-    return session->sendMessage(message);
+    return session->sendMessage(message, error);
 }
 
 /**
@@ -70,14 +71,15 @@ send_Heartbeat_Start(Session* session)
  */
 inline bool
 send_Heartbeat_Reply(Session* session,
-                     const uint32_t messageId)
+                     const uint32_t messageId,
+                     ErrorContainer &error)
 {
     Heartbeat_Reply_Message message;
 
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = messageId;
 
-    return session->sendMessage(message);
+    return session->sendMessage(message, error);
 }
 
 /**
@@ -90,7 +92,7 @@ inline bool
 process_Heartbeat_Start(Session* session,
                         const Heartbeat_Start_Message* message)
 {
-    return send_Heartbeat_Reply(session, message->commonHeader.messageId);
+    return send_Heartbeat_Reply(session, message->commonHeader.messageId, session->sessionError);
 }
 
 /**
