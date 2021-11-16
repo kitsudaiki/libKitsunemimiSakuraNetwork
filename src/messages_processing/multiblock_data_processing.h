@@ -266,7 +266,7 @@ process_Data_Multi_Finish(Session* session,
     else
     {
         // trigger callback
-        session->m_processStandaloneData(session->m_standaloneReceiver,
+        session->m_processRequestData(session->m_standaloneReceiver,
                                          session,
                                          message->multiblockId,
                                          buffer.incomingData);

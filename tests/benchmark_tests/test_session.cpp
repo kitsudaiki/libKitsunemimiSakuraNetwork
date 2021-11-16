@@ -84,8 +84,8 @@ void errorCallback(Kitsunemimi::Sakura::Session*,
 void sessionCreateCallback(Kitsunemimi::Sakura::Session* session,
                            const std::string)
 {
-    session->setStreamMessageCallback(TestSession::m_instance, &streamDataCallback);
-    session->setStandaloneMessageCallback(TestSession::m_instance, &standaloneDataCallback);
+    session->setStreamCallback(TestSession::m_instance, &streamDataCallback);
+    session->setRequestCallback(TestSession::m_instance, &standaloneDataCallback);
 
     std::cout<<"session-callback for id: "<<session->m_sessionId<<"\n"<<std::endl;
 

@@ -71,19 +71,11 @@ public:
                        ErrorContainer &error);
 
     // setter for changing callbacks
-    void setStreamMessageCallback(void* receiver,
-                                  void (*processStreamData)(void*,
-                                                            Session*,
-                                                            const void*,
-                                                            const uint64_t));
-    void setStandaloneMessageCallback(void* receiver,
-                                      void (*processStandaloneData)(void*,
-                                                                    Session*,
-                                                                    const uint64_t,
-                                                                    DataBuffer*));
-    void setErrorCallback(void (*processError)(Session*,
-                                               const uint8_t,
-                                               const std::string));
+    void setStreamCallback(void* receiver,
+                           void (*processStream)(void*, Session*, const void*, const uint64_t));
+    void setRequestCallback(void* receiver,
+                            void (*processRequest)(void*, Session*, const uint64_t, DataBuffer*));
+    void setErrorCallback(void (*processError)(Session*,  const uint8_t, const std::string));
 
     // session-controlling functions
     bool closeSession(ErrorContainer &errorconst,
@@ -153,7 +145,7 @@ public:
     void (*m_processCreateSession)(Session*, const std::string);
     void (*m_processCloseSession)(Session*, const std::string);
     void (*m_processStreamData)(void*, Session*, const void*, const uint64_t);
-    void (*m_processStandaloneData)(void*, Session*, const uint64_t, DataBuffer*);
+    void (*m_processRequestData)(void*, Session*, const uint64_t, DataBuffer*);
     void (*m_processError)(Session*, const uint8_t, const std::string);
     void* m_streamReceiver = nullptr;
     void* m_standaloneReceiver = nullptr;

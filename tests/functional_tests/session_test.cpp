@@ -105,8 +105,8 @@ void errorCallback(Kitsunemimi::Sakura::Session*,
 void sessionCreateCallback(Kitsunemimi::Sakura::Session* session,
                            const std::string sessionIdentifier)
 {
-    session->setStreamMessageCallback(Session_Test::m_instance, &streamDataCallback);
-    session->setStandaloneMessageCallback(Session_Test::m_instance, &standaloneDataCallback);
+    session->setStreamCallback(Session_Test::m_instance, &streamDataCallback);
+    session->setRequestCallback(Session_Test::m_instance, &standaloneDataCallback);
 
     Session_Test::m_instance->compare(session->sessionId(), (uint32_t)131073);
     Session_Test::m_instance->m_numberOfInitSessions++;

@@ -217,37 +217,29 @@ Session::sendResponse(const void* data,
  * @brief Session::setStreamMessageCallback
  */
 void
-Session::setStreamMessageCallback(void* receiver,
-                                  void (*processStreamData)(void*,
-                                                            Session*,
-                                                            const void*,
-                                                            const uint64_t))
+Session::setStreamCallback(void* receiver,
+                           void (*processStream)(void*, Session*, const void*, const uint64_t))
 {
     m_streamReceiver = receiver;
-    m_processStreamData = processStreamData;
+    m_processStreamData = processStream;
 }
 
 /**
  * @brief Session::setStandaloneMessageCallback
  */
 void
-Session::setStandaloneMessageCallback(void* receiver,
-                                      void (*processStandaloneData)(void*,
-                                                                    Session*,
-                                                                    const uint64_t,
-                                                                    DataBuffer*))
+Session::setRequestCallback(void* receiver,
+                            void (*processRequest)(void*, Session*, const uint64_t, DataBuffer*))
 {
     m_standaloneReceiver = receiver;
-    m_processStandaloneData = processStandaloneData;
+    m_processRequestData = processRequest;
 }
 
 /**
  * @brief Session::setErrorCallback
  */
 void
-Session::setErrorCallback(void (*processError)(Session*,
-                                               const uint8_t,
-                                               const std::string))
+Session::setErrorCallback(void (*processError)(Session*, const uint8_t, const std::string))
 {
     m_processError = processError;
 }
