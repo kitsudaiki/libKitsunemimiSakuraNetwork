@@ -38,7 +38,6 @@ enum statemachineItems {
     CONNECTED = 2,
     SESSION_NOT_READY = 3,
     SESSION_READY = 4,
-    ACTIVE = 5,
 
     CONNECT = 7,
     DISCONNECT = 8,
@@ -89,7 +88,7 @@ Session::sendStreamData(const void* data,
                         const uint64_t size,
                         const bool replyExpected)
 {
-    if(m_statemachine.isInState(ACTIVE))
+    if(m_statemachine.isInState(SESSION_READY))
     {
         uint64_t totalSize = size;
         uint64_t currentMessageSize = 0;
@@ -131,7 +130,7 @@ uint64_t
 Session::sendStandaloneData(const void* data,
                             const uint64_t size)
 {
-    if(m_statemachine.isInState(ACTIVE))
+    if(m_statemachine.isInState(SESSION_READY))
     {
         if(size <= MAX_SINGLE_MESSAGE_SIZE)
         {
@@ -165,7 +164,7 @@ Session::sendRequest(DataBuffer* result,
                      const uint64_t size,
                      const uint64_t timeout)
 {
-    if(m_statemachine.isInState(ACTIVE))
+    if(m_statemachine.isInState(SESSION_READY))
     {
         uint64_t id = 0;
 
@@ -201,7 +200,7 @@ Session::sendResponse(const void *data,
                       const uint64_t size,
                       const uint64_t blockerId)
 {
-    if(m_statemachine.isInState(ACTIVE))
+    if(m_statemachine.isInState(SESSION_READY))
     {
         if(size < MAX_SINGLE_MESSAGE_SIZE)
         {
@@ -510,16 +509,13 @@ Session::initStatemachine()
     assert(m_statemachine.createNewState(CONNECTED, "connected"));
     assert(m_statemachine.createNewState(SESSION_NOT_READY, "session not ready"));
     assert(m_statemachine.createNewState(SESSION_READY, "session ready"));
-    assert(m_statemachine.createNewState(ACTIVE, "active"));
 
     // set child state
     assert(m_statemachine.addChildState(CONNECTED,     SESSION_NOT_READY));
     assert(m_statemachine.addChildState(CONNECTED,     SESSION_READY));
-    assert(m_statemachine.addChildState(SESSION_READY, ACTIVE));
 
     // set initial states
     assert(m_statemachine.setInitialChildState(CONNECTED,     SESSION_NOT_READY));
-    assert(m_statemachine.setInitialChildState(SESSION_READY, ACTIVE));
 
     // init transitions
     assert(m_statemachine.addTransition(NOT_CONNECTED,     CONNECT,       CONNECTED));
