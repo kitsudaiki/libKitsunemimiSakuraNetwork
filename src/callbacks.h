@@ -108,7 +108,7 @@ processMessage(void* target,
     Session* session = static_cast<Session*>(target);
 
     // et header of message and check if header was complete within the buffer
-    CommonMessageHeader* header = getObject_RingBuffer<CommonMessageHeader>(*recvBuffer);
+    const CommonMessageHeader* header = getObject_RingBuffer<CommonMessageHeader>(*recvBuffer);
     if(header == nullptr) {
         return 0;
     }
@@ -132,8 +132,7 @@ processMessage(void* target,
     }
 
     // get complete message from the ringbuffer, if enough data are available
-    void* rawMessage = static_cast<void*>(getDataPointer_RingBuffer(*recvBuffer,
-                                                                    header->totalMessageSize));
+    const void* rawMessage = getDataPointer_RingBuffer(*recvBuffer, header->totalMessageSize);
     if(rawMessage == nullptr) {
         return 0;
     }
