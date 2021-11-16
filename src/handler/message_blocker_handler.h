@@ -34,7 +34,8 @@ namespace Sakura
 {
 class Session;
 
-class MessageBlockerHandler : public Kitsunemimi::Thread
+class MessageBlockerHandler
+        : public Kitsunemimi::Thread
 {
 public:
     MessageBlockerHandler();

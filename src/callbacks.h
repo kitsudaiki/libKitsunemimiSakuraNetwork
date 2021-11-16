@@ -76,6 +76,23 @@ hexlify(std::string &outputString,
 }
 
 /**
+ * @brief createHeaderError
+ * @param header
+ */
+void
+createHeaderError(const std::string &message,
+                  const CommonMessageHeader* header)
+{
+    std::string headerContent = "";
+    hexlify(headerContent, &header, sizeof(header));
+
+    ErrorContainer error;
+    error.errorMessage = message;
+    error.possibleSolution = " check header: " + headerContent;
+    LOG_ERROR(error);
+}
+
+/**
  * process incoming data
  *
  * @param target void-pointer to the session, which had received the message
@@ -91,20 +108,15 @@ processMessage(void* target,
     Session* session = static_cast<Session*>(target);
 
     // et header of message and check if header was complete within the buffer
-    CommonMessageHeader* header = getObject_RingBuffer<CommonMessageHeader>(*recvBuffer);
+    const CommonMessageHeader* header = getObject_RingBuffer<CommonMessageHeader>(*recvBuffer);
     if(header == nullptr) {
         return 0;
     }
 
+    // check for correct protocol
     if(header->protocolIdentifier != PROTOCOL_IDENTIFIER)
     {
-        std::string headerContent = "";
-        hexlify(headerContent, &header, sizeof(header));
-
-        ErrorContainer error;
-        error.errorMessage = "invalid incoming protocol";
-        error.possibleSolution = " check header header: " + headerContent;
-        LOG_ERROR(error);
+        createHeaderError("invalid incoming protocol", header);
 
         // close session, because its an invalid incoming protocol
         session->closeSession();
@@ -115,39 +127,24 @@ processMessage(void* target,
     if(header->version != 0x1)
     {
         send_ErrorMessage(session, Session::errorCodes::FALSE_VERSION, "");
-        std::string headerContent = "";
-        hexlify(headerContent, &header, sizeof(header));
-
-        ErrorContainer error;
-        error.errorMessage = "false message-version";
-        error.possibleSolution = "check header: " + headerContent;
-        LOG_ERROR(error);
-
+        createHeaderError("false message-version", header);
         return 0;
     }
 
     // get complete message from the ringbuffer, if enough data are available
-    void* rawMessage = static_cast<void*>(getDataPointer_RingBuffer(*recvBuffer,
-                                                                    header->totalMessageSize));
+    const void* rawMessage = getDataPointer_RingBuffer(*recvBuffer, header->totalMessageSize);
     if(rawMessage == nullptr) {
         return 0;
     }
 
     // check delimiter of the message
-    const uint32_t* end = static_cast<const uint32_t*>(rawMessage)
-                          + ((header->totalMessageSize)/4)
-                          - 1;
+    //    devide by 4, because uint32_t has 4 bytes sizede
+    const uint64_t endPosition = (header->totalMessageSize / 4) - 1;
+    const uint32_t* end = static_cast<const uint32_t*>(rawMessage) + endPosition;
     if(*end != MESSAGE_DELIMITER)
     {
         send_ErrorMessage(session, Session::errorCodes::FALSE_VERSION, "");
-        std::string headerContent = "";
-        hexlify(headerContent, &header, sizeof(header));
-
-        ErrorContainer error;
-        error.errorMessage = "delimiter does not match";
-        error.possibleSolution = "check header: " + headerContent;
-        LOG_ERROR(error);
-
+        createHeaderError("delimiter does not match", header);
         assert(false);
         return 0;
     }

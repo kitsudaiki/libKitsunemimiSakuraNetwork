@@ -78,10 +78,7 @@ send_Data_Stream(Session* session,
            sizeof(CommonMessageFooter));
 
     // send
-    return SessionHandler::m_sessionHandler->sendMessage(session,
-                                                         header.commonHeader,
-                                                         dataPtr,
-                                                         totalMessageSize);
+    return session->sendMessage(header.commonHeader, dataPtr, totalMessageSize);
 }
 
 /**
@@ -119,27 +116,22 @@ send_Data_Stream(Session* session,
            sizeof(CommonMessageFooter));
 
     // send
-    return SessionHandler::m_sessionHandler->sendMessage(session,
-                                                         header.commonHeader,
-                                                         messageBuffer,
-                                                         totalMessageSize);
+    return session->sendMessage(header.commonHeader, messageBuffer, totalMessageSize);
 }
 
 /**
  * @brief send_Data_Stream_Reply
  */
-inline void
+inline bool
 send_Data_Stream_Reply(Session* session,
                        const uint32_t messageId)
 {
     Data_StreamReply_Message message;
 
-    // fill message
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = messageId;
 
-    // send
-    SessionHandler::m_sessionHandler->sendMessage(session, message);
+    return session->sendMessage(message);
 }
 
 /**

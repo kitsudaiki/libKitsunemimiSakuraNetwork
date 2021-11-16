@@ -49,7 +49,7 @@ namespace Sakura
  * @param errorCode error-code enum to automatic identify the error-message by code
  * @param message human readable error-message for log-output
  */
-inline void
+inline bool
 send_ErrorMessage(Session* session,
                   const uint8_t errorCode,
                   const std::string &errorMessage)
@@ -72,13 +72,10 @@ send_ErrorMessage(Session* session,
             if(message.messageSize > MAX_SINGLE_MESSAGE_SIZE-1) {
                 message.messageSize = MAX_SINGLE_MESSAGE_SIZE-1;
             }
-            strncpy(message.message,
-                    errorMessage.c_str(),
-                    message.messageSize);
+            strncpy(message.message, errorMessage.c_str(),  message.messageSize);
 
             // send
-            SessionHandler::m_sessionHandler->sendMessage(session, message);
-            break;
+            return session->sendMessage(message);
         }
         //------------------------------------------------------------------------------------------
         case Session::errorCodes::UNKNOWN_SESSION:
@@ -99,8 +96,7 @@ send_ErrorMessage(Session* session,
                     message.messageSize);
 
             // send
-            SessionHandler::m_sessionHandler->sendMessage(session, message);
-            break;
+            return session->sendMessage(message);
         }
         //------------------------------------------------------------------------------------------
         case Session::errorCodes::INVALID_MESSAGE_SIZE:
@@ -121,13 +117,14 @@ send_ErrorMessage(Session* session,
                     message.messageSize);
 
             // send
-            SessionHandler::m_sessionHandler->sendMessage(session, message);
-            break;
+            return session->sendMessage(message);
         }
         //------------------------------------------------------------------------------------------
         default:
             break;
     }
+
+    return true;
 }
 
 /**

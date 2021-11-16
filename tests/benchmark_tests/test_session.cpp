@@ -246,13 +246,15 @@ TestSession::runTest(const long packageSize)
         if(m_transferType == "request")
         {
             m_timeSlot.name = "request-speed";
+            DataBuffer resultBuffer;
             for(int j = 0; j < 10; j++)
             {
                 std::cout<<"request"<<std::endl;
                 m_timeSlot.startTimer();
                 for(int i = 0; i < (10l*1024l*1024l*1024l) / packageSize; i++)
                 {
-                    m_clientSession->sendRequest(m_dataBuffer,
+                    m_clientSession->sendRequest(&resultBuffer,
+                                                 m_dataBuffer,
                                                  static_cast<uint64_t>(packageSize),
                                                  10000);
                 }
