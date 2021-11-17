@@ -67,19 +67,13 @@ public:
 
     MultiblockIO(Session* session);
 
-    Session* m_session = nullptr;
-
     // create
-    uint64_t createOutgoingBuffer(const void* data,
-                                  const uint64_t size,
-                                  ErrorContainer &error,
-                                  const bool answerExpected = false,
-                                  const uint64_t blockerId = 0);
+    uint64_t sendOutgoingData(const void* data,
+                              const uint64_t size,
+                              ErrorContainer &error,
+                              const uint64_t blockerId = 0);
     bool createIncomingBuffer(const uint64_t multiblockId,
                               const uint64_t size);
-
-    // process outgoing
-    bool sendOutgoingData(const MultiblockBuffer &messageBuffer, ErrorContainer &error);
 
     // process incoming
     MultiblockBuffer getIncomingBuffer(const uint64_t multiblockId);
@@ -88,9 +82,9 @@ public:
                                  const uint64_t size);
     bool removeMultiblockBuffer(const uint64_t multiblockId);
 
-    uint64_t getRandValue();
-
 private:
+    Session* m_session = nullptr;
+
     std::mutex m_lock;
     std::map<uint64_t, MultiblockBuffer> m_incomingBuffer;
 };

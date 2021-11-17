@@ -48,26 +48,51 @@ MultiblockIO::MultiblockIO(Session* session)
  * @return
  */
 uint64_t
-MultiblockIO::createOutgoingBuffer(const void* data,
-                                   const uint64_t size,
-                                   ErrorContainer &error,
-                                   const bool answerExpected,
-                                   const uint64_t blockerId)
+MultiblockIO::sendOutgoingData(const void* data,
+                               const uint64_t size,
+                               ErrorContainer &error,
+                               const uint64_t blockerId)
 {
     // set or create id
-    const uint64_t newMultiblockId = getRandValue();
+    const uint64_t newMultiblockId = m_session->getRandId();
 
-    // init new multiblock-message
-    MultiblockBuffer newMultiblockMessage;
-    newMultiblockMessage.messageSize = size;
-    newMultiblockMessage.multiblockId = newMultiblockId;
-    newMultiblockMessage.blockerId = blockerId;
-    newMultiblockMessage.outgoingData = data;
-    newMultiblockMessage.outgoingDataSize = size;
-    newMultiblockMessage.type = OUTGOING_TYPE;
+    // counter values
+    uint64_t totalSize = size;
+    uint64_t currentMessageSize = 0;
+    uint32_t partCounter = 0;
 
-    // send init-message to initialize the transfer for the data
-    sendOutgoingData(newMultiblockMessage, error);
+    // static values
+    const uint32_t totalPartNumber = static_cast<uint32_t>(totalSize / MAX_SINGLE_MESSAGE_SIZE) + 1;
+    const uint8_t* dataPointer = static_cast<const uint8_t*>(data);
+
+    while(totalSize != 0)
+    {
+        // get message-size base on the rest
+        currentMessageSize = MAX_SINGLE_MESSAGE_SIZE;
+        if(totalSize <= MAX_SINGLE_MESSAGE_SIZE) {
+            currentMessageSize = totalSize;
+        }
+        totalSize -= currentMessageSize;
+
+        // send single packet
+        if(send_Data_Multi_Static(m_session,
+                                  size,
+                                  newMultiblockId,
+                                  totalPartNumber,
+                                  partCounter,
+                                  dataPointer + (MAX_SINGLE_MESSAGE_SIZE * partCounter),
+                                  static_cast<uint32_t>(currentMessageSize),
+                                  error) == false)
+        {
+            return 0;
+        }
+
+        partCounter++;
+    }
+
+    if(send_Data_Multi_Finish(m_session, newMultiblockId, blockerId, error) == false) {
+        return 0;
+    }
 
     return newMultiblockId;
 }
@@ -102,60 +127,6 @@ MultiblockIO::createIncomingBuffer(const uint64_t multiblockId,
     m_lock.lock();
     m_incomingBuffer.insert(std::make_pair(multiblockId, newMultiblockMessage));
     m_lock.unlock();
-
-    return true;
-}
-
-/**
- * @brief send multi-block message
- *
- * @param messageBuffer message to send
- *
- * @return false, if sending message failed, else true
- */
-bool
-MultiblockIO::sendOutgoingData(const MultiblockBuffer& messageBuffer,
-                               ErrorContainer &error)
-{
-    // counter values
-    uint64_t totalSize = messageBuffer.messageSize;
-    uint64_t currentMessageSize = 0;
-    uint32_t partCounter = 0;
-
-    // static values
-    const uint32_t totalPartNumber = static_cast<uint32_t>(totalSize / MAX_SINGLE_MESSAGE_SIZE) + 1;
-    const uint8_t* dataPointer = static_cast<const uint8_t*>(messageBuffer.outgoingData);
-
-    while(totalSize != 0)
-    {
-        // get message-size base on the rest
-        currentMessageSize = MAX_SINGLE_MESSAGE_SIZE;
-        if(totalSize <= MAX_SINGLE_MESSAGE_SIZE) {
-            currentMessageSize = totalSize;
-        }
-        totalSize -= currentMessageSize;
-
-        // send single packet
-        if(send_Data_Multi_Static(m_session,
-                                  messageBuffer.messageSize,
-                                  messageBuffer.multiblockId,
-                                  totalPartNumber,
-                                  partCounter,
-                                  dataPointer + (MAX_SINGLE_MESSAGE_SIZE * partCounter),
-                                  static_cast<uint32_t>(currentMessageSize),
-                                  error) == false)
-        {
-            return false;
-        }
-
-        partCounter++;
-    }
-
-    // TODO: check return value
-    send_Data_Multi_Finish(m_session,
-                           messageBuffer.multiblockId,
-                           messageBuffer.blockerId,
-                           error);
 
     return true;
 }
@@ -233,23 +204,6 @@ MultiblockIO::removeMultiblockBuffer(const uint64_t multiblockId)
     return false;
 }
 
-/**
- * @brief generate a new random 64bit-value, which is not 0
- *
- * @return new 64bit-value
- */
-uint64_t
-MultiblockIO::getRandValue()
-{
-    uint64_t newId = 0;
-
-    // 0 is the undefined value and should never be allowed
-    while(newId == 0) {
-        newId = (static_cast<uint64_t>(rand()) << 32) | static_cast<uint64_t>(rand());
-    }
-
-    return newId;
-}
 
 } // namespace Sakura
 } // namespace Kitsunemimi

@@ -124,7 +124,7 @@ public:
 
     bool sendHeartbeat();
     void initStatemachine();
-
+    uint64_t getRandId();
 
     template<typename T>
     bool sendMessage(const T &message,

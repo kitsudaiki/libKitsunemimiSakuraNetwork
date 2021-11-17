@@ -143,7 +143,7 @@ Session::sendRequest(const void* data,
         if(size <= MAX_SINGLE_MESSAGE_SIZE)
         {
             // send as single-block-message, if small enough
-            id = m_multiblockIo->getRandValue();
+            id = getRandId();
             if(send_Data_SingleBlock(this, id, data, static_cast<uint32_t>(size), error) == false) {
                 return nullptr;
             }
@@ -151,7 +151,7 @@ Session::sendRequest(const void* data,
         else
         {
             // if too big for one message, send as multi-block-message
-            id = m_multiblockIo->createOutgoingBuffer(data, size, error, true);
+            id = m_multiblockIo->sendOutgoingData(data, size, error);
         }
 
         return SessionHandler::m_blockerHandler->blockMessage(id, timeout, this);
@@ -180,7 +180,7 @@ Session::sendResponse(const void* data,
         if(size < MAX_SINGLE_MESSAGE_SIZE)
         {
             // send as single-block-message, if small enough
-            const uint64_t singleblockId = m_multiblockIo->getRandValue();
+            const uint64_t singleblockId = getRandId();
             send_Data_SingleBlock(this,
                                   singleblockId,
                                   data,
@@ -192,7 +192,7 @@ Session::sendResponse(const void* data,
         else
         {
             // if too big for one message, send as multi-block-message
-            return m_multiblockIo->createOutgoingBuffer(data, size, error, false, blockerId);
+            return m_multiblockIo->sendOutgoingData(data, size, error, blockerId);
         }
     }
 
@@ -500,6 +500,24 @@ Session::increaseMessageIdCounter()
 
     m_messageIdCounter_lock.clear(std::memory_order_release);
     return tempId;
+}
+
+/**
+ * @brief generate a new random 64bit-value, which is not 0
+ *
+ * @return new 64bit-value
+ */
+uint64_t
+Session::getRandId()
+{
+    uint64_t newId = 0;
+
+    // 0 is the undefined value and should never be allowed
+    while(newId == 0) {
+        newId = (static_cast<uint64_t>(rand()) << 32) | static_cast<uint64_t>(rand());
+    }
+
+    return newId;
 }
 
 } // namespace Sakura
