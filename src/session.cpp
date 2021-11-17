@@ -30,6 +30,7 @@
 #include <messages_processing/singleblock_data_processing.h>
 
 #include <multiblock_io.h>
+#include <message_definitions.h>
 
 #include <libKitsunemimiCommon/logger.h>
 
@@ -79,6 +80,7 @@ Session::~Session()
  *
  * @param data data-pointer
  * @param size number of bytes
+ * @param error reference for error-output
  * @param replyExpected if true, the other side sends a reply-message to check timeouts
  *
  * @return false if session is NOT ready to send, else true
@@ -127,6 +129,7 @@ Session::sendStreamData(const void* data,
  * @param data data-pointer
  * @param size number of bytes
  * @param timeout time in seconds in which the response is expected
+ * @param error reference for error-output
  *
  * @return content of the response message as data-buffer, or nullptr, if session is not active
  */
@@ -166,6 +169,7 @@ Session::sendRequest(const void* data,
  * @param data data-pointer
  * @param size number of bytes
  * @param blockerId id to identify the response and map them to the related request
+ * @param error reference for error-output
  *
  * @return multiblock-id, or 0, if session is not active
  */
@@ -200,7 +204,7 @@ Session::sendResponse(const void* data,
 }
 
 /**
- * @brief Session::setStreamMessageCallback
+ * @brief set callback for stram-message
  */
 void
 Session::setStreamCallback(void* receiver,
@@ -211,7 +215,7 @@ Session::setStreamCallback(void* receiver,
 }
 
 /**
- * @brief Session::setStandaloneMessageCallback
+ * @brief set callback for requests
  */
 void
 Session::setRequestCallback(void* receiver,
@@ -222,7 +226,7 @@ Session::setRequestCallback(void* receiver,
 }
 
 /**
- * @brief Session::setErrorCallback
+ * @brief set callback for errors
  */
 void
 Session::setErrorCallback(void (*processError)(Session*, const uint8_t, const std::string))
@@ -360,6 +364,8 @@ Session::makeSessionReady(const uint32_t sessionId,
 
     m_cv.notify_one();
 
+    error.errorMessage = "Failed to make session ready";
+
     return false;
 }
 
@@ -402,11 +408,14 @@ Session::disconnectSession(ErrorContainer &error)
     {
         const bool ret = m_socket->closeSocket();
         if(ret == false) {
+            error.errorMessage = "Failed to close session";
             return false;
         }
 
         return true;
     }
+
+    error.errorMessage = "Failed to go to DISCONNECT-state for session";
 
     return false;
 }
@@ -491,9 +500,7 @@ uint32_t
 Session::increaseMessageIdCounter()
 {
     uint32_t tempId = 0;
-    while (m_messageIdCounter_lock.test_and_set(std::memory_order_acquire))  {
-        asm("");
-    }
+    while (m_messageIdCounter_lock.test_and_set(std::memory_order_acquire)) { asm(""); }
 
     m_messageIdCounter++;
     tempId = m_messageIdCounter;

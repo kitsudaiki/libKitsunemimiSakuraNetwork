@@ -28,7 +28,6 @@
 #include <atomic>
 #include <mutex>
 #include <condition_variable>
-#include <message_definitions.h>
 
 #include <libKitsunemimiCommon/logger.h>
 #include <libKitsunemimiCommon/statemachine.h>
@@ -47,6 +46,7 @@ class SessionHandler;
 class SessionController;
 class InternalSessionInterface;
 class MultiblockIO;
+struct CommonMessageHeader;
 
 class Session
 {

@@ -43,12 +43,6 @@ class Session;
 class MultiblockIO
 {
 public:
-    enum BufferType
-    {
-        OUTGOING_TYPE = 0,
-        INCOMING_TYPE = 1,
-    };
-
     // multiblock-message
     struct MultiblockBuffer
     {
@@ -57,12 +51,8 @@ public:
         uint64_t messageSize = 0;
         uint32_t numberOfPackages = 0;
         uint32_t courrentPackage = 0;
-        bool abort = false;
-        BufferType type = OUTGOING_TYPE;
 
         Kitsunemimi::DataBuffer* incomingData = nullptr;
-        const void* outgoingData = nullptr;
-        uint64_t outgoingDataSize = 0;
     };
 
     MultiblockIO(Session* session);

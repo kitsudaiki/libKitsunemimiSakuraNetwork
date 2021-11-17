@@ -37,15 +37,14 @@ MultiblockIO::MultiblockIO(Session* session)
 }
 
 /**
- * @brief initialize multiblock-message by data-buffer for a new multiblock and bring statemachine
- *        into required state
+ * @brief send multiblock-message
  *
  * @param data payload of the message to send
  * @param size total size of the payload of the message (no header)
- * @param answerExpected true, if message is a request-message
+ * @param error reference for error-output
  * @param blockerId blocker-id in case that the message is a response
  *
- * @return
+ * @return 0, if failed, else the multiblock-id of the message
  */
 uint64_t
 MultiblockIO::sendOutgoingData(const void* data,
@@ -90,6 +89,7 @@ MultiblockIO::sendOutgoingData(const void* data,
         partCounter++;
     }
 
+    // finish multiblock-message
     if(send_Data_Multi_Finish(m_session, newMultiblockId, blockerId, error) == false) {
         return 0;
     }
@@ -114,7 +114,6 @@ MultiblockIO::createIncomingBuffer(const uint64_t multiblockId,
     newMultiblockMessage.incomingData = new Kitsunemimi::DataBuffer(calcBytesToBlocks(size));
     newMultiblockMessage.messageSize = size;
     newMultiblockMessage.multiblockId = multiblockId;
-    newMultiblockMessage.type = INCOMING_TYPE;
 
     // check if memory allocation was successful
     if(newMultiblockMessage.incomingData->data == nullptr)
@@ -203,7 +202,6 @@ MultiblockIO::removeMultiblockBuffer(const uint64_t multiblockId)
 
     return false;
 }
-
 
 } // namespace Sakura
 } // namespace Kitsunemimi

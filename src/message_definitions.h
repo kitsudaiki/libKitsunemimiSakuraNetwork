@@ -90,8 +90,8 @@ enum singleblock_data_subTypes
 
 enum multiblock_data_subTypes
 {
-    DATA_MULTI_STATIC_SUBTYPE = 3,
-    DATA_MULTI_FINISH_SUBTYPE = 4,
+    DATA_MULTI_STATIC_SUBTYPE = 1,
+    DATA_MULTI_FINISH_SUBTYPE = 2,
 };
 
 //==================================================================================================
