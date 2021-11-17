@@ -183,14 +183,14 @@ ReplyHandler::removeMessageFromList(const uint64_t completeMessageId)
 }
 
 /**
- * @brief endless thread-loop the time timer
+ * @brief endless thread-loop the heartbeat timer
  */
 void
 ReplyHandler::run()
 {
     uint32_t counter = 0;
 
-    while(!m_abort)
+    while(m_abort == false)
     {
         sleepThread(100000);
         counter += 1;
@@ -199,10 +199,10 @@ ReplyHandler::run()
             break;
         }
 
-        makeTimerStep();
-
         if(counter % 10 == 0)
         {
+            makeTimerStep();
+
             SessionHandler::m_sessionHandler->sendHeartBeats();
             counter = 0;
         }
@@ -220,7 +220,7 @@ ReplyHandler::makeTimerStep()
     for(uint64_t i = 0; i < m_messageList.size(); i++)
     {
         MessageTime* temp = &m_messageList[i];
-        temp->timer += 0.1f;
+        temp->timer += 1.0f;
 
         if(temp->timer >= m_timeoutValue)
         {

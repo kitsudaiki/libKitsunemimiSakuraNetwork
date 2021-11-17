@@ -69,25 +69,25 @@ void streamDataCallback(void* target,
  * @param dataSize
  */
 void standaloneDataCallback(void* target,
-                            Session*,
-                            const uint64_t,
+                            Session* session,
+                            const uint64_t blockerId,
                             DataBuffer* data)
 {
-    LOG_DEBUG("TEST: standaloneDataCallback");
-    Session_Test* instance = static_cast<Session_Test*>(target);
-
     std::string receivedMessage(static_cast<const char*>(data->data), data->usedBufferSize);
+    Session_Test* instance = static_cast<Session_Test*>(target);
+    LOG_DEBUG("TEST: receive request with size: " + std::to_string(receivedMessage.size()));
 
-    if(data->usedBufferSize <= 1024)
-    {
-        instance->compare(data->usedBufferSize, instance->m_singleBlockMessage.size());
+    if(receivedMessage.size() < 1024) {
         instance->compare(receivedMessage, instance->m_singleBlockMessage);
-    }
-    else
-    {
-        instance->compare(data->usedBufferSize, instance->m_multiBlockMessage.size());
+    } else {
         instance->compare(receivedMessage, instance->m_multiBlockMessage);
     }
+
+    const std::string responseMessage = receivedMessage + "_response";
+    session->sendResponse(responseMessage.c_str(),
+                          responseMessage.size(),
+                          blockerId,
+                          session->sessionError);
 
     delete data;
 }
@@ -110,8 +110,8 @@ void errorCallback(Kitsunemimi::Sakura::Session*,
 void sessionCreateCallback(Kitsunemimi::Sakura::Session* session,
                            const std::string sessionIdentifier)
 {
-    session->setStreamMessageCallback(Session_Test::m_instance, &streamDataCallback);
-    session->setStandaloneMessageCallback(Session_Test::m_instance, &standaloneDataCallback);
+    session->setStreamCallback(Session_Test::m_instance, &streamDataCallback);
+    session->setRequestCallback(Session_Test::m_instance, &standaloneDataCallback);
 
     Session_Test::m_instance->compare(session->sessionId(), (uint32_t)131073);
     Session_Test::m_instance->m_numberOfInitSessions++;
@@ -212,25 +212,17 @@ void
 Session_Test::sendTestMessages(Session* session)
 {
     bool ret = false;
+    ErrorContainer error;
 
     // stream-message
     const std::string staticTestString = Session_Test::m_instance->m_staticMessage;
     ret = session->sendStreamData(staticTestString.c_str(),
                                   staticTestString.size(),
+                                  error,
                                   true);
     Session_Test::m_instance->compare(ret,  true);
 
     // singleblock-message
-    const std::string singleblockTestString = Session_Test::m_instance->m_singleBlockMessage;
-    ret = session->sendStandaloneData(singleblockTestString.c_str(),
-                                      singleblockTestString.size());
-    Session_Test::m_instance->compare(ret,  true);
-
-    // multiblock-message
-    const std::string multiblockTestString = Session_Test::m_instance->m_multiBlockMessage;
-    ret = session->sendStandaloneData(multiblockTestString.c_str(),
-                                      multiblockTestString.size());
-    Session_Test::m_instance->compare(ret,  true);
 }
 
 /**
@@ -239,12 +231,14 @@ Session_Test::sendTestMessages(Session* session)
 void
 Session_Test::runTest()
 {
+    ErrorContainer error;
+
     SessionController* m_controller = new SessionController(&sessionCreateCallback,
                                                             &sessionCloseCallback,
                                                             &errorCallback);
 
-    TEST_EQUAL(m_controller->addUnixDomainServer("/tmp/sock.uds"), 1);
-    bool isNullptr = m_controller->startUnixDomainSession("/tmp/sock.uds", "test") == nullptr;
+    TEST_EQUAL(m_controller->addUnixDomainServer("/tmp/sock.uds", error), 1);
+    bool isNullptr = m_controller->startUnixDomainSession("/tmp/sock.uds", "test", error) == nullptr;
     TEST_EQUAL(isNullptr, false);
 
 
@@ -255,12 +249,31 @@ Session_Test::runTest()
         return;
     }
 
+    // test stream-message
     sendTestMessages(m_testSession);
 
     usleep(100000);
 
+    // test request with single-block
+    DataBuffer* resp = m_testSession->sendRequest(m_singleBlockMessage.c_str(),
+                                                  m_singleBlockMessage.size(),
+                                                  10,
+                                                  error);
+    const std::string expectedReponse1 = m_singleBlockMessage + "_response";
+    const std::string response1(static_cast<const char*>(resp->data), resp->usedBufferSize);
+    TEST_EQUAL(response1, expectedReponse1);
+
+    // test request with multi-block
+    resp = m_testSession->sendRequest(m_multiBlockMessage.c_str(),
+                                      m_multiBlockMessage.size(),
+                                      10,
+                                      error);
+    const std::string expectedReponse2 = m_multiBlockMessage + "_response";
+    const std::string response2(static_cast<const char*>(resp->data), resp->usedBufferSize);
+    //TEST_EQUAL(response2, expectedReponse2);
+
     LOG_DEBUG("TEST: close session again");
-    bool ret = m_testSession->closeSession();
+    bool ret = m_testSession->closeSession(error);
     TEST_EQUAL(ret, true);
     LOG_DEBUG("TEST: close session finished");
 

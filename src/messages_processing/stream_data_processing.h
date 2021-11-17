@@ -49,7 +49,8 @@ namespace Sakura
 inline bool
 send_Data_Stream(Session* session,
                  DataBuffer* data,
-                 const bool replyExpected)
+                 const bool replyExpected,
+                 ErrorContainer &error)
 {
     // bring message-size to a multiple of 8
     const uint32_t size = static_cast<const uint32_t>(data->usedBufferSize)
@@ -78,7 +79,7 @@ send_Data_Stream(Session* session,
            sizeof(CommonMessageFooter));
 
     // send
-    return session->sendMessage(header.commonHeader, dataPtr, totalMessageSize);
+    return session->sendMessage(header.commonHeader, dataPtr, totalMessageSize, error);
 }
 
 /**
@@ -88,7 +89,8 @@ inline bool
 send_Data_Stream(Session* session,
                  const void* data,
                  const uint32_t size,
-                 const bool replyExpected)
+                 const bool replyExpected,
+                 ErrorContainer &error)
 {
     uint8_t messageBuffer[MESSAGE_CACHE_SIZE];
 
@@ -116,7 +118,7 @@ send_Data_Stream(Session* session,
            sizeof(CommonMessageFooter));
 
     // send
-    return session->sendMessage(header.commonHeader, messageBuffer, totalMessageSize);
+    return session->sendMessage(header.commonHeader, messageBuffer, totalMessageSize, error);
 }
 
 /**
@@ -124,14 +126,15 @@ send_Data_Stream(Session* session,
  */
 inline bool
 send_Data_Stream_Reply(Session* session,
-                       const uint32_t messageId)
+                       const uint32_t messageId,
+                       ErrorContainer &error)
 {
     Data_StreamReply_Message message;
 
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = messageId;
 
-    return session->sendMessage(message);
+    return session->sendMessage(message, error);
 }
 
 /**
@@ -154,7 +157,7 @@ process_Data_Stream(Session* session,
 
     // send reply if necessary
     if(header->commonHeader.flags & 0x1) {
-        send_Data_Stream_Reply(session, header->commonHeader.messageId);
+        send_Data_Stream_Reply(session, header->commonHeader.messageId, session->sessionError);
     }
 }
 

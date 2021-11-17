@@ -50,33 +50,40 @@ public:
 
     // server
     uint32_t addUnixDomainServer(const std::string &socketFile,
+                                 ErrorContainer &error,
                                  const std::string &threadName = "UDS");
     uint32_t addTcpServer(const uint16_t port,
+                          ErrorContainer &error,
                           const std::string &threadName = "TCP");
     uint32_t addTlsTcpServer(const uint16_t port,
                              const std::string &certFile,
                              const std::string &keyFile,
+                             ErrorContainer &error,
                              const std::string &threadName = "TLS_TCP");
     bool closeServer(const uint32_t id);
     void cloesAllServers();
 
     // session
     Session* startUnixDomainSession(const std::string &socketFile,
-                                    const std::string &sessionIdentifier = "");
+                                    const std::string &sessionIdentifier,
+                                    ErrorContainer &error);
     Session* startTcpSession(const std::string &address,
                              const uint16_t port,
-                             const std::string &sessionIdentifier = "");
+                             const std::string &sessionIdentifier,
+                             ErrorContainer &error);
     Session* startTlsTcpSession(const std::string &address,
                                 const uint16_t port,
                                 const std::string &certFile,
                                 const std::string &keyFile,
-                                const std::string &sessionIdentifier = "");
+                                const std::string &sessionIdentifier,
+                                ErrorContainer &error);
 
 private:
     uint32_t m_serverIdCounter = 0;
 
     Session* startSession(Network::AbstractSocket* socket,
-                          const std::string &sessionIdentifier);
+                          const std::string &sessionIdentifier,
+                          ErrorContainer &error);
 };
 
 } // namespace Sakura

@@ -32,7 +32,7 @@
 #include <string>
 
 #include <libKitsunemimiCommon/buffer/data_buffer.h>
-#include <libKitsunemimiCommon/threading/thread.h>
+#include <libKitsunemimiCommon/logger.h>
 
 namespace Kitsunemimi
 {
@@ -41,62 +41,42 @@ namespace Sakura
 class Session;
 
 class MultiblockIO
-        : public Kitsunemimi::Thread
 {
 public:
     // multiblock-message
-    struct MultiblockMessage
+    struct MultiblockBuffer
     {
-        bool isReady = false;
-        bool currentSend = false;
         uint64_t blockerId = 0;
         uint64_t multiblockId = 0;
         uint64_t messageSize = 0;
         uint32_t numberOfPackages = 0;
         uint32_t courrentPackage = 0;
-        Kitsunemimi::DataBuffer* multiBlockBuffer = nullptr;
+
+        Kitsunemimi::DataBuffer* incomingData = nullptr;
     };
 
-    MultiblockIO(Session* session, const std::string &threadName);
-
-    Session* m_session = nullptr;
+    MultiblockIO(Session* session);
 
     // create
-    uint64_t createOutgoingBuffer(DataBuffer* result,
-                                  const void* data,
-                                  const uint64_t size,
-                                  const bool answerExpected=false,
-                                  const uint64_t blockerId = 0);
+    uint64_t sendOutgoingData(const void* data,
+                              const uint64_t size,
+                              ErrorContainer &error,
+                              const uint64_t blockerId = 0);
     bool createIncomingBuffer(const uint64_t multiblockId,
                               const uint64_t size);
 
-    // process outgoing
-    bool makeOutgoingReady(const uint64_t multiblockId);
-    bool sendOutgoingData(const MultiblockMessage &messageBuffer);
-
     // process incoming
-    MultiblockMessage getIncomingBuffer(const uint64_t multiblockId);
+    MultiblockBuffer getIncomingBuffer(const uint64_t multiblockId);
     bool writeIntoIncomingBuffer(const uint64_t multiblockId,
                                  const void* data,
                                  const uint64_t size);
-
-    // remove
-    bool removeOutgoingMessage(const uint64_t multiblockId=0);
-    bool removeIncomingMessage(const uint64_t multiblockId);
-
-    uint64_t getRandValue();
-
-protected:
-    void run();
+    bool removeMultiblockBuffer(const uint64_t multiblockId);
 
 private:
-    bool m_aborCurrentMessage = false;
+    Session* m_session = nullptr;
 
-    std::atomic_flag m_outgoing_lock = ATOMIC_FLAG_INIT;
-    std::deque<MultiblockMessage> m_outgoing;
-
-    std::atomic_flag m_incoming_lock = ATOMIC_FLAG_INIT;
-    std::map<uint64_t, MultiblockMessage> m_incoming;
+    std::mutex m_lock;
+    std::map<uint64_t, MultiblockBuffer> m_incomingBuffer;
 };
 
 } // namespace Sakura

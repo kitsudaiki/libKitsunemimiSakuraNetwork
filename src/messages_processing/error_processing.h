@@ -52,7 +52,8 @@ namespace Sakura
 inline bool
 send_ErrorMessage(Session* session,
                   const uint8_t errorCode,
-                  const std::string &errorMessage)
+                  const std::string &errorMessage,
+                  ErrorContainer &error)
 {
     LOG_DEBUG("SEND error message");
 
@@ -69,13 +70,13 @@ send_ErrorMessage(Session* session,
             message.messageSize = errorMessage.size();
 
             // check and copy message-content
-            if(message.messageSize > MAX_SINGLE_MESSAGE_SIZE-1) {
-                message.messageSize = MAX_SINGLE_MESSAGE_SIZE-1;
+            if(message.messageSize > MAX_SINGLE_MESSAGE_SIZE - 1) {
+                message.messageSize = MAX_SINGLE_MESSAGE_SIZE - 1;
             }
             strncpy(message.message, errorMessage.c_str(),  message.messageSize);
 
             // send
-            return session->sendMessage(message);
+            return session->sendMessage(message, error);
         }
         //------------------------------------------------------------------------------------------
         case Session::errorCodes::UNKNOWN_SESSION:
@@ -88,15 +89,15 @@ send_ErrorMessage(Session* session,
             message.messageSize = errorMessage.size();
 
             // check and copy message-content
-            if(message.messageSize > MAX_SINGLE_MESSAGE_SIZE-1) {
-                message.messageSize = MAX_SINGLE_MESSAGE_SIZE-1;
+            if(message.messageSize > MAX_SINGLE_MESSAGE_SIZE - 1) {
+                message.messageSize = MAX_SINGLE_MESSAGE_SIZE - 1;
             }
             strncpy(message.message,
                     errorMessage.c_str(),
                     message.messageSize);
 
             // send
-            return session->sendMessage(message);
+            return session->sendMessage(message, error);
         }
         //------------------------------------------------------------------------------------------
         case Session::errorCodes::INVALID_MESSAGE_SIZE:
@@ -109,15 +110,15 @@ send_ErrorMessage(Session* session,
             message.messageSize = errorMessage.size();
 
             // check and copy message-content
-            if(message.messageSize > MAX_SINGLE_MESSAGE_SIZE-1) {
-                message.messageSize = MAX_SINGLE_MESSAGE_SIZE-1;
+            if(message.messageSize > MAX_SINGLE_MESSAGE_SIZE - 1) {
+                message.messageSize = MAX_SINGLE_MESSAGE_SIZE - 1;
             }
             strncpy(message.message,
                     errorMessage.c_str(),
                     message.messageSize);
 
             // send
-            return session->sendMessage(message);
+            return session->sendMessage(message, error);
         }
         //------------------------------------------------------------------------------------------
         default:

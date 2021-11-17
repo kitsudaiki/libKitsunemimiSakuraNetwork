@@ -51,7 +51,8 @@ namespace Sakura
  */
 inline bool
 send_Session_Init_Start(Session* session,
-                        const std::string &sessionIdentifier)
+                        const std::string &sessionIdentifier,
+                        ErrorContainer &error)
 {
     LOG_DEBUG("SEND session init start");
 
@@ -64,7 +65,7 @@ send_Session_Init_Start(Session* session,
     message.sessionIdentifierSize = static_cast<uint32_t>(sessionIdentifier.size());
     memcpy(message.sessionIdentifier, sessionIdentifier.c_str(), sessionIdentifier.size());
 
-    return session->sendMessage(message);
+    return session->sendMessage(message, error);
 }
 
 /**
@@ -82,7 +83,8 @@ send_Session_Init_Reply(Session* session,
                         const uint32_t initialSessionId,
                         const uint32_t messageId,
                         const uint32_t completeSessionId,
-                        const std::string &sessionIdentifier)
+                        const std::string &sessionIdentifier,
+                        ErrorContainer &error)
 {
     LOG_DEBUG("SEND session init reply");
 
@@ -96,7 +98,7 @@ send_Session_Init_Reply(Session* session,
     message.sessionIdentifierSize = static_cast<uint32_t>(sessionIdentifier.size());
     memcpy(message.sessionIdentifier, sessionIdentifier.c_str(), sessionIdentifier.size());
 
-    return session->sendMessage(message);
+    return session->sendMessage(message, error);
 }
 
 /**
@@ -107,7 +109,8 @@ send_Session_Init_Reply(Session* session,
  */
 inline bool
 send_Session_Close_Start(Session* session,
-                         const bool replyExpected)
+                         const bool replyExpected,
+                         ErrorContainer &error)
 {
     LOG_DEBUG("SEND session close start");
 
@@ -119,7 +122,7 @@ send_Session_Close_Start(Session* session,
         message.commonHeader.flags = 0x1;
     }
 
-    return session->sendMessage(message);
+    return session->sendMessage(message, error);
 }
 
 /**
@@ -130,7 +133,8 @@ send_Session_Close_Start(Session* session,
  */
 inline bool
 send_Session_Close_Reply(Session* session,
-                         const uint32_t messageId)
+                         const uint32_t messageId,
+                         ErrorContainer &error)
 {
     LOG_DEBUG("SEND session close reply");
 
@@ -139,7 +143,7 @@ send_Session_Close_Reply(Session* session,
     message.commonHeader.sessionId = session->sessionId();
     message.commonHeader.messageId = messageId;
 
-    return session->sendMessage(message);
+    return session->sendMessage(message, error);
 }
 
 /**
@@ -162,15 +166,16 @@ process_Session_Init_Start(Session* session,
 
     // create new session and make it ready
     SessionHandler::m_sessionHandler->addSession(sessionId, session);
-    session->connectiSession(sessionId);
-    session->makeSessionReady(sessionId, sessionIdentifier);
+    session->connectiSession(sessionId, session->sessionError);
+    session->makeSessionReady(sessionId, sessionIdentifier, session->sessionError);
 
     // send
     send_Session_Init_Reply(session,
                             clientSessionId,
                             message->commonHeader.messageId,
                             sessionId,
-                            sessionIdentifier);
+                            sessionIdentifier,
+                            session->sessionError);
 }
 
 /**
@@ -193,7 +198,7 @@ process_Session_Init_Reply(Session* session,
     SessionHandler::m_sessionHandler->removeSession(initialId);
     SessionHandler::m_sessionHandler->addSession(completeSessionId, session);
     // TODO: handle return-value of makeSessionReady
-    session->makeSessionReady(completeSessionId, sessionIdentifier);
+    session->makeSessionReady(completeSessionId, sessionIdentifier, session->sessionError);
 }
 
 /**
@@ -208,12 +213,12 @@ process_Session_Close_Start(Session* session,
 {
     LOG_DEBUG("process session close start");
 
-    send_Session_Close_Reply(session, message->commonHeader.messageId);
+    send_Session_Close_Reply(session, message->commonHeader.messageId, session->sessionError);
 
     // close session and disconnect session
     SessionHandler::m_sessionHandler->removeSession(message->sessionId);
-    session->endSession();
-    session->disconnectSession();
+    session->endSession(session->sessionError);
+    session->disconnectSession(session->sessionError);
 }
 
 /**
@@ -230,7 +235,7 @@ process_Session_Close_Reply(Session* session,
 
     // disconnect session
     SessionHandler::m_sessionHandler->removeSession(message->sessionId);
-    session->disconnectSession();
+    session->disconnectSession(session->sessionError);
 }
 
 /**

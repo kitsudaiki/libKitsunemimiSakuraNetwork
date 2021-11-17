@@ -90,12 +90,8 @@ enum singleblock_data_subTypes
 
 enum multiblock_data_subTypes
 {
-    DATA_MULTI_INIT_SUBTYPE = 1,
-    DATA_MULTI_INIT_REPLY_SUBTYPE = 2,
-    DATA_MULTI_STATIC_SUBTYPE = 3,
-    DATA_MULTI_FINISH_SUBTYPE = 4,
-    DATA_MULTI_ABORT_INIT_SUBTYPE = 5,
-    DATA_MULTI_ABORT_REPLY_SUBTYPE = 6,
+    DATA_MULTI_STATIC_SUBTYPE = 1,
+    DATA_MULTI_FINISH_SUBTYPE = 2,
 };
 
 //==================================================================================================
@@ -393,58 +389,12 @@ struct Data_SingleBlockReply_Message
 //==================================================================================================
 
 /**
- * @brief Data_MultiInit_Message
- */
-struct Data_MultiInit_Message
-{
-    CommonMessageHeader commonHeader;
-    uint64_t multiblockId = 0;
-    uint64_t totalSize = 0;
-    CommonMessageFooter commonEnd;
-
-    Data_MultiInit_Message()
-    {
-        commonHeader.type = MULTIBLOCK_DATA_TYPE;
-        commonHeader.subType = DATA_MULTI_INIT_SUBTYPE;
-        commonHeader.flags = 0x1;
-        commonHeader.totalMessageSize = sizeof(Data_MultiInit_Message);
-    }
-
-} __attribute__((packed));
-
-/**
- * @brief Data_MultiInitReply_Message
- */
-struct Data_MultiInitReply_Message
-{
-    enum stati {
-        UNDEFINED = 0,
-        OK = 1,
-        FAIL = 2
-    };
-
-    CommonMessageHeader commonHeader;
-    uint64_t multiblockId = 0;
-    uint8_t status = UNDEFINED;
-    uint8_t padding[7];
-    CommonMessageFooter commonEnd;
-
-    Data_MultiInitReply_Message()
-    {
-        commonHeader.type = MULTIBLOCK_DATA_TYPE;
-        commonHeader.subType = DATA_MULTI_INIT_REPLY_SUBTYPE;
-        commonHeader.flags = 0x2;
-        commonHeader.totalMessageSize = sizeof(Data_MultiInitReply_Message);
-    }
-
-} __attribute__((packed));
-
-/**
  * @brief Data_MultiBlock_Header
  */
 struct Data_MultiBlock_Header
 {
     CommonMessageHeader commonHeader;
+    uint64_t totalSize = 0;
     uint64_t multiblockId = 0;
     uint32_t totalPartNumber = 0;
     uint32_t partId = 0;
@@ -472,44 +422,6 @@ struct Data_MultiFinish_Message
         commonHeader.type = MULTIBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_MULTI_FINISH_SUBTYPE;
         commonHeader.totalMessageSize = sizeof(Data_MultiFinish_Message);
-    }
-
-} __attribute__((packed));
-
-/**
- * @brief Data_MultiAbortInit_Message
- */
-struct Data_MultiAbortInit_Message
-{
-    CommonMessageHeader commonHeader;
-    uint64_t multiblockId = 0;
-    CommonMessageFooter commonEnd;
-
-    Data_MultiAbortInit_Message()
-    {
-        commonHeader.type = MULTIBLOCK_DATA_TYPE;
-        commonHeader.subType = DATA_MULTI_ABORT_INIT_SUBTYPE;
-        commonHeader.flags = 0x1;
-        commonHeader.totalMessageSize = sizeof(Data_MultiAbortInit_Message);
-    }
-
-} __attribute__((packed));
-
-/**
- * @brief Data_MultiAbortReply_Message
- */
-struct Data_MultiAbortReply_Message
-{
-    CommonMessageHeader commonHeader;
-    uint64_t multiblockId = 0;
-    CommonMessageFooter commonEnd;
-
-    Data_MultiAbortReply_Message()
-    {
-        commonHeader.type = MULTIBLOCK_DATA_TYPE;
-        commonHeader.subType = DATA_MULTI_ABORT_REPLY_SUBTYPE;
-        commonHeader.flags = 0x2;
-        commonHeader.totalMessageSize = sizeof(Data_MultiAbortReply_Message);
     }
 
 } __attribute__((packed));
