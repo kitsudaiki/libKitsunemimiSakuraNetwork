@@ -116,41 +116,6 @@ send_Data_Multi_Finish(Session* session,
 }
 
 /**
- * @brief send_Data_Multi_Abort_Init
- */
-inline bool
-send_Data_Multi_Abort_Init(Session* session,
-                           const uint64_t multiblockId,
-                           ErrorContainer &error)
-{
-    Data_MultiAbortInit_Message message;
-
-    message.commonHeader.sessionId = session->sessionId();
-    message.commonHeader.messageId = session->increaseMessageIdCounter();
-    message.multiblockId = multiblockId;
-
-    return session->sendMessage(message, error);
-}
-
-/**
- * @brief send_Data_Multi_Abort_Reply
- */
-inline bool
-send_Data_Multi_Abort_Reply(Session* session,
-                            const uint64_t multiblockId,
-                            const uint32_t messageId,
-                            ErrorContainer &error)
-{
-    Data_MultiAbortReply_Message message;
-
-    message.commonHeader.sessionId = session->sessionId();
-    message.commonHeader.messageId = messageId;
-    message.multiblockId = multiblockId;
-
-    return session->sendMessage(message, error);
-}
-
-/**
  * @brief process_Data_Multi_Static
  */
 inline void
@@ -203,32 +168,6 @@ process_Data_Multi_Finish(Session* session,
 }
 
 /**
- * @brief process_Data_Multi_Abort
- */
-inline void
-process_Data_Multi_Abort_Init(Session* session,
-                              const Data_MultiAbortInit_Message* message)
-{
-    session->m_multiblockIo->removeMultiblockBuffer(message->multiblockId);
-
-    // send reply
-    send_Data_Multi_Abort_Reply(session,
-                                message->multiblockId,
-                                message->commonHeader.messageId,
-                                session->sessionError);
-}
-
-/**
- * @brief process_Data_Multi_Abort
- */
-inline void
-process_Data_Multi_Abort_Reply(Session* session,
-                               const Data_MultiAbortReply_Message* message)
-{
-    session->m_multiblockIo->removeMultiblockBuffer(message->multiblockId);
-}
-
-/**
  * @brief process messages of multiblock-message-type
  *
  * @param session pointer to the session
@@ -256,22 +195,6 @@ process_MultiBlock_Data_Type(Session* session,
                 const Data_MultiFinish_Message* message =
                     static_cast<const Data_MultiFinish_Message*>(rawMessage);
                 process_Data_Multi_Finish(session, message);
-                break;
-            }
-        //------------------------------------------------------------------------------------------
-        case DATA_MULTI_ABORT_INIT_SUBTYPE:
-            {
-                const Data_MultiAbortInit_Message* message =
-                    static_cast<const Data_MultiAbortInit_Message*>(rawMessage);
-                process_Data_Multi_Abort_Init(session, message);
-                break;
-            }
-        //------------------------------------------------------------------------------------------
-        case DATA_MULTI_ABORT_REPLY_SUBTYPE:
-            {
-                const Data_MultiAbortReply_Message* message =
-                    static_cast<const Data_MultiAbortReply_Message*>(rawMessage);
-                process_Data_Multi_Abort_Reply(session, message);
                 break;
             }
         //------------------------------------------------------------------------------------------

@@ -67,9 +67,6 @@ public:
                           const uint64_t blockerId,
                           ErrorContainer &error);
 
-    void abortMessages(const uint64_t multiblockMessageId,
-                       ErrorContainer &error);
-
     // setter for changing callbacks
     void setStreamCallback(void* receiver,
                            void (*processStream)(void*, Session*, const void*, const uint64_t));

@@ -86,14 +86,11 @@ public:
     bool writeIntoIncomingBuffer(const uint64_t multiblockId,
                                  const void* data,
                                  const uint64_t size);
-
     bool removeMultiblockBuffer(const uint64_t multiblockId);
 
     uint64_t getRandValue();
 
 private:
-    bool m_aborCurrentMessage = false;
-
     std::mutex m_lock;
     std::map<uint64_t, MultiblockBuffer> m_incomingBuffer;
 };

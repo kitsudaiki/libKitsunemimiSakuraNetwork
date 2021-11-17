@@ -161,20 +161,6 @@ Session::sendRequest(const void* data,
 }
 
 /**
- * @brief abort a multi-block-message
- *
- * @param multiblockMessageId id of the multi-block-message, which should be aborted
- */
-void
-Session::abortMessages(const uint64_t multiblockMessageId,
-                       ErrorContainer &error)
-{
-    if(m_multiblockIo->removeMultiblockBuffer(multiblockMessageId) == false) {
-        send_Data_Multi_Abort_Init(this, multiblockMessageId, error);
-    }
-}
-
-/**
  * @brief send response message as reponse for another requst
  *
  * @param data data-pointer

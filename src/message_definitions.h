@@ -92,8 +92,6 @@ enum multiblock_data_subTypes
 {
     DATA_MULTI_STATIC_SUBTYPE = 3,
     DATA_MULTI_FINISH_SUBTYPE = 4,
-    DATA_MULTI_ABORT_INIT_SUBTYPE = 5,
-    DATA_MULTI_ABORT_REPLY_SUBTYPE = 6,
 };
 
 //==================================================================================================
@@ -424,44 +422,6 @@ struct Data_MultiFinish_Message
         commonHeader.type = MULTIBLOCK_DATA_TYPE;
         commonHeader.subType = DATA_MULTI_FINISH_SUBTYPE;
         commonHeader.totalMessageSize = sizeof(Data_MultiFinish_Message);
-    }
-
-} __attribute__((packed));
-
-/**
- * @brief Data_MultiAbortInit_Message
- */
-struct Data_MultiAbortInit_Message
-{
-    CommonMessageHeader commonHeader;
-    uint64_t multiblockId = 0;
-    CommonMessageFooter commonEnd;
-
-    Data_MultiAbortInit_Message()
-    {
-        commonHeader.type = MULTIBLOCK_DATA_TYPE;
-        commonHeader.subType = DATA_MULTI_ABORT_INIT_SUBTYPE;
-        commonHeader.flags = 0x1;
-        commonHeader.totalMessageSize = sizeof(Data_MultiAbortInit_Message);
-    }
-
-} __attribute__((packed));
-
-/**
- * @brief Data_MultiAbortReply_Message
- */
-struct Data_MultiAbortReply_Message
-{
-    CommonMessageHeader commonHeader;
-    uint64_t multiblockId = 0;
-    CommonMessageFooter commonEnd;
-
-    Data_MultiAbortReply_Message()
-    {
-        commonHeader.type = MULTIBLOCK_DATA_TYPE;
-        commonHeader.subType = DATA_MULTI_ABORT_REPLY_SUBTYPE;
-        commonHeader.flags = 0x2;
-        commonHeader.totalMessageSize = sizeof(Data_MultiAbortReply_Message);
     }
 
 } __attribute__((packed));

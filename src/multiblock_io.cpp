@@ -126,8 +126,7 @@ MultiblockIO::sendOutgoingData(const MultiblockBuffer& messageBuffer,
     const uint32_t totalPartNumber = static_cast<uint32_t>(totalSize / MAX_SINGLE_MESSAGE_SIZE) + 1;
     const uint8_t* dataPointer = static_cast<const uint8_t*>(messageBuffer.outgoingData);
 
-    while(totalSize != 0
-          && m_aborCurrentMessage == false)
+    while(totalSize != 0)
     {
         // get message-size base on the rest
         currentMessageSize = MAX_SINGLE_MESSAGE_SIZE;
@@ -152,24 +151,11 @@ MultiblockIO::sendOutgoingData(const MultiblockBuffer& messageBuffer,
         partCounter++;
     }
 
-    // send final message to other side
-    if(m_aborCurrentMessage == false)
-    {
-        // TODO: check return value
-        send_Data_Multi_Finish(m_session,
-                               messageBuffer.multiblockId,
-                               messageBuffer.blockerId,
-                               error);
-    }
-    else
-    {
-        // TODO: check return value
-        send_Data_Multi_Abort_Reply(m_session,
-                                    messageBuffer.multiblockId,
-                                    m_session->increaseMessageIdCounter(),
-                                    error);
-    }
-    m_aborCurrentMessage = false;
+    // TODO: check return value
+    send_Data_Multi_Finish(m_session,
+                           messageBuffer.multiblockId,
+                           messageBuffer.blockerId,
+                           error);
 
     return true;
 }
