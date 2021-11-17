@@ -169,7 +169,7 @@ void
 Session::abortMessages(const uint64_t multiblockMessageId,
                        ErrorContainer &error)
 {
-    if(m_multiblockIo->removeOutgoingMessage(multiblockMessageId) == false) {
+    if(m_multiblockIo->removeMultiblockBuffer(multiblockMessageId) == false) {
         send_Data_Multi_Abort_Init(this, multiblockMessageId, error);
     }
 }
@@ -260,7 +260,7 @@ Session::closeSession(ErrorContainer &error,
     if(m_statemachine.isInState(SESSION_READY))
     {
         SessionHandler::m_replyHandler->removeAllOfSession(m_sessionId);
-        m_multiblockIo->removeOutgoingMessage(0);
+        m_multiblockIo->removeMultiblockBuffer(0);
         if(replyExpected)
         {
             return send_Session_Close_Start(this, true, error);

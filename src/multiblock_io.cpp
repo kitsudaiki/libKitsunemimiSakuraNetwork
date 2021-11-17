@@ -58,20 +58,16 @@ MultiblockIO::createOutgoingBuffer(const void* data,
     const uint64_t newMultiblockId = getRandValue();
 
     // init new multiblock-message
-    MultiblockMessage newMultiblockMessage;
+    MultiblockBuffer newMultiblockMessage;
     newMultiblockMessage.messageSize = size;
     newMultiblockMessage.multiblockId = newMultiblockId;
     newMultiblockMessage.blockerId = blockerId;
     newMultiblockMessage.outgoingData = data;
     newMultiblockMessage.outgoingDataSize = size;
-
-    // put buffer into message-queue to be send in the background
-    while(m_outgoing_lock.test_and_set(std::memory_order_acquire)) { asm(""); }
-    m_outgoing.push_back(newMultiblockMessage);
-    m_outgoing_lock.clear(std::memory_order_release);
+    newMultiblockMessage.type = OUTGOING_TYPE;
 
     // send init-message to initialize the transfer for the data
-    send_Data_Multi_Init(m_session, newMultiblockId, size, answerExpected, error);
+    sendOutgoingData(newMultiblockMessage, error);
 
     return newMultiblockId;
 }
@@ -89,53 +85,25 @@ MultiblockIO::createIncomingBuffer(const uint64_t multiblockId,
                                    const uint64_t size)
 {
     // init new multiblock-message
-    MultiblockMessage newMultiblockMessage;
+    MultiblockBuffer newMultiblockMessage;
     newMultiblockMessage.incomingData = new Kitsunemimi::DataBuffer(calcBytesToBlocks(size));
     newMultiblockMessage.messageSize = size;
     newMultiblockMessage.multiblockId = multiblockId;
+    newMultiblockMessage.type = INCOMING_TYPE;
 
     // check if memory allocation was successful
-    if(newMultiblockMessage.incomingData == nullptr) {
+    if(newMultiblockMessage.incomingData->data == nullptr)
+    {
+        delete newMultiblockMessage.incomingData;
         return false;
     }
 
     // put buffer into message-queue to be filled with incoming data
-    while(m_incoming_lock.test_and_set(std::memory_order_acquire)) { asm(""); }
-    m_incoming.insert(std::make_pair(multiblockId, newMultiblockMessage));
-    m_incoming_lock.clear(std::memory_order_release);
+    m_lock.lock();
+    m_incomingBuffer.insert(std::make_pair(multiblockId, newMultiblockMessage));
+    m_lock.unlock();
 
     return true;
-}
-
-/**
- * @brief toggle flag in multi-block buffer to register, that the handshake was complete
- *
- * @param multiblockId id of the multiblock-message
- *
- * @return flase, if id is unknown, else true
- */
-bool
-MultiblockIO::makeOutgoingReady(const uint64_t multiblockId)
-{
-    bool found = false;
-
-    while(m_outgoing_lock.test_and_set(std::memory_order_acquire)) { asm(""); }
-
-    std::deque<MultiblockMessage>::iterator it;
-    for(it = m_outgoing.begin();
-        it != m_outgoing.end();
-        it++)
-    {
-        if(it->multiblockId == multiblockId)
-        {
-            sendOutgoingData(*it, m_session->sessionError);
-            found = true;
-        }
-    }
-
-    m_outgoing_lock.clear(std::memory_order_release);
-
-    return found;
 }
 
 /**
@@ -146,7 +114,7 @@ MultiblockIO::makeOutgoingReady(const uint64_t multiblockId)
  * @return false, if sending message failed, else true
  */
 bool
-MultiblockIO::sendOutgoingData(const MultiblockMessage& messageBuffer,
+MultiblockIO::sendOutgoingData(const MultiblockBuffer& messageBuffer,
                                ErrorContainer &error)
 {
     // counter values
@@ -169,8 +137,8 @@ MultiblockIO::sendOutgoingData(const MultiblockMessage& messageBuffer,
         totalSize -= currentMessageSize;
 
         // send single packet
-        // TODO: check return value
         if(send_Data_Multi_Static(m_session,
+                                  messageBuffer.messageSize,
                                   messageBuffer.multiblockId,
                                   totalPartNumber,
                                   partCounter,
@@ -213,22 +181,18 @@ MultiblockIO::sendOutgoingData(const MultiblockMessage& messageBuffer,
  *
  * @return buffer, if found, else an empty-buffer-object
  */
-MultiblockIO::MultiblockMessage
+MultiblockIO::MultiblockBuffer
 MultiblockIO::getIncomingBuffer(const uint64_t multiblockId)
 {
-    MultiblockMessage tempBuffer;
+    std::lock_guard<std::mutex> guard(m_lock);
 
-    while(m_incoming_lock.test_and_set(std::memory_order_acquire)) { asm(""); }
-
-    std::map<uint64_t, MultiblockMessage>::iterator it;
-    it = m_incoming.find(multiblockId);
-
-    if(it != m_incoming.end()) {
-        tempBuffer = it->second;
+    std::map<uint64_t, MultiblockBuffer>::iterator it;
+    it = m_incomingBuffer.find(multiblockId);
+    if(it != m_incomingBuffer.end()) {
+        return it->second;
     }
 
-    m_incoming_lock.clear(std::memory_order_release);
-
+    MultiblockBuffer tempBuffer;
     return tempBuffer;
 }
 
@@ -247,44 +211,14 @@ MultiblockIO::writeIntoIncomingBuffer(const uint64_t multiblockId,
                                       const uint64_t size)
 {
     bool result = false;
-    while(m_incoming_lock.test_and_set(std::memory_order_acquire)) { asm(""); }
+    std::lock_guard<std::mutex> guard(m_lock);
 
-    std::map<uint64_t, MultiblockMessage>::iterator it;
-    it = m_incoming.find(multiblockId);
+    std::map<uint64_t, MultiblockBuffer>::iterator it;
+    it = m_incomingBuffer.find(multiblockId);
 
-    if(it != m_incoming.end()) {
+    if(it != m_incomingBuffer.end()) {
         result = Kitsunemimi::addData_DataBuffer(*it->second.incomingData, data, size);
     }
-
-    m_incoming_lock.clear(std::memory_order_release);
-
-    return result;
-}
-
-/**
- * @brief remove message form the outgoing-message-buffer
- *
- * @param multiblockId it of the multiblock-message
- *
- * @return true, if multiblock-id was found within the buffer, else false
- */
-bool
-MultiblockIO::removeOutgoingMessage(const uint64_t multiblockId)
-{
-    bool result = false;
-    while(m_outgoing_lock.test_and_set(std::memory_order_acquire)) { asm(""); }
-
-    std::deque<MultiblockMessage>::iterator it;
-    for(it = m_outgoing.begin();
-        it != m_outgoing.end();
-        it++)
-    {
-        if(it->multiblockId == multiblockId) {
-            it->abort = true;
-        }
-    }
-
-    m_outgoing_lock.clear(std::memory_order_release);
 
     return result;
 }
@@ -298,22 +232,19 @@ MultiblockIO::removeOutgoingMessage(const uint64_t multiblockId)
  * @return true, if multiblock-id was found within the buffer, else false
  */
 bool
-MultiblockIO::removeIncomingMessage(const uint64_t multiblockId)
+MultiblockIO::removeMultiblockBuffer(const uint64_t multiblockId)
 {
-    bool result = false;
-    while(m_incoming_lock.test_and_set(std::memory_order_acquire)) { asm(""); }
+    std::lock_guard<std::mutex> guard(m_lock);
 
-    std::map<uint64_t, MultiblockMessage>::iterator it;
-    it = m_incoming.find(multiblockId);
-    if(it != m_incoming.end())
+    std::map<uint64_t, MultiblockBuffer>::iterator it;
+    it = m_incomingBuffer.find(multiblockId);
+    if(it != m_incomingBuffer.end())
     {
-        m_incoming.erase(it);
-        result = true;
+        m_incomingBuffer.erase(it);
+        return true;
     }
 
-    m_incoming_lock.clear(std::memory_order_release);
-
-    return result;
+    return false;
 }
 
 /**

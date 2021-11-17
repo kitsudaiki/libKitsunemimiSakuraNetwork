@@ -183,7 +183,7 @@ ReplyHandler::removeMessageFromList(const uint64_t completeMessageId)
 }
 
 /**
- * @brief endless thread-loop the time timer
+ * @brief endless thread-loop the heartbeat timer
  */
 void
 ReplyHandler::run()
@@ -192,7 +192,7 @@ ReplyHandler::run()
 
     while(!m_abort)
     {
-        sleepThread(100000);
+        sleepThread(100000000);
         counter += 1;
 
         if(m_abort) {

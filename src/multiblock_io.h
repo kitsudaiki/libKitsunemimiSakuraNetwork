@@ -43,8 +43,14 @@ class Session;
 class MultiblockIO
 {
 public:
+    enum BufferType
+    {
+        OUTGOING_TYPE = 0,
+        INCOMING_TYPE = 1,
+    };
+
     // multiblock-message
-    struct MultiblockMessage
+    struct MultiblockBuffer
     {
         uint64_t blockerId = 0;
         uint64_t multiblockId = 0;
@@ -52,6 +58,7 @@ public:
         uint32_t numberOfPackages = 0;
         uint32_t courrentPackage = 0;
         bool abort = false;
+        BufferType type = OUTGOING_TYPE;
 
         Kitsunemimi::DataBuffer* incomingData = nullptr;
         const void* outgoingData = nullptr;
@@ -72,29 +79,23 @@ public:
                               const uint64_t size);
 
     // process outgoing
-    bool makeOutgoingReady(const uint64_t multiblockId);
-    bool sendOutgoingData(const MultiblockMessage &messageBuffer, ErrorContainer &error);
+    bool sendOutgoingData(const MultiblockBuffer &messageBuffer, ErrorContainer &error);
 
     // process incoming
-    MultiblockMessage getIncomingBuffer(const uint64_t multiblockId);
+    MultiblockBuffer getIncomingBuffer(const uint64_t multiblockId);
     bool writeIntoIncomingBuffer(const uint64_t multiblockId,
                                  const void* data,
                                  const uint64_t size);
 
-    // remove
-    bool removeOutgoingMessage(const uint64_t multiblockId=0);
-    bool removeIncomingMessage(const uint64_t multiblockId);
+    bool removeMultiblockBuffer(const uint64_t multiblockId);
 
     uint64_t getRandValue();
 
 private:
     bool m_aborCurrentMessage = false;
 
-    std::atomic_flag m_outgoing_lock = ATOMIC_FLAG_INIT;
-    std::deque<MultiblockMessage> m_outgoing;
-
-    std::atomic_flag m_incoming_lock = ATOMIC_FLAG_INIT;
-    std::map<uint64_t, MultiblockMessage> m_incoming;
+    std::mutex m_lock;
+    std::map<uint64_t, MultiblockBuffer> m_incomingBuffer;
 };
 
 } // namespace Sakura

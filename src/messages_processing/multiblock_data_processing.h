@@ -44,88 +44,53 @@ namespace Sakura
 {
 
 /**
- * @brief send_Data_Multi_Init
- */
-inline bool
-send_Data_Multi_Init(Session* session,
-                     const uint64_t multiblockId,
-                     const uint64_t requestedSize,
-                     const bool answerExpected,
-                     ErrorContainer &error)
-{
-    Data_MultiInit_Message message;
-
-    message.commonHeader.sessionId = session->sessionId();
-    message.commonHeader.messageId = session->increaseMessageIdCounter();
-    message.multiblockId = multiblockId;
-    message.totalSize = requestedSize;
-    if(answerExpected) {
-        message.commonHeader.flags |= 0x4;
-    }
-
-    return session->sendMessage(message, error);
-}
-
-/**
- * @brief send_Data_Multi_Init_Reply
- */
-inline bool
-send_Data_Multi_Init_Reply(Session* session,
-                           const uint64_t multiblockId,
-                           const uint32_t messageId,
-                           const uint8_t status,
-                           ErrorContainer &error)
-{
-    Data_MultiInitReply_Message message;
-
-    message.commonHeader.sessionId = session->sessionId();
-    message.commonHeader.messageId = messageId;
-    message.multiblockId = multiblockId;
-    message.status = status;
-
-    return session->sendMessage(message, error);
-}
-
-/**
  * @brief send_Data_Multi_Static
  */
 inline bool
 send_Data_Multi_Static(Session* session,
+                       const uint64_t totalSize,
                        const uint64_t multiblockId,
                        const uint32_t totalPartNumber,
                        const uint32_t partId,
                        const void* data,
                        const uint32_t size,
-                       ErrorContainer &error)
+                       ErrorContainer &error,
+                       const uint64_t blockerId = 0)
 {
     uint8_t messageBuffer[MESSAGE_CACHE_SIZE];
 
     // bring message-size to a multiple of 8
     const uint32_t totalMessageSize = sizeof(Data_MultiBlock_Header)
                                       + size
-                                      + (8-(size % 8)) % 8  // fill up to a multiple of 8
+                                      + (8 - (size % 8)) % 8  // fill up to a multiple of 8
                                       + sizeof(CommonMessageFooter);
 
     CommonMessageFooter end;
-    Data_MultiBlock_Header message;
+    Data_MultiBlock_Header header;
 
     // fill message
-    message.commonHeader.sessionId = session->sessionId();
-    message.commonHeader.messageId = session->increaseMessageIdCounter();
-    message.commonHeader.totalMessageSize = totalMessageSize;
-    message.commonHeader.payloadSize = size;
-    message.multiblockId = multiblockId;
-    message.totalPartNumber = totalPartNumber;
-    message.partId = partId;
+    header.commonHeader.sessionId = session->sessionId();
+    header.commonHeader.messageId = session->increaseMessageIdCounter();
+    header.commonHeader.totalMessageSize = totalMessageSize;
+    header.commonHeader.payloadSize = size;
+    header.multiblockId = multiblockId;
+    header.totalPartNumber = totalPartNumber;
+    header.partId = partId;
+    header.totalSize = totalSize;
+
+    // set flag to await response-message for blocker-id
+    if(blockerId != 0) {
+        header.commonHeader.flags |= 0x8;
+    }
 
     // fill buffer to build the complete message
-    memcpy(&messageBuffer[0], &message, sizeof(Data_MultiBlock_Header));
+    memcpy(&messageBuffer[0], &header, sizeof(Data_MultiBlock_Header));
     memcpy(&messageBuffer[sizeof(Data_MultiBlock_Header)], data, size);
     memcpy(&messageBuffer[(totalMessageSize - sizeof(CommonMessageFooter))],
            &end,
            sizeof(CommonMessageFooter));
 
-    return session->sendMessage(message, error);
+    return session->sendMessage(header.commonHeader, &messageBuffer, totalMessageSize, error);
 }
 
 /**
@@ -186,53 +151,6 @@ send_Data_Multi_Abort_Reply(Session* session,
 }
 
 /**
- * @brief process_Data_Multi_Init
- */
-inline void
-process_Data_Multi_Init(Session* session,
-                        const Data_MultiInit_Message* message)
-{
-    const bool ret = session->m_multiblockIo->createIncomingBuffer(message->multiblockId,
-                                                                   message->totalSize);
-    if(ret)
-    {
-        send_Data_Multi_Init_Reply(session,
-                                   message->multiblockId,
-                                   message->commonHeader.messageId,
-                                   Data_MultiInitReply_Message::OK,
-                                   session->sessionError);
-    }
-    else
-    {
-        send_Data_Multi_Init_Reply(session,
-                                   message->multiblockId,
-                                   message->commonHeader.messageId,
-                                   Data_MultiInitReply_Message::FAIL,
-                                   session->sessionError);
-    }
-}
-
-/**
- * @brief process_Data_Multi_Init_Reply
- */
-inline void
-process_Data_Multi_Init_Reply(Session* session,
-                              const Data_MultiInitReply_Message* message)
-{
-    if(message->status == Data_MultiInitReply_Message::OK)
-    {
-        session->m_multiblockIo->makeOutgoingReady(message->multiblockId);
-    }
-    else
-    {
-        // trigger callback
-        session->m_processError(session,
-                                Session::errorCodes::MULTIBLOCK_FAILED,
-                                "unable not send multi-block-Message");
-    }
-}
-
-/**
  * @brief process_Data_Multi_Static
  */
 inline void
@@ -240,8 +158,17 @@ process_Data_Multiblock(Session* session,
                         const Data_MultiBlock_Header* message,
                         const void* rawMessage)
 {
+    if(message->partId == 0)
+    {
+        const bool ret = session->m_multiblockIo->createIncomingBuffer(message->multiblockId,
+                                                                       message->totalSize);
+        if(ret) {
+            // TODO: send error
+        }
+    }
+
     const uint8_t* payloadData = static_cast<const uint8_t*>(rawMessage)
-                                 + sizeof(Data_SingleBlock_Header);
+                                 + sizeof(Data_MultiBlock_Header);
     session->m_multiblockIo->writeIntoIncomingBuffer(message->multiblockId,
                                                      payloadData,
                                                      message->commonHeader.payloadSize);
@@ -254,7 +181,7 @@ inline void
 process_Data_Multi_Finish(Session* session,
                           const Data_MultiFinish_Message* message)
 {
-    MultiblockIO::MultiblockMessage buffer =
+    MultiblockIO::MultiblockBuffer buffer =
             session->m_multiblockIo->getIncomingBuffer(message->multiblockId);
 
     // check if normal standalone-message or if message is response
@@ -272,7 +199,7 @@ process_Data_Multi_Finish(Session* session,
                                          buffer.incomingData);
     }
 
-    session->m_multiblockIo->removeIncomingMessage(message->multiblockId);
+    session->m_multiblockIo->removeMultiblockBuffer(message->multiblockId);
 }
 
 /**
@@ -282,7 +209,7 @@ inline void
 process_Data_Multi_Abort_Init(Session* session,
                               const Data_MultiAbortInit_Message* message)
 {
-    session->m_multiblockIo->removeOutgoingMessage(message->multiblockId);
+    session->m_multiblockIo->removeMultiblockBuffer(message->multiblockId);
 
     // send reply
     send_Data_Multi_Abort_Reply(session,
@@ -298,7 +225,7 @@ inline void
 process_Data_Multi_Abort_Reply(Session* session,
                                const Data_MultiAbortReply_Message* message)
 {
-    session->m_multiblockIo->removeIncomingMessage(message->multiblockId);
+    session->m_multiblockIo->removeMultiblockBuffer(message->multiblockId);
 }
 
 /**
@@ -315,22 +242,6 @@ process_MultiBlock_Data_Type(Session* session,
 {
     switch(header->subType)
     {
-        //------------------------------------------------------------------------------------------
-        case DATA_MULTI_INIT_SUBTYPE:
-            {
-                const Data_MultiInit_Message* message =
-                    static_cast<const Data_MultiInit_Message*>(rawMessage);
-                process_Data_Multi_Init(session, message);
-                break;
-            }
-        //------------------------------------------------------------------------------------------
-        case DATA_MULTI_INIT_REPLY_SUBTYPE:
-            {
-                const Data_MultiInitReply_Message* message =
-                    static_cast<const Data_MultiInitReply_Message*>(rawMessage);
-                process_Data_Multi_Init_Reply(session, message);
-                break;
-            }
         //------------------------------------------------------------------------------------------
         case DATA_MULTI_STATIC_SUBTYPE:
             {

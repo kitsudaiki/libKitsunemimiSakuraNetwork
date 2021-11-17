@@ -75,8 +75,13 @@ void standaloneDataCallback(void* target,
 {
     std::string receivedMessage(static_cast<const char*>(data->data), data->usedBufferSize);
     Session_Test* instance = static_cast<Session_Test*>(target);
+    LOG_DEBUG("TEST: receive request with size: " + std::to_string(receivedMessage.size()));
 
-    instance->compare(receivedMessage, instance->m_singleBlockMessage);
+    if(receivedMessage.size() < 1024) {
+        instance->compare(receivedMessage, instance->m_singleBlockMessage);
+    } else {
+        instance->compare(receivedMessage, instance->m_multiBlockMessage);
+    }
 
     const std::string responseMessage = receivedMessage + "_response";
     session->sendResponse(responseMessage.c_str(),
@@ -244,18 +249,28 @@ Session_Test::runTest()
         return;
     }
 
+    // test stream-message
     sendTestMessages(m_testSession);
 
     usleep(100000);
 
+    // test request with single-block
     DataBuffer* resp = m_testSession->sendRequest(m_singleBlockMessage.c_str(),
                                                   m_singleBlockMessage.size(),
                                                   10,
                                                   error);
-    const std::string expectedReponse = m_singleBlockMessage + "_response";
-    const std::string response(static_cast<const char*>(resp->data), resp->usedBufferSize);
-    TEST_EQUAL(response, expectedReponse);
+    const std::string expectedReponse1 = m_singleBlockMessage + "_response";
+    const std::string response1(static_cast<const char*>(resp->data), resp->usedBufferSize);
+    TEST_EQUAL(response1, expectedReponse1);
 
+    // test request with multi-block
+    resp = m_testSession->sendRequest(m_multiBlockMessage.c_str(),
+                                      m_multiBlockMessage.size(),
+                                      10,
+                                      error);
+    const std::string expectedReponse2 = m_multiBlockMessage + "_response";
+    const std::string response2(static_cast<const char*>(resp->data), resp->usedBufferSize);
+    //TEST_EQUAL(response2, expectedReponse2);
 
     LOG_DEBUG("TEST: close session again");
     bool ret = m_testSession->closeSession(error);
