@@ -41,7 +41,11 @@ namespace Sakura
 #define PROTOCOL_IDENTIFIER 0x006d6f65
 #define MESSAGE_DELIMITER 0x6e796161
 #define MESSAGE_CACHE_SIZE (1024*1024)
+
+// for testing this flag is set to a lower value, so it has to be checked, if already set
+#ifndef MAX_SINGLE_MESSAGE_SIZE
 #define MAX_SINGLE_MESSAGE_SIZE (128*1024)
+#endif
 
 enum types
 {

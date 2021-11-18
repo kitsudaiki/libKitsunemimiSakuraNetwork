@@ -18,6 +18,7 @@ function build_kitsune_lib_repo () {
     REPO_NAME=$1
     NUMBER_OF_THREADS=$2
     ADDITIONAL_CONFIGS=$3
+    ADDITIONAL_DEFINES=$4
 
     # create build directory for repo and go into this directory
     REPO_DIR="$BUILD_DIR/$REPO_NAME"
@@ -25,7 +26,7 @@ function build_kitsune_lib_repo () {
     cd $REPO_DIR
 
     # build repo library with qmake
-    /usr/lib/x86_64-linux-gnu/qt5/bin/qmake "$PARENT_DIR/$REPO_NAME/$REPO_NAME.pro" -spec linux-g++ "CONFIG += optimize_full $ADDITIONAL_CONFIGS"
+    /usr/lib/x86_64-linux-gnu/qt5/bin/qmake "$PARENT_DIR/$REPO_NAME/$REPO_NAME.pro" -spec linux-g++ "CONFIG += optimize_full $ADDITIONAL_CONFIGS" "$ADDITIONAL_DEFINES"
     /usr/bin/make -j$NUMBER_OF_THREADS
 
     # copy build-result and include-files into the result-directory
@@ -62,7 +63,7 @@ fi
 #-----------------------------------------------------------------------------------------------------------------
 
 if [ $1 = "test" ]; then
-    build_kitsune_lib_repo "libKitsunemimiSakuraNetwork" 4 "staticlib run_tests"
+    build_kitsune_lib_repo "libKitsunemimiSakuraNetwork" 4 "staticlib run_tests" "DEFINES+=MAX_SINGLE_MESSAGE_SIZE=1024"
 else
     build_kitsune_lib_repo "libKitsunemimiSakuraNetwork" 4 "staticlib"
 fi
