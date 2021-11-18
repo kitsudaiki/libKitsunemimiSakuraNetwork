@@ -87,8 +87,8 @@ createHeaderError(const std::string &message,
     hexlify(headerContent, &header, sizeof(header));
 
     ErrorContainer error;
-    error.errorMessage = message;
-    error.possibleSolution = " check header: " + headerContent;
+    error.addMeesage(message);
+    error.addSolution(" check header: " + headerContent);
     LOG_ERROR(error);
 }
 

@@ -364,7 +364,7 @@ Session::makeSessionReady(const uint32_t sessionId,
 
     m_cv.notify_one();
 
-    error.errorMessage = "Failed to make session ready";
+    error.addMeesage("Failed to make session ready");
 
     return false;
 }
@@ -408,14 +408,14 @@ Session::disconnectSession(ErrorContainer &error)
     {
         const bool ret = m_socket->closeSocket();
         if(ret == false) {
-            error.errorMessage = "Failed to close session";
+            error.addMeesage("Failed to close session");
             return false;
         }
 
         return true;
     }
 
-    error.errorMessage = "Failed to go to DISCONNECT-state for session";
+    error.addMeesage("Failed to go to DISCONNECT-state for session");
 
     return false;
 }
