@@ -75,7 +75,7 @@ public:
     void setErrorCallback(void (*processError)(Session*,  const uint8_t, const std::string));
 
     // session-controlling functions
-    bool closeSession(ErrorContainer &errorconst,
+    bool closeSession(ErrorContainer &error,
                       bool replyExpected = false);
     uint32_t sessionId() const;
     bool isClientSide() const;

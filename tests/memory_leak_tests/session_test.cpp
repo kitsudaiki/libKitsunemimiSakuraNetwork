@@ -41,25 +41,6 @@ void streamDataCallback(void* target,
                         const uint64_t dataSize)
 {
     LOG_DEBUG("TEST: streamDataCallback");
-    Session_Test* instance = static_cast<Session_Test*>(target);
-
-    std::string receivedMessage(static_cast<const char*>(data), dataSize);
-
-    bool ret = false;
-
-    if(dataSize == instance->m_staticMessage.size())
-    {
-        ret = true;
-        instance->compare(receivedMessage, instance->m_staticMessage);
-    }
-
-    if(dataSize == instance->m_dynamicMessage.size())
-    {
-        ret = true;
-        instance->compare(receivedMessage, instance->m_dynamicMessage);
-    }
-
-    instance->compare(ret,  true);
 }
 
 /**
@@ -74,22 +55,9 @@ void standaloneDataCallback(void* target,
                             DataBuffer* data)
 {
     std::string receivedMessage(static_cast<const char*>(data->data), data->usedBufferSize);
-    Session_Test* instance = static_cast<Session_Test*>(target);
-    LOG_DEBUG("TEST: receive request with size: " + std::to_string(receivedMessage.size()));
-
-    if(receivedMessage.size() < 1024) {
-        instance->compare(receivedMessage, instance->m_singleBlockMessage);
-    } else {
-        instance->compare(receivedMessage, instance->m_multiBlockMessage);
-    }
-
-    const std::string responseMessage = receivedMessage + "_response";
-    session->sendResponse(responseMessage.c_str(),
-                          responseMessage.size(),
-                          blockerId,
-                          session->sessionError);
-
+    const std::string rep = receivedMessage + "_response";
     delete data;
+    session->sendResponse(rep.c_str(), rep.size(), blockerId, session->sessionError);
 }
 
 /**
@@ -112,11 +80,9 @@ void sessionCreateCallback(Kitsunemimi::Sakura::Session* session,
 {
     session->setStreamCallback(Session_Test::m_instance, &streamDataCallback);
     session->setRequestCallback(Session_Test::m_instance, &standaloneDataCallback);
-
-    Session_Test::m_instance->compare(session->sessionId(), (uint32_t)131073);
-    Session_Test::m_instance->m_numberOfInitSessions++;
-    Session_Test::m_instance->compare(sessionIdentifier, std::string("test"));
-    Session_Test::m_instance->m_testSession = session;
+    if(session->isClientSide() == false) {
+        Session_Test::m_instance->m_serverSession = session;
+    }
 }
 
 void sessionCloseCallback(Kitsunemimi::Sakura::Session*,
@@ -128,13 +94,14 @@ void sessionCloseCallback(Kitsunemimi::Sakura::Session*,
 /**
  * @brief Session_Test::Session_Test
  */
-Session_Test::Session_Test() :
-    Kitsunemimi::CompareTestHelper("Session_Test")
+Session_Test::Session_Test()
+    : Kitsunemimi::MemoryLeakTestHelpter("Session_Test")
 {
     Session_Test::m_instance = this;
 
-    initTestCase();
-    runTest();
+    testController();
+    testSession();
+    testSend();
 }
 
 /**
@@ -205,84 +172,127 @@ Session_Test::initTestCase()
 }
 
 /**
- * @brief Session_Test::sendTestMessages
- * @param session
+ * @brief test controller create and delete
  */
 void
-Session_Test::sendTestMessages(Session* session)
+Session_Test::testController()
 {
-    bool ret = false;
-    ErrorContainer error;
+    // init strings
+    initTestCase();
+    std::string msg = m_singleBlockMessage;
+    SessionController* m_controller = nullptr;
+    ErrorContainer* error = nullptr;
+    uint32_t id = 0;
 
-    // stream-message
-    const std::string staticTestString = Session_Test::m_instance->m_staticMessage;
-    ret = session->sendStreamData(staticTestString.c_str(),
-                                  staticTestString.size(),
-                                  error,
-                                  true);
-    Session_Test::m_instance->compare(ret,  true);
+    // one-time-allocation
+    m_controller = new SessionController(&sessionCreateCallback, &sessionCloseCallback, &errorCallback);
+    error = new ErrorContainer();
+    id = m_controller->addUnixDomainServer("/tmp/sock.uds", *error);
+    m_controller->closeServer(id);
+    delete error;
+    delete m_controller;
+    sleep(1);
 
-    // singleblock-message
+    REINIT_TEST();
+    m_controller = new SessionController(&sessionCreateCallback, &sessionCloseCallback, &errorCallback);
+    error = new ErrorContainer();
+    id = m_controller->addUnixDomainServer("/tmp/sock.uds", *error);
+    m_controller->closeServer(id);
+    delete error;
+    delete m_controller;
+    CHECK_MEMORY();
 }
 
 /**
- * @brief runTest
+ * @brief test session create and delete
  */
 void
-Session_Test::runTest()
+Session_Test::testSession()
 {
-    ErrorContainer error;
+    // init strings
+    initTestCase();
+    Session* session = nullptr;
+    std::string msg = m_singleBlockMessage;
+    SessionController* m_controller = nullptr;
+    ErrorContainer* error = nullptr;
+    uint32_t id = 0;
 
-    SessionController* m_controller = new SessionController(&sessionCreateCallback,
-                                                            &sessionCloseCallback,
-                                                            &errorCallback);
+    // tests
+    m_controller = new SessionController(&sessionCreateCallback, &sessionCloseCallback, &errorCallback);
+    error = new ErrorContainer();
+    id = m_controller->addUnixDomainServer("/tmp/sock.uds", *error);
 
-    TEST_EQUAL(m_controller->addUnixDomainServer("/tmp/sock.uds", error), 1);
-    bool isNullptr = m_controller->startUnixDomainSession("/tmp/sock.uds", "test", "test", error) == nullptr;
-    TEST_EQUAL(isNullptr, false);
+    REINIT_TEST();
 
+    session = m_controller->startUnixDomainSession("/tmp/sock.uds", "test", "test", *error);
+    session->closeSession(*error, false);
+    Session_Test::m_instance->m_serverSession->closeSession(*error, false);
+    delete session;
+    delete Session_Test::m_instance->m_serverSession;
+    sleep(2);
 
-    isNullptr = m_testSession == nullptr;
-    TEST_EQUAL(isNullptr, false);
+    CHECK_MEMORY();
 
-    if(isNullptr) {
-        return;
-    }
-
-    // test stream-message
-    sendTestMessages(m_testSession);
-
-    usleep(100000);
-
-    // test request with single-block
-    DataBuffer* resp = m_testSession->sendRequest(m_singleBlockMessage.c_str(),
-                                                  m_singleBlockMessage.size(),
-                                                  10,
-                                                  error);
-    const std::string expectedReponse1 = m_singleBlockMessage + "_response";
-    const std::string response1(static_cast<const char*>(resp->data), resp->usedBufferSize);
-    TEST_EQUAL(response1, expectedReponse1);
-
-    // test request with multi-block
-    resp = m_testSession->sendRequest(m_multiBlockMessage.c_str(),
-                                      m_multiBlockMessage.size(),
-                                      10,
-                                      error);
-    const std::string expectedReponse2 = m_multiBlockMessage + "_response";
-    const std::string response2(static_cast<const char*>(resp->data), resp->usedBufferSize);
-    TEST_EQUAL(response2, expectedReponse2);
-
-    LOG_DEBUG("TEST: close session again");
-    bool ret = m_testSession->closeSession(error);
-    TEST_EQUAL(ret, true);
-    LOG_DEBUG("TEST: close session finished");
-
-    usleep(100000);
-
-    TEST_EQUAL(m_numberOfInitSessions, 2);
-    TEST_EQUAL(m_numberOfEndSessions, 2);
-
+    m_controller->closeServer(id);
+    delete error;
     delete m_controller;
+    sleep(2);
+
+}
+
+/**
+ * @brief test send messages
+ */
+void
+Session_Test::testSend()
+{
+    Session* session = nullptr;
+    DataBuffer* resp = nullptr;
+    std::string msg = m_singleBlockMessage;
+    SessionController* m_controller = nullptr;
+    ErrorContainer* error = nullptr;
+    uint32_t id = 0;
+
+    m_controller = new SessionController(&sessionCreateCallback,
+                                         &sessionCloseCallback,
+                                         &errorCallback);
+    error = new ErrorContainer();
+    id = m_controller->addUnixDomainServer("/tmp/sock.uds", *error);
+
+    session = m_controller->startUnixDomainSession("/tmp/sock.uds", "test", "test", *error);
+
+    // first message requires a one-time-allocation
+    resp = session->sendRequest(msg.c_str(), msg.size(), 10, *error);
+    delete resp;
+
+        REINIT_TEST();
+        session->sendStreamData(msg.c_str(), msg.size(), *error,  true);
+        usleep(100000);
+
+        // test request with single-block
+
+        // 2x single-block
+        msg = m_singleBlockMessage;
+        resp = session->sendRequest(msg.c_str(), msg.size(), 10, *error);
+        delete resp;
+        resp = session->sendRequest(msg.c_str(), msg.size(), 10, *error);
+        delete resp;
+
+        // 2x multi-block
+        msg = m_multiBlockMessage;
+        resp = session->sendRequest(msg.c_str(), msg.size(), 10, *error);
+        delete resp;
+        resp = session->sendRequest(msg.c_str(), msg.size(), 10, *error);
+        delete resp;
+        CHECK_MEMORY();
+
+    session->closeSession(*error, false);
+    delete session;
+
+    m_controller->closeServer(id);
+    delete error;
+    delete m_controller;
+    sleep(2);
 }
 
 } // namespace Sakura

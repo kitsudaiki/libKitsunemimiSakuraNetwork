@@ -218,7 +218,6 @@ process_Session_Close_Start(Session* session,
     // close session and disconnect session
     SessionHandler::m_sessionHandler->removeSession(message->sessionId);
     session->endSession(session->sessionError);
-    session->disconnectSession(session->sessionError);
 }
 
 /**

@@ -36,6 +36,20 @@ MultiblockIO::MultiblockIO(Session* session)
     m_session = session;
 }
 
+MultiblockIO::~MultiblockIO()
+{
+    m_abort = true;
+    usleep(10000);
+
+    std::map<uint64_t, MultiblockBuffer>::iterator it;
+    for(it = m_incomingBuffer.begin();
+        it != m_incomingBuffer.end();
+        it++)
+    {
+        delete it->second.incomingData;
+    }
+}
+
 /**
  * @brief send multiblock-message
  *
@@ -64,7 +78,8 @@ MultiblockIO::sendOutgoingData(const void* data,
     const uint32_t totalPartNumber = static_cast<uint32_t>(totalSize / MAX_SINGLE_MESSAGE_SIZE) + 1;
     const uint8_t* dataPointer = static_cast<const uint8_t*>(data);
 
-    while(totalSize != 0)
+    while(totalSize != 0
+          && m_abort == false)
     {
         // get message-size base on the rest
         currentMessageSize = MAX_SINGLE_MESSAGE_SIZE;
@@ -87,6 +102,10 @@ MultiblockIO::sendOutgoingData(const void* data,
         }
 
         partCounter++;
+    }
+
+    if(m_abort) {
+        return 0;
     }
 
     // finish multiblock-message
