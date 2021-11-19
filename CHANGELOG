@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.8.0] - 2021-11-19
+
+### Changed
+- renamed setter for callbacks
+- use error-containers
+- some internal restructures
+
+### Removed
+- removed standalone-messages, so now only request-response possible
+- removed additional internal thread for sending multiblock-message asyncronous in background
+- removed ACTIVE-state from statemachine
+
+### Fixed
+- removed memory-leaks with the help of new memory-leak-tests
+- fixed multi-block-messages
+
+
 ## [0.7.2] - 2021-10-29
 
 ### Added

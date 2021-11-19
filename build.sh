@@ -52,13 +52,9 @@ function get_required_kitsune_lib_repo () {
 
 #-----------------------------------------------------------------------------------------------------------------
 
-get_required_kitsune_lib_repo "libKitsunemimiCommon" "master" 4 "staticlib"
+get_required_kitsune_lib_repo "libKitsunemimiCommon" "v0.23.0" 4 "staticlib"
 
-get_required_kitsune_lib_repo "libKitsunemimiNetwork" "master" 4 "staticlib"
-
-if [ $1 = "test" ]; then
-get_required_kitsune_lib_repo "libKitsunemimiArgs" "master" 4 "staticlib"
-fi
+get_required_kitsune_lib_repo "libKitsunemimiNetwork" "v0.8.1" 4 "staticlib"
 
 #-----------------------------------------------------------------------------------------------------------------
 
