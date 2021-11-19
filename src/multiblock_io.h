@@ -56,6 +56,7 @@ public:
     };
 
     MultiblockIO(Session* session);
+    ~MultiblockIO();
 
     // create
     uint64_t sendOutgoingData(const void* data,
@@ -74,6 +75,7 @@ public:
 
 private:
     Session* m_session = nullptr;
+    bool m_abort = false;
 
     std::mutex m_lock;
     std::map<uint64_t, MultiblockBuffer> m_incomingBuffer;

@@ -69,6 +69,7 @@ Session::Session(Network::AbstractSocket* socket)
  */
 Session::~Session()
 {
+    delete m_multiblockIo;
     ErrorContainer error;
     closeSession(error, false);
     m_socket->scheduleThreadForDeletion();

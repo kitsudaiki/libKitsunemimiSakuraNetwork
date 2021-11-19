@@ -66,16 +66,19 @@ public:
     // session
     Session* startUnixDomainSession(const std::string &socketFile,
                                     const std::string &sessionIdentifier,
+                                    const std::string &threadName,
                                     ErrorContainer &error);
     Session* startTcpSession(const std::string &address,
                              const uint16_t port,
                              const std::string &sessionIdentifier,
+                             const std::string &threadName,
                              ErrorContainer &error);
     Session* startTlsTcpSession(const std::string &address,
                                 const uint16_t port,
                                 const std::string &certFile,
                                 const std::string &keyFile,
                                 const std::string &sessionIdentifier,
+                                const std::string &threadName,
                                 ErrorContainer &error);
 
 private:

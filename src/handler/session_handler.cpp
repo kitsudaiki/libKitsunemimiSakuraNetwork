@@ -66,7 +66,6 @@ SessionHandler::SessionHandler(void (*processCreateSession)(Session*, const std:
         m_blockerHandler->startThread();
     }
 
-
     // check if messages have the size of a multiple of 8
     assert(sizeof(CommonMessageHeader) % 8 == 0);
     assert(sizeof(CommonMessageFooter) % 8 == 0);
@@ -89,6 +88,18 @@ SessionHandler::SessionHandler(void (*processCreateSession)(Session*, const std:
  */
 SessionHandler::~SessionHandler()
 {
+    if(m_replyHandler != nullptr)
+    {
+        m_replyHandler->scheduleThreadForDeletion();
+        m_replyHandler = nullptr;
+        sleep(1);
+    }
+    if(m_blockerHandler != nullptr)
+    {
+        delete m_blockerHandler;
+        m_blockerHandler = nullptr;
+    }
+
     lockServerMap();
     m_servers.clear();
     unlockServerMap();

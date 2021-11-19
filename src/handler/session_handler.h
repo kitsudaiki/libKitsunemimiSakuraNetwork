@@ -47,7 +47,6 @@ public:
 
     static Kitsunemimi::Sakura::ReplyHandler* m_replyHandler;
     static Kitsunemimi::Sakura::MessageBlockerHandler* m_blockerHandler;
-    static Kitsunemimi::Sakura::SessionController* m_sessionController;
     static Kitsunemimi::Sakura::SessionHandler* m_sessionHandler;
 
     SessionHandler(void (*processCreateSession)(Session*, const std::string),
