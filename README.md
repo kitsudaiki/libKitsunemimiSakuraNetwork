@@ -18,20 +18,6 @@ The following messages-types are supported:
 
 	This are very simple and fast messages. For these messages, there is no additional memory allocation and the receiver of the messages gets only little parts. The data are only inside the message-ring-buffer of the socket, so the receiver have to process them instantly, or they will be overwritten. These messages are for cases, when the layer above should handle the data and wants as minimal overhead as possible.
 
-	There are two types of stream-messages:
-
-	- static-messages
-
-		This type has a static size, even when only a few bytes have to be send, but because the size is static, it can be easily created on the stack, which make the preparing of the message really fast.
-
-	- dynamic messages
-
-		These messages are only as big as necessary, but in return the are slower in creation, because the memory has to be prepared before filling.
-
-- standalone-messages:
-
-	The standalone-message allocating a buffer one both sides of the transfer. It process a multi-block message-transfer by a separate thread in the backgroud, which send the data in multiple parts to the receiver. There the single parts are collected into a buffer. So with this there can also be send a much bigger amount of data. So in comparism to the stream-messages, even when the message is multiple mega-bytes big, there is only one callback on the reeiver side, which contains a pointer to the buffer with the complete message. In stream-messages, the layer above has to collect and merge the single parts of the complete message.
-
 - request-response-messages:
 
 	This are a special case of the standalone-messages. The request-call sends a standalone-message to the receiver with an ID and blocks the thread, which has called the request-method, until the other side sends a response-message with the ID back. The request-message returns after its release the received data. This way it can force a synchronized communication to implement for example RPC-calls.
@@ -61,9 +47,8 @@ IMPORTANT: All my projects are only tested on Linux.
 
 Repository-Name | Version-Tag | Download-Path
 --- | --- | ---
-libKitsunemimiCommon | v0.22.0 |  https://github.com/kitsudaiki/libKitsunemimiCommon.git
-libKitsunemimiNetwork | v0.7.0 |  https://github.com/kitsudaiki/libKitsunemimiNetwork.git
-libKitsunemimiArgs (only for tests) | v0.3.1 |  https://github.com/kitsudaiki/libKitsunemimiArgs.git
+libKitsunemimiCommon | v0.23.0 |  https://github.com/kitsudaiki/libKitsunemimiCommon.git
+libKitsunemimiNetwork | v0.8.1 |  https://github.com/kitsudaiki/libKitsunemimiNetwork.git
 
 HINT: These Kitsunemimi-Libraries will be downloaded and build automatically with the build-script below.
 
