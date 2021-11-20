@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.1] - 2021-11-20
+
+### Fixed
+- closing a session with broken connection to the other side resulted in a crash as result of an incomplete closing-process
+
+
 ## [0.8.0] - 2021-11-19
 
 ### Changed
