@@ -258,9 +258,7 @@ Session::closeSession(ErrorContainer &error,
         }
         else
         {
-            if(send_Session_Close_Start(this, false, error) == false) {
-                return false;
-            }
+            send_Session_Close_Start(this, false, error);
             return endSession(error);
         }
     }
