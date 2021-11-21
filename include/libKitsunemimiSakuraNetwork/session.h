@@ -78,6 +78,7 @@ public:
     bool closeSession(ErrorContainer &error,
                       bool replyExpected = false);
     uint32_t sessionId() const;
+    uint32_t getMaximumSingleSize() const;
     bool isClientSide() const;
 
     enum errorCodes

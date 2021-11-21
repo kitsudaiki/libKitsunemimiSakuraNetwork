@@ -84,7 +84,7 @@ Session::~Session()
  * @param error reference for error-output
  * @param replyExpected if true, the other side sends a reply-message to check timeouts
  *
- * @return false if session is NOT ready to send, else true
+ * @return false if session is NOT ready to send, send failed, or message is too big, else true
  */
 bool
 Session::sendStreamData(const void* data,
@@ -92,32 +92,14 @@ Session::sendStreamData(const void* data,
                         ErrorContainer &error,
                         const bool replyExpected)
 {
-    if(m_statemachine.isInState(SESSION_READY))
-    {
-        uint64_t totalSize = size;
-        uint64_t currentMessageSize = 0;
-        uint32_t partCounter = 0;
-        bool result = true;
+    // check size
+    if(size > MAX_SINGLE_MESSAGE_SIZE) {
+        return false;
+    }
 
-        while(totalSize != 0)
-        {
-            currentMessageSize = MAX_SINGLE_MESSAGE_SIZE;
-            if(totalSize <= MAX_SINGLE_MESSAGE_SIZE) {
-                currentMessageSize = totalSize;
-            }
-            totalSize -= currentMessageSize;
-
-            const uint8_t* dataPointer = static_cast<const uint8_t*>(data);
-
-            bool ret =  send_Data_Stream(this,
-                                         dataPointer + (MAX_SINGLE_MESSAGE_SIZE * partCounter),
-                                         static_cast<uint32_t>(currentMessageSize),
-                                         replyExpected,
-                                         error);
-            result = result && ret;
-        }
-
-        return result;
+    // check statemachine and try to send
+    if(m_statemachine.isInState(SESSION_READY)) {
+        return send_Data_Stream(this, data, size, replyExpected, error);
     }
 
     return false;
@@ -275,6 +257,17 @@ uint32_t
 Session::sessionId() const
 {
     return m_sessionId;
+}
+
+/**
+ * @brief get maximum stream-message size
+ *
+ * @return maximum stream-message size
+ */
+uint32_t
+Session::getMaximumSingleSize() const
+{
+    return MAX_SINGLE_MESSAGE_SIZE;
 }
 
 /**
