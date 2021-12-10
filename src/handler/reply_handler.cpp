@@ -235,6 +235,10 @@ ReplyHandler::makeTimerStep()
                                         + std::to_string(temp->completeMessageId)
                                         + " with type: "
                                         + std::to_string(temp->messageType);
+                // release session for the case,
+                // that the session is actually still in creating state.
+                // If this lock is not release, it blocks for eterity.
+                temp->session->m_initState = -1;
 
                 temp->session->m_processError(temp->session,
                                               Session::errorCodes::MESSAGE_TIMEOUT,

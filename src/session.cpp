@@ -69,6 +69,9 @@ Session::Session(Network::AbstractSocket* socket)
  */
 Session::~Session()
 {
+    // release lock, for the case, that the session is still in creating-state
+    m_initState = -1;
+
     delete m_multiblockIo;
     ErrorContainer error;
     closeSession(error, false);
@@ -303,14 +306,14 @@ Session::connectiSession(const uint32_t sessionId,
         // connect socket
         if(m_socket->initClientSide(error) == false)
         {
-            m_cv.notify_one();
+            m_initState = -1;
             return false;
         }
 
         // git into connected state
         if(m_statemachine.goToNextState(CONNECT) == false)
         {
-            m_cv.notify_one();
+            m_initState = -1;
             return false;
         }
 
@@ -320,7 +323,7 @@ Session::connectiSession(const uint32_t sessionId,
         return true;
     }
 
-    m_cv.notify_one();
+    m_initState = -1;
 
     return false;
 }
@@ -349,12 +352,12 @@ Session::makeSessionReady(const uint32_t sessionId,
         m_processCreateSession(this, m_sessionIdentifier);
 
         // release blocked session on client-side
-        m_cv.notify_one();
+        m_initState = 1;
 
         return true;
     }
 
-    m_cv.notify_one();
+    m_initState = -1;
 
     error.addMeesage("Failed to make session ready");
 
