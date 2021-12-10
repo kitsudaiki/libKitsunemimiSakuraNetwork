@@ -334,8 +334,18 @@ SessionController::startSession(Network::AbstractSocket* socket,
         SessionHandler::m_sessionHandler->addSession(newId, newSession);
         send_Session_Init_Start(newSession, sessionIdentifier, error);
 
-        std::unique_lock<std::mutex> lock(newSession->m_cvMutex);
-        newSession->m_cv.wait(lock);
+        while(newSession->m_initState == 0) {
+            usleep(10000);
+        }
+
+        if(newSession->m_initState == -1)
+        {
+            newSession->closeSession(error);
+            sleep(1);
+            delete newSession;
+
+            return nullptr;
+        }
 
         return newSession;
     }

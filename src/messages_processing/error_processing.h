@@ -140,6 +140,10 @@ process_Error_Type(Session* session,
                    const CommonMessageHeader* header,
                    const void* rawMessage)
 {
+    // release session for the case, that the session is actually still in creating state. If this
+    // lock is not release, it blocks for eterity.
+    session->m_initState = -1;
+
     switch(header->subType)
     {
         //------------------------------------------------------------------------------------------

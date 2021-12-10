@@ -108,9 +108,7 @@ public:
     std::string m_sessionIdentifier = "";
     ErrorContainer sessionError;
 
-    // wait for initialized
-    std::mutex m_cvMutex;
-    std::condition_variable m_cv;
+    int m_initState = 0;
 
     // init session
     bool connectiSession(const uint32_t sessionId,
