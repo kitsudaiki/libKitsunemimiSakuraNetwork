@@ -401,8 +401,8 @@ Session::disconnectSession(ErrorContainer &error)
 
     if(m_statemachine.goToNextState(DISCONNECT))
     {
-        const bool ret = m_socket->closeSocket();
-        if(ret == false) {
+        if(m_socket->closeSocket() == false)
+        {
             error.addMeesage("Failed to close session");
             return false;
         }
