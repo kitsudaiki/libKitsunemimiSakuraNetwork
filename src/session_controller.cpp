@@ -317,7 +317,7 @@ SessionController::startSession(Network::AbstractSocket* socket,
                                 ErrorContainer &error)
 {
     // precheck
-    if(sessionIdentifier.size() > 64)
+    if(sessionIdentifier.size() > 64000)
     {
         delete socket;
         return nullptr;

@@ -38,8 +38,8 @@ namespace Kitsunemimi
 namespace Sakura
 {
 
-#define PROTOCOL_IDENTIFIER 0x006d6f65
-#define MESSAGE_DELIMITER 0x6e796161
+#define PROTOCOL_IDENTIFIER 0x6e79616e
+#define MESSAGE_DELIMITER 0x70617375
 #define MESSAGE_CACHE_SIZE (1024*1024)
 
 // for testing this flag is set to a lower value, so it has to be checked, if already set
@@ -140,7 +140,7 @@ struct Session_Init_Start_Message
 {
     CommonMessageHeader commonHeader;
     uint32_t clientSessionId = 0;
-    char sessionIdentifier[64];
+    char sessionIdentifier[64000];
     uint32_t sessionIdentifierSize = 0;
     CommonMessageFooter commonEnd;
 
@@ -162,7 +162,7 @@ struct Session_Init_Reply_Message
     CommonMessageHeader commonHeader;
     uint32_t clientSessionId = 0;
     uint32_t completeSessionId = 0;
-    char sessionIdentifier[64];
+    char sessionIdentifier[64000];
     uint32_t sessionIdentifierSize = 0;
     uint8_t padding[4];
     CommonMessageFooter commonEnd;
