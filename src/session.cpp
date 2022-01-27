@@ -72,11 +72,15 @@ Session::~Session()
     // release lock, for the case, that the session is still in creating-state
     m_initState = -1;
 
-    delete m_multiblockIo;
+    SessionHandler::m_sessionHandler->removeSession(m_sessionId);
     ErrorContainer error;
     closeSession(error, false);
-    m_socket->scheduleThreadForDeletion();
-    m_socket = nullptr;
+    if(m_socket != nullptr)
+    {
+        m_socket->scheduleThreadForDeletion();
+        m_socket = nullptr;
+    }
+    delete m_multiblockIo;
 }
 
 /**
@@ -281,6 +285,9 @@ Session::getMaximumSingleSize() const
 bool
 Session::isClientSide() const
 {
+    if(m_socket == nullptr) {
+        return false;
+    }
     return m_socket->isClientSide();
 }
 
@@ -303,6 +310,10 @@ Session::connectiSession(const uint32_t sessionId,
     // check if already connected
     if(m_statemachine.isInState(NOT_CONNECTED))
     {
+        if(m_socket == nullptr) {
+            return false;
+        }
+
         // connect socket
         if(m_socket->initClientSide(error) == false)
         {
@@ -401,6 +412,10 @@ Session::disconnectSession(ErrorContainer &error)
 
     if(m_statemachine.goToNextState(DISCONNECT))
     {
+        if(m_socket == nullptr) {
+            return false;
+        }
+
         if(m_socket->closeSocket() == false)
         {
             error.addMeesage("Failed to close session");
@@ -431,6 +446,10 @@ Session::sendMessage(const CommonMessageHeader &header,
                      const uint64_t size,
                      ErrorContainer &error)
 {
+    if(m_socket == nullptr) {
+        return false;
+    }
+
     if(header.flags & 0x1)
     {
         SessionHandler::m_replyHandler->addMessage(header.type,
@@ -442,9 +461,6 @@ Session::sendMessage(const CommonMessageHeader &header,
     return m_socket->sendMessage(data, size, error);
 }
 
-
-
-
 /**
  * @brief send a heartbeat-message
  *
@@ -453,6 +469,10 @@ Session::sendMessage(const CommonMessageHeader &header,
 bool
 Session::sendHeartbeat()
 {
+    if(m_socket == nullptr) {
+        return false;
+    }
+
     if(m_statemachine.isInState(SESSION_READY)) {
         return send_Heartbeat_Start(this, sessionError);
     }
