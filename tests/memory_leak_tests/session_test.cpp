@@ -35,10 +35,10 @@ Kitsunemimi::Sakura::Session_Test* Session_Test::m_instance = nullptr;
  * @param data
  * @param dataSize
  */
-void streamDataCallback(void* target,
+void streamDataCallback(void*,
                         Session*,
-                        const void* data,
-                        const uint64_t dataSize)
+                        const void*,
+                        const uint64_t)
 {
     LOG_DEBUG("TEST: streamDataCallback");
 }
@@ -49,7 +49,7 @@ void streamDataCallback(void* target,
  * @param data
  * @param dataSize
  */
-void standaloneDataCallback(void* target,
+void standaloneDataCallback(void*,
                             Session* session,
                             const uint64_t blockerId,
                             DataBuffer* data)
@@ -76,7 +76,7 @@ void errorCallback(Kitsunemimi::Sakura::Session*,
  * @param sessionIdentifier
  */
 void sessionCreateCallback(Kitsunemimi::Sakura::Session* session,
-                           const std::string sessionIdentifier)
+                           const std::string )
 {
     session->setStreamCallback(Session_Test::m_instance, &streamDataCallback);
     session->setRequestCallback(Session_Test::m_instance, &standaloneDataCallback);
