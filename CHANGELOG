@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.8.3] - 2022-01-30
+
+### Changed
+- made session-identifier bigger from 64 to 64000 Bytes
+- changed protocol-identifier and message-delimiter
+
+### Fixed
+- fixed crashed, which were a result of using a deleted socket
+
+
 ## [0.8.2] - 2021-12-30
 
 ### Removed
