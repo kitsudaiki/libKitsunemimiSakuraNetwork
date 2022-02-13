@@ -238,7 +238,10 @@ Session_Test::runTest()
                                                             &errorCallback);
 
     TEST_EQUAL(m_controller->addUnixDomainServer("/tmp/sock.uds", error), 1);
-    bool isNullptr = m_controller->startUnixDomainSession("/tmp/sock.uds", "test", "test", error) == nullptr;
+    bool isNullptr = m_controller->startUnixDomainSession("/tmp/sock.uds",
+                                                          "test",
+                                                          "test",
+                                                          error) == nullptr;
     TEST_EQUAL(isNullptr, false);
 
 
@@ -252,6 +255,13 @@ Session_Test::runTest()
     // test stream-message
     sendTestMessages(m_testSession);
 
+    usleep(100000);
+
+    // test normal message with single-block
+    bool ret = m_testSession->sendNormalMessage(m_singleBlockMessage.c_str(),
+                                                m_singleBlockMessage.size(),
+                                                error);
+    TEST_EQUAL(ret, true);
     usleep(100000);
 
     // test request with single-block
@@ -273,7 +283,7 @@ Session_Test::runTest()
     TEST_EQUAL(response2, expectedReponse2);
 
     LOG_DEBUG("TEST: close session again");
-    bool ret = m_testSession->closeSession(error);
+    ret = m_testSession->closeSession(error);
     TEST_EQUAL(ret, true);
     LOG_DEBUG("TEST: close session finished");
 

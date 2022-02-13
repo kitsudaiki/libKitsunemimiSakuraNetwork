@@ -135,9 +135,9 @@ process_Data_SingleBlock(Session* session,
     {
         // trigger callback
         session->m_processRequestData(session->m_standaloneReceiver,
-                                         session,
-                                         header->multiblockId,
-                                         buffer);
+                                      session,
+                                      header->multiblockId,
+                                      buffer);
     }
 
     // send reply, if requested

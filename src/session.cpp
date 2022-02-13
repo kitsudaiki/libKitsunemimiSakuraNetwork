@@ -113,6 +113,45 @@ Session::sendStreamData(const void* data,
 }
 
 /**
+ * @brief send normal message without response
+ *
+ * @param data data-pointer
+ * @param size number of bytes
+ * @param error reference for error-output
+ *
+ * @return true, if successful, else false
+ */
+bool
+Session::sendNormalMessage(const void* data,
+                           const uint64_t size,
+                           ErrorContainer &error)
+{
+    if(m_statemachine.isInState(SESSION_READY))
+    {
+        uint64_t id = 0;
+
+        if(size <= MAX_SINGLE_MESSAGE_SIZE)
+        {
+            // send as single-block-message, if small enough
+            id = getRandId();
+            if(send_Data_SingleBlock(this, id, data, static_cast<uint32_t>(size), error) == false) {
+                return false;
+            }
+        }
+        else
+        {
+            // if too big for one message, send as multi-block-message
+            if(m_multiblockIo->sendOutgoingData(data, size, error) == 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+    return false;
+}
+
+/**
  * @brief send a request and blocks until the other side had send a response-message or a timeout
  *        appeared
  *
@@ -145,6 +184,9 @@ Session::sendRequest(const void* data,
         {
             // if too big for one message, send as multi-block-message
             id = m_multiblockIo->sendOutgoingData(data, size, error);
+            if(id == 0) {
+                return nullptr;
+            }
         }
 
         return SessionHandler::m_blockerHandler->blockMessage(id, timeout, this);
