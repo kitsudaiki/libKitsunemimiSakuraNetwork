@@ -58,6 +58,9 @@ public:
                         const uint64_t size,
                         ErrorContainer &error,
                         const bool replyExpected = false);
+    bool sendNormalMessage(const void* data,
+                           const uint64_t size,
+                           ErrorContainer &error);
     DataBuffer* sendRequest(const void* data,
                             const uint64_t size,
                             const uint64_t timeout,
