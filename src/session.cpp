@@ -357,7 +357,7 @@ Session::connectiSession(const uint32_t sessionId,
         }
 
         // connect socket
-        if(m_socket->initClientSide(error) == false)
+        if(m_socket->initConnection(error) == false)
         {
             m_initState = -1;
             return false;
