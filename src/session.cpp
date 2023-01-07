@@ -56,7 +56,7 @@ namespace Sakura
  *
  * @param socket pointer to socket
  */
-Session::Session(Network::AbstractSocket* socket)
+Session::Session(AbstractSocket* socket)
 {
     m_multiblockIo = new MultiblockIO(this);
     m_socket = socket;

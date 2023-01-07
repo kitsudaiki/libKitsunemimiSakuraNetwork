@@ -32,9 +32,8 @@
 
 namespace Kitsunemimi
 {
-namespace Network {
 class AbstractServer;
-}
+
 namespace Sakura
 {
 
@@ -84,7 +83,7 @@ public:
 private:
     uint32_t m_serverIdCounter = 0;
 
-    Session* startSession(Network::AbstractSocket* socket,
+    Session* startSession(AbstractSocket* socket,
                           const std::string &sessionIdentifier,
                           ErrorContainer &error);
 };

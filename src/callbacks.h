@@ -37,10 +37,6 @@
 #include <messages_processing/multiblock_data_processing.h>
 #include <messages_processing/singleblock_data_processing.h>
 
-using Kitsunemimi::RingBuffer;
-using Kitsunemimi::Network::AbstractSocket;
-using Kitsunemimi::DataBuffer;
-
 namespace Kitsunemimi
 {
 namespace Sakura

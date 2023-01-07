@@ -37,9 +37,7 @@
 namespace Kitsunemimi
 {
 struct DataBuffer;
-namespace Network {
 class AbstractSocket;
-}
 namespace Sakura
 {
 class SessionHandler;
@@ -102,10 +100,10 @@ public:
     //=====================================================================
     // ALL BELOW IS INTERNAL AND SHOULD NEVER BE USED BY EXTERNAL METHODS!
     //=====================================================================
-    Session(Network::AbstractSocket* socket);
+    Session(AbstractSocket* socket);
 
     Kitsunemimi::Statemachine m_statemachine;
-    Network::AbstractSocket* m_socket = nullptr;
+    AbstractSocket* m_socket = nullptr;
     MultiblockIO* m_multiblockIo = nullptr;
     uint32_t m_sessionId = 0;
     std::string m_sessionIdentifier = "";
