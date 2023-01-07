@@ -35,9 +35,6 @@
 
 #include <libKitsunemimiCommon/logger.h>
 
-using Kitsunemimi::RingBuffer;
-using Kitsunemimi::Network::AbstractSocket;
-
 namespace Kitsunemimi
 {
 namespace Sakura
@@ -52,10 +49,14 @@ send_Data_Stream(Session* session,
                  const bool replyExpected,
                  ErrorContainer &error)
 {
+    if(data->usedBufferSize < sizeof(CommonMessageFooter) + sizeof(Data_Stream_Header)) {
+        return false;
+    }
+
     // bring message-size to a multiple of 8
-    const uint32_t size = static_cast<const uint32_t>(data->usedBufferSize)
-                                                      - sizeof(CommonMessageFooter)
-                                                      - sizeof(Data_Stream_Header);
+    const uint32_t size = static_cast<uint32_t>(data->usedBufferSize)
+                                                - sizeof(CommonMessageFooter)
+                                                - sizeof(Data_Stream_Header);
     const uint32_t totalMessageSize = sizeof(Data_Stream_Header)
                                       + size
                                       + (8-(size % 8)) % 8  // fill up to a multiple of 8

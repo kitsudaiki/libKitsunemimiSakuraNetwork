@@ -94,9 +94,9 @@ SessionController::addUnixDomainServer(const std::string &socketFile,
                                        ErrorContainer &error,
                                        const std::string &threadName)
 {
-    Network::UnixDomainServer udsServer(socketFile);
-    Network::TemplateServer<Network::UnixDomainServer>* server;
-    server = new Network::TemplateServer<Network::UnixDomainServer>(std::move(udsServer),
+    UnixDomainServer udsServer(socketFile);
+    TemplateServer<UnixDomainServer>* server;
+    server = new TemplateServer<UnixDomainServer>(std::move(udsServer),
                                                                     this,
                                                                     &processConnection_Callback,
                                                                     threadName);
@@ -128,9 +128,9 @@ SessionController::addTcpServer(const uint16_t port,
                                 ErrorContainer &error,
                                 const std::string &threadName)
 {
-    Network::TcpServer tcpServer(port);
-    Network::TemplateServer<Network::TcpServer>* server = nullptr;
-    server = new Network::TemplateServer<Network::TcpServer>(std::move(tcpServer),
+    TcpServer tcpServer(port);
+    TemplateServer<TcpServer>* server = nullptr;
+    server = new TemplateServer<TcpServer>(std::move(tcpServer),
                                                              this,
                                                              &processConnection_Callback,
                                                              threadName);
@@ -166,13 +166,13 @@ SessionController::addTlsTcpServer(const uint16_t port,
                                    ErrorContainer &error,
                                    const std::string &threadName)
 {
-    Network::TcpServer tcpServer(port);
+    TcpServer tcpServer(port);
 
-    Network::TlsTcpServer tlsTcpServer(std::move(tcpServer),
+    TlsTcpServer tlsTcpServer(std::move(tcpServer),
                                        certFile,
                                        keyFile);
-    Network::TemplateServer<Network::TlsTcpServer>* server = nullptr;
-    server = new Network::TemplateServer<Network::TlsTcpServer>(std::move(tlsTcpServer),
+    TemplateServer<TlsTcpServer>* server = nullptr;
+    server = new TemplateServer<TlsTcpServer>(std::move(tlsTcpServer),
                                                                 this,
                                                                 &processConnection_Callback,
                                                                 threadName);
@@ -185,7 +185,7 @@ SessionController::addTlsTcpServer(const uint16_t port,
     SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
     m_serverIdCounter++;
     sessionHandler->lockServerMap();
-    sessionHandler->m_servers.insert(std::pair<uint32_t, Network::AbstractServer*>(
+    sessionHandler->m_servers.insert(std::pair<uint32_t, AbstractServer*>(
                                      m_serverIdCounter, server));
     sessionHandler->unlockServerMap();
 
@@ -205,12 +205,12 @@ SessionController::closeServer(const uint32_t id)
     SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
     sessionHandler->lockServerMap();
 
-    std::map<uint32_t, Network::AbstractServer*>::iterator it;
+    std::map<uint32_t, AbstractServer*>::iterator it;
     it = sessionHandler->m_servers.find(id);
 
     if(it != sessionHandler->m_servers.end())
     {
-        Network::AbstractServer* server = it->second;
+        AbstractServer* server = it->second;
         const bool ret = server->closeServer();
         if(ret == false) {
             return false;
@@ -237,7 +237,7 @@ SessionController::cloesAllServers()
     SessionHandler* sessionHandler = SessionHandler::m_sessionHandler;
     sessionHandler->lockServerMap();
 
-    std::map<uint32_t, Network::AbstractServer*>::iterator it;
+    std::map<uint32_t, AbstractServer*>::iterator it;
     for(it = sessionHandler->m_servers.begin();
         it != sessionHandler->m_servers.end();
         it++)
@@ -264,9 +264,9 @@ SessionController::startUnixDomainSession(const std::string &socketFile,
                                           const std::string &threadName,
                                           ErrorContainer &error)
 {
-    Network::UnixDomainSocket udsSocket(socketFile);
-    Network::TemplateSocket<Network::UnixDomainSocket>* unixDomainSocket = nullptr;
-    unixDomainSocket = new Network::TemplateSocket<Network::UnixDomainSocket>(std::move(udsSocket),
+    UnixDomainSocket udsSocket(socketFile);
+    TemplateSocket<UnixDomainSocket>* unixDomainSocket = nullptr;
+    unixDomainSocket = new TemplateSocket<UnixDomainSocket>(std::move(udsSocket),
                                                                               threadName);
 
     return startSession(unixDomainSocket, sessionIdentifier, error);
@@ -288,9 +288,9 @@ SessionController::startTcpSession(const std::string &address,
                                    const std::string &threadName,
                                    ErrorContainer &error)
 {
-    Network::TcpSocket tcpSocket(address, port);
-    Network::TemplateSocket<Network::TcpSocket>* tcpTemplateSocket = nullptr;
-    tcpTemplateSocket = new Network::TemplateSocket<Network::TcpSocket>(std::move(tcpSocket),
+    TcpSocket tcpSocket(address, port);
+    TemplateSocket<TcpSocket>* tcpTemplateSocket = nullptr;
+    tcpTemplateSocket = new TemplateSocket<TcpSocket>(std::move(tcpSocket),
                                                                         threadName);
     return startSession(tcpTemplateSocket, sessionIdentifier, error);
 }
@@ -315,12 +315,12 @@ SessionController::startTlsTcpSession(const std::string &address,
                                       const std::string &threadName,
                                       ErrorContainer &error)
 {
-    Network::TcpSocket tcpSocket(address, port);
-    Network::TlsTcpSocket tlsTcpSocket(std::move(tcpSocket),
+    TcpSocket tcpSocket(address, port);
+    TlsTcpSocket tlsTcpSocket(std::move(tcpSocket),
                                        certFile,
                                        keyFile);
-    Network::TemplateSocket<Network::TlsTcpSocket>* tlsTcpTemplSocket = nullptr;
-    tlsTcpTemplSocket = new Network::TemplateSocket<Network::TlsTcpSocket>(std::move(tlsTcpSocket),
+    TemplateSocket<TlsTcpSocket>* tlsTcpTemplSocket = nullptr;
+    tlsTcpTemplSocket = new TemplateSocket<TlsTcpSocket>(std::move(tlsTcpSocket),
                                                                            threadName);
     return startSession(tlsTcpTemplSocket, sessionIdentifier, error);
 }
@@ -334,7 +334,7 @@ SessionController::startTlsTcpSession(const std::string &address,
  * @return true, if session was successfully created and connected, else false
  */
 Session*
-SessionController::startSession(Network::AbstractSocket* socket,
+SessionController::startSession(AbstractSocket* socket,
                                 const std::string &sessionIdentifier,
                                 ErrorContainer &error)
 {

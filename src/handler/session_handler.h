@@ -31,9 +31,7 @@
 
 namespace Kitsunemimi
 {
-namespace Network {
 class AbstractServer;
-}
 namespace Sakura
 {
 class Session;
@@ -69,7 +67,7 @@ public:
 
     // object-holder
     std::map<uint32_t, Session*> m_sessions;
-    std::map<uint32_t, Network::AbstractServer*> m_servers;
+    std::map<uint32_t, AbstractServer*> m_servers;
 
 private:
     // counter

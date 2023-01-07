@@ -37,10 +37,6 @@
 
 #include <libKitsunemimiCommon/logger.h>
 
-using Kitsunemimi::RingBuffer;
-using Kitsunemimi::Network::AbstractSocket;
-using Kitsunemimi::getObject_RingBuffer;
-
 namespace Kitsunemimi
 {
 namespace Sakura
